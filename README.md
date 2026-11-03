@@ -1,0 +1,129 @@
+# 충청남도 탄소중립지원센터(CCNC) 공식 웹사이트
+
+충청남도 탄소중립지원센터의 홍보 및 정책 정보 전달을 위한 공식 웹사이트입니다.
+센터는 충남연구원 건물 2층에 위치하나 **독립적으로 운영되는 별도 기관**이므로, 사이트의 모든 표기는 센터 명의로 유지합니다.
+
+> 작업 이력·향후 계획·미결 사항은 [`ISSUES.md`](./ISSUES.md)에서 관리합니다.
+
+## 기술 스택
+
+| 영역 | 사용 기술 |
+| --- | --- |
+| 프레임워크 | Next.js 16 (App Router, Cache Components, Partial Prefetching), React 19, TypeScript |
+| 스타일 | Tailwind CSS v4, Pretendard (로컬 폰트), next-themes (라이트/다크/시스템) |
+| 데이터 | SQLite / libSQL + Drizzle ORM (마이그레이션: drizzle-kit) |
+| 인증 | 관리자 전용 — bcrypt 비밀번호 + JWT(HS256, jose) httpOnly 쿠키 |
+| 검증 | zod v4 (Server Action 입력 검증) |
+| 품질 | ESLint, Prettier(+tailwind 플러그인), Vitest |
+
+외부 서비스 없이 **단일 프로젝트로 완결**됩니다. (DB 파일은 `data/`에 생성)
+
+## 시작하기
+
+Node.js 22.12 이상이 필요합니다.
+
+```bash
+npm install
+cp .env.example .env          # AUTH_SECRET, ADMIN_PASSWORD 등 수정
+npm run db:setup              # 마이그레이션 + 최초 관리자 계정 생성
+npm run dev                   # http://localhost:3000
+```
+
+- 관리자 화면: `/admin` (일반 이용자 회원가입은 두지 않으며, 관리자 로그인 링크는 메뉴에 노출하지 않습니다)
+- 운영 배포 전 `.env`의 `AUTH_SECRET`(32자 이상)과 `ADMIN_PASSWORD`를 반드시 변경하세요.
+
+### 주요 스크립트
+
+| 명령 | 설명 |
+| --- | --- |
+| `npm run dev` / `build` / `start` | 개발 서버 / 프로덕션 빌드(빌드 전 자동 마이그레이션) / 실행 |
+| `npm run lint` · `typecheck` · `test` | ESLint · 타입 검사(라우트 타입 생성 포함) · 단위 테스트 |
+| `npm run format` | Prettier 포맷팅 |
+| `npm run db:generate` | `schema.ts` 변경 후 마이그레이션 SQL 생성 (`drizzle/`) |
+| `npm run db:migrate` · `db:seed` · `db:setup` | 마이그레이션 적용 · 초기 데이터 · 둘 다 |
+| `npm run db:studio` | Drizzle Studio (DB 브라우저) |
+
+## 디렉터리 구조
+
+```
+├─ drizzle/                    # DB 마이그레이션 SQL (자동 생성, 커밋 대상)
+├─ public/brand/               # CI 로고 (라이트/다크 변형)
+├─ scripts/make-dark-logos.py  # CI 원본 → 다크모드 로고 생성 스크립트
+└─ src/
+   ├─ app/                     # 라우팅 (화면 조립만 담당)
+   │  ├─ (site)/               # 공개 사이트 — 헤더/푸터 공통 레이아웃
+   │  │  ├─ about/             # 센터소개: 인사말·설립근거·연혁·비전·목표·조직·업무·오시는 길
+   │  │  ├─ business/          # 주요사업: 정책지원·조사연구·교육·홍보·네트워크·거버넌스
+   │  │  ├─ participation/     # 참여·실천: 생활실천단·탄소업슈·탄소발자국 계산기·교육 강사단
+   │  │  ├─ carbon-neutral/    # 충남 탄소중립: 탄소중립 이해·2045 비전·배출현황·부문별 감축목표
+   │  │  ├─ news/              # 알림마당: [board] 게시판(공지·소식·보도·자료실) + inquiry 문의
+   │  │  ├─ privacy/ sitemap/
+   │  │  └─ page.tsx           # 메인 (모달 팝업 포함)
+   │  ├─ admin/                # 관리자 — login + (dashboard)/ 팝업·게시판·문의 관리
+   │  ├─ layout.tsx            # 루트: 폰트·테마·메타데이터
+   │  └─ robots.ts / sitemap.ts / icon.png
+   ├─ components/              # UI 컴포넌트 (도메인별 폴더)
+   │  ├─ ui/                   # 버튼·폼·탭·페이지네이션 등 범용 프리미티브
+   │  ├─ layout/ brand/ theme/ # 헤더·푸터·LNB·브레드크럼 / 로고 / 테마 토글
+   │  ├─ home/ board/ inquiry/ popup/ charts/ content/
+   │  └─ admin/                # 관리자 전용 폼·미리보기
+   ├─ lib/
+   │  ├─ config/               # 사이트 정보·메뉴·게시판 정의 (단일 출처)
+   │  ├─ content/              # 정적 데이터 (배출 통계, 관련 사이트) — 공식 자료만
+   │  ├─ db/                   # Drizzle 스키마·클라이언트·마이그레이션·시드
+   │  ├─ repositories/         # 데이터 접근 계층 (순수 DB 로직)
+   │  ├─ queries/              # 공개 화면 조회 ('use cache' + cacheTag)
+   │  ├─ actions/              # Server Actions (인증 → 검증 → 저장 → 캐시 갱신)
+   │  ├─ validation/           # zod 스키마
+   │  ├─ auth/                 # 세션 토큰·쿠키·requireAdmin 가드
+   │  ├─ popup/                # 팝업 배치 계산 (순수 함수, 테스트 포함)
+   │  ├─ cache/ utils/ seo.ts
+   ├─ types/                   # 도메인 타입
+   └─ proxy.ts                 # /admin 낙관적 접근 제어 (Next 16: middleware → proxy)
+```
+
+### 계층 규칙
+
+```
+app (페이지)  ──▶  queries (캐시 조회)  ──▶  repositories  ──▶  db
+     │                                         ▲
+     └──▶  actions (Server Action) ── validation ┘ ── updateTag(cacheTags)
+```
+
+- **페이지/컴포넌트는 DB에 직접 접근하지 않습니다.** 공개 화면은 `lib/queries`, 관리자 화면은 `requireAdmin()` 이후 `lib/repositories`를 사용합니다.
+- **모든 변경은 Server Action**에서 `requireAdmin()` → zod 검증 → repository 호출 → `updateTag()` 순서로 처리합니다.
+- 공개 조회는 `'use cache'` + `cacheTag`로 캐시되며, 관리자 저장 시 같은 태그(`lib/cache/tags.ts`)로 즉시 갱신됩니다.
+- Cache Components 규칙상 `cookies()`, `searchParams`, `usePathname()` 등 요청 시점 값은 `<Suspense>` 안에서만 사용합니다.
+
+## 자주 하는 작업
+
+**메뉴/페이지 추가** — `src/lib/config/navigation.ts`에 항목을 추가하고 `src/app/(site)/<대메뉴>/<경로>/page.tsx`를 만듭니다.
+GNB·모바일 메뉴·LNB·브레드크럼·페이지 제목·sitemap.xml이 모두 이 설정에서 파생되어 **메뉴명 = 제목 = 위치표시**가 항상 일치합니다.
+페이지 메타데이터는 `export const metadata = navMetadata("/경로")`로 지정합니다.
+
+**게시판 추가** — `src/types/board.ts`의 `BOARD_KEYS`와 `src/lib/config/boards.ts`에 정의를 추가하면 공개 목록/상세, 관리자 CRUD, 메뉴가 자동 구성됩니다.
+
+**DB 스키마 변경** — `src/lib/db/schema.ts` 수정 → `npm run db:generate` → `npm run db:migrate`.
+
+**배출 통계 갱신** — `src/lib/content/emissions.ts`의 `records`에 연도별 수치를 추가합니다(출처 필수). 표와 차트가 자동 갱신됩니다.
+
+## 관리자 기능
+
+| 기능 | 내용 |
+| --- | --- |
+| 팝업 관리 | 메인 화면 **모달 팝업** 등록·수정·삭제, On/Off, 위치(화면 중앙 / 좌상단 X·Y 좌표), 크기(너비·높이, 높이 자동), 게시 기간, 정렬 순서. PC/모바일 미리보기 제공. 모바일(768px 미만)에서는 자동 중앙 정렬·축소. 공개 화면에 "오늘 하루 보지 않기" 제공 |
+| 게시판 관리 | 공지사항·센터소식·보도자료·자료실(정책자료/연구보고서/감축인지예산 분류) 글 등록·수정·삭제, 상단 고정, 비공개 저장, 게시일 지정 |
+| 문의 관리 | 문의 목록(답변대기/완료 필터), 상세(작성자 연락처), 답변 등록·수정·삭제, 문의 삭제 |
+
+공개 문의 게시판: 작성자 이름 마스킹, 비공개 글은 작성 시 비밀번호로만 열람, 개인정보 수집 동의, 허니팟 스팸 방지.
+
+## CI / 브랜드 · 다크모드
+
+- 제공된 CI 3종(가로형·세로형·심볼)을 `public/brand/`에 두고 `<Logo variant="horizontal|vertical|symbol" />`로 사용합니다.
+- 다크모드에서는 워드마크(남색·회색 글자)만 밝은 색으로 치환한 변형 이미지로 **CSS(`dark:` variant) 조건부 교체**합니다. JS 없이 동작해 깜빡임이 없고, 심볼의 녹색 타일은 원본 색 그대로 유지됩니다.
+- CI 원본이 바뀌면 `python3 scripts/make-dark-logos.py <원본 폴더> public/brand`로 다시 생성합니다.
+- 색상 토큰은 `src/app/globals.css`(`--primary` 등)와 CI 팔레트(`ci-*`)로 정의되어 있습니다. 본문 텍스트 대비를 위해 primary는 CI 녹색보다 한 단계 어둡게 설정했습니다.
+
+## 정보 신뢰성 원칙
+
+통계·법령·기관 정보는 **공식 기관 배포 자료만** 반영합니다. 확인되지 않은 항목은 임의로 채우지 않고 `ContentPlaceholder`(콘텐츠 준비 중)로 표시하며, 해당 작업은 `ISSUES.md`의 `CONTENT-*` 항목으로 추적합니다.
