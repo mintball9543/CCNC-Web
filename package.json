@@ -14,8 +14,9 @@
     "db:migrate": "tsx --env-file-if-exists=.env src/lib/db/migrate.ts",
     "db:seed": "tsx --env-file-if-exists=.env src/lib/db/seed.ts",
     "db:setup": "npm run db:migrate && npm run db:seed",
-    "prebuild": "npm run db:migrate",
-    "db:studio": "drizzle-kit studio"
+    "prebuild": "node scripts/check-deps.mjs && npm run db:migrate",
+    "db:studio": "drizzle-kit studio",
+    "predev": "node scripts/check-deps.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

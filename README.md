@@ -35,6 +35,9 @@ npm run dev                   # http://localhost:3000
 - 문의 답변 알림 메일을 보내려면 `.env`에 SMTP 정보를 입력하세요. 개발 중에는 `MAIL_TRANSPORT=log`로 두면 실제 발송 없이 서버 로그에만 남습니다.
 - 운영 배포 전 `.env`의 `AUTH_SECRET`(32자 이상)과 `ADMIN_PASSWORD`를 반드시 변경하세요.
 
+> **git pull 후에는 항상 `npm install`(새 패키지)과 `npm run db:migrate`(새 테이블)를 먼저 실행하세요.**
+> 패키지가 빠져 있으면 `npm run dev`/`build`가 시작 전에 어떤 패키지가 없는지 알려 줍니다.
+
 ### 주요 스크립트
 
 | 명령 | 설명 |

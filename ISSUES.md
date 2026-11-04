@@ -17,6 +17,14 @@
 
 ## 변경 이력
 
+### 2026-11-04 — 빌드 오류 대응: 의존성 설치 확인
+
+**추가**
+- `scripts/check-deps.mjs`: `npm run dev` / `npm run build` 전에 package.json 의 패키지가 모두 설치되어 있는지 확인하고, 빠진 경우 `npm install` 안내 후 중단
+
+**원인 기록**
+- `Module not found: Can't resolve '@tiptap/extension-image'` — 저장소의 package.json·package-lock.json 에는 포함되어 있으나, 로컬 node_modules 가 새 패키지 추가 이전 상태였음 (`git pull` 후 `npm install` 미실행). 새로 받은 저장소에서 `npm ci` → 빌드 정상 확인
+
 ### 2026-11-04 — 관리자 기능 확장 · 메인 개편 · 버그 수정 (요청 반영)
 
 **추가**
