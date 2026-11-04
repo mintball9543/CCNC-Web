@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminSuspense } from "@/components/admin/admin-suspense";
 import { InquiryTable } from "@/components/inquiry/inquiry-table";
 import { Pagination } from "@/components/ui/pagination";
 import { requireAdmin } from "@/lib/auth/guard";
@@ -14,7 +15,21 @@ const filters = [
   { value: "answered", label: "답변완료" },
 ] as const;
 
-export default async function AdminInquiriesPage({ searchParams }: PageProps<"/admin/inquiries">) {
+export default function AdminInquiriesPage(props: PageProps<"/admin/inquiries">) {
+  return (
+    <>
+      <AdminPageHeader
+        title="문의 관리"
+        description="문의 내용 확인 및 답변 등록·수정·삭제, 답변 알림 메일 발송"
+      />
+      <AdminSuspense>
+        <Content {...props} />
+      </AdminSuspense>
+    </>
+  );
+}
+
+async function Content({ searchParams }: PageProps<"/admin/inquiries">) {
   await requireAdmin();
   const sp = await searchParams;
   const status = sp.status === "pending" || sp.status === "answered" ? sp.status : undefined;
@@ -30,7 +45,6 @@ export default async function AdminInquiriesPage({ searchParams }: PageProps<"/a
 
   return (
     <>
-      <AdminPageHeader title="문의 관리" description="문의 내용 확인 및 답변 등록·수정·삭제" />
       <div className="mb-4 flex gap-2">
         {filters.map((f) => (
           <Link

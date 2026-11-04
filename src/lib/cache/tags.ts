@@ -9,4 +9,11 @@ export const cacheTags = {
   post: (id: number) => `post:${id}`,
   inquiries: "inquiries",
   inquiry: (id: number) => `inquiry:${id}`,
+  file: (id: number) => `file:${id}`,
+  menu: "menu",
+  settings: "settings",
+  org: "org",
+  charts: "charts",
+  stats: "stats",
+  heroSlides: "hero-slides",
 } as const;

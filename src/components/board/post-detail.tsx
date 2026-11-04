@@ -2,10 +2,19 @@ import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/feedback";
 import { getCategoryLabel } from "@/lib/config/boards";
 import { formatDate } from "@/lib/utils/format";
-import type { Post } from "@/types";
+import type { Post, UploadedFile } from "@/types";
+import { AttachmentList } from "./attachment-list";
+import { PostContent } from "./post-content";
 
-/** 게시글 상세 — 본문은 일반 텍스트(줄바꿈 유지)로 출력하여 XSS 를 방지한다 */
-export function PostDetail({ post, listHref }: { post: Post; listHref: string }) {
+export function PostDetail({
+  post,
+  attachments,
+  listHref,
+}: {
+  post: Post;
+  attachments: UploadedFile[];
+  listHref: string;
+}) {
   const category = getCategoryLabel(post.boardKey, post.category);
   return (
     <article>
@@ -25,8 +34,11 @@ export function PostDetail({ post, listHref }: { post: Post; listHref: string })
           </div>
         </dl>
       </header>
-      <div className="min-h-48 border-b border-border px-1 py-8 leading-relaxed whitespace-pre-line">
-        {post.content}
+      <div className="space-y-8 border-b border-border px-1 py-8">
+        <AttachmentList files={attachments} />
+        <div className="min-h-32">
+          <PostContent post={post} />
+        </div>
       </div>
       <div className="mt-6 flex justify-end">
         <ButtonLink href={listHref} variant="secondary">

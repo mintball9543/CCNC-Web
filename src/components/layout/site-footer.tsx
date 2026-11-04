@@ -1,32 +1,32 @@
 import Link from "next/link";
-import { Logo } from "@/components/brand/logo";
+import { BrandLockup } from "@/components/brand/brand-lockup";
 import { Container } from "@/components/ui/container";
 import { footerLinks } from "@/lib/config/navigation";
 import { siteConfig } from "@/lib/config/site";
 import { relatedSites } from "@/lib/content/related-sites";
+import { getContactSettings } from "@/lib/queries/site";
 import { CopyrightYear } from "./copyright-year";
 
-export function SiteFooter() {
-  const { contact } = siteConfig;
-  const contactLines = [
-    contact.address
-      ? `${contact.postalCode ? `(${contact.postalCode}) ` : ""}${contact.address} ${contact.addressDetail}`
-      : null,
-    [
-      contact.phone && `TEL ${contact.phone}`,
-      contact.fax && `FAX ${contact.fax}`,
-      contact.email && `E-mail ${contact.email}`,
-    ]
-      .filter(Boolean)
-      .join("  ·  ") || null,
-  ].filter(Boolean);
+/** 하단 — 주소·연락처는 관리자 > 기관 정보에서 수정 */
+export async function SiteFooter() {
+  const contact = await getContactSettings();
+  const addressLine = contact.address
+    ? `${contact.postalCode ? `(${contact.postalCode}) ` : ""}${contact.address} ${contact.addressDetail}`.trim()
+    : contact.addressDetail;
+  const contactLine = [
+    contact.phone && `TEL ${contact.phone}`,
+    contact.fax && `FAX ${contact.fax}`,
+    contact.email && `E-mail ${contact.email}`,
+  ]
+    .filter(Boolean)
+    .join("  ·  ");
 
   return (
     <footer className="mt-auto border-t border-border bg-footer">
       <Container className="py-10">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-4">
-            <Logo variant="horizontal" className="h-10" />
+            <BrandLockup compact />
             <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium">
               {footerLinks.map((link) => (
                 <li key={link.href}>
@@ -42,11 +42,8 @@ export function SiteFooter() {
               ))}
             </ul>
             <address className="space-y-1 text-sm text-muted-foreground not-italic">
-              {contactLines.length > 0 ? (
-                contactLines.map((line) => <p key={line}>{line}</p>)
-              ) : (
-                <p>{contact.addressDetail} · 연락처는 공식 확인 후 게시됩니다.</p>
-              )}
+              {addressLine && <p>{addressLine}</p>}
+              {contactLine && <p>{contactLine}</p>}
             </address>
           </div>
 

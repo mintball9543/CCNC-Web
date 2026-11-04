@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Plus } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminSuspense } from "@/components/admin/admin-suspense";
 import { PostTable } from "@/components/board/post-table";
 import { ButtonLink } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
@@ -8,10 +9,15 @@ import { requireAdmin } from "@/lib/auth/guard";
 import { getBoard } from "@/lib/config/boards";
 import * as postRepository from "@/lib/repositories/post.repository";
 
-export default async function AdminBoardPage({
-  params,
-  searchParams,
-}: PageProps<"/admin/boards/[board]">) {
+export default function AdminBoardPage(props: PageProps<"/admin/boards/[board]">) {
+  return (
+    <AdminSuspense>
+      <Content {...props} />
+    </AdminSuspense>
+  );
+}
+
+async function Content({ params, searchParams }: PageProps<"/admin/boards/[board]">) {
   await requireAdmin();
   const board = getBoard((await params).board);
   if (!board) notFound();

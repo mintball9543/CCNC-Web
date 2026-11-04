@@ -1,43 +1,77 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Suspense } from "react";
+import { ChartCard } from "@/components/charts/chart-card";
+import { ActivityGallery } from "@/components/home/activity-gallery";
 import { HeroSection } from "@/components/home/hero-section";
 import { LatestPosts } from "@/components/home/latest-posts";
 import { QuickLinks } from "@/components/home/quick-links";
+import { StatHighlights } from "@/components/home/stat-highlights";
 import { PopupLayer } from "@/components/popup/popup-layer";
 import { Container } from "@/components/ui/container";
-import { Skeleton } from "@/components/ui/feedback";
 import { getActivePopups } from "@/lib/queries/popups";
+import { getLatestActivityPhotos } from "@/lib/queries/posts";
+import { getHomeCharts, getVisibleNavigation, getVisibleStats } from "@/lib/queries/site";
+import type { BoardKey, NavSection } from "@/types";
 
-export default function HomePage() {
+const isVisible = (navigation: NavSection[], href: string) =>
+  navigation.some((s) => s.items.some((i) => i.href === href));
+
+/** 메인 — 모든 영역은 관리자 설정(메뉴 노출·사진·실적·도표)에 따라 구성된다 */
+export default async function HomePage() {
+  const [navigation, stats, charts] = await Promise.all([
+    getVisibleNavigation(),
+    getVisibleStats(),
+    getHomeCharts(),
+  ]);
+  const showActivity = isVisible(navigation, "/news/center-news");
+  const latestBoards = (["notice", "press"] as BoardKey[]).filter((key) =>
+    isVisible(navigation, `/news/${key}`),
+  );
+  const photos = showActivity ? await getLatestActivityPhotos(5) : [];
+
   return (
     <>
       <HeroSection />
-      <QuickLinks />
+      <QuickLinks navigation={navigation} />
+      <StatHighlights stats={stats} />
+      <ActivityGallery posts={photos} />
 
-      <div className="border-y border-border bg-muted/50">
-        <Container className="grid gap-6 py-16 lg:grid-cols-2">
-          <Suspense fallback={<Skeleton className="h-72" />}>
-            <LatestPosts boardKey="notice" />
-          </Suspense>
-          <Suspense fallback={<Skeleton className="h-72" />}>
-            <LatestPosts boardKey="center-news" />
-          </Suspense>
-        </Container>
-      </div>
+      {latestBoards.length > 0 && (
+        <div className="border-y border-border bg-muted/50">
+          <Container className="grid gap-6 py-16 lg:grid-cols-2">
+            {latestBoards.map((key) => (
+              <LatestPosts key={key} boardKey={key} />
+            ))}
+          </Container>
+        </div>
+      )}
 
-      <Container className="py-16">
-        <Link
-          href="/carbon-neutral/emissions"
-          className="group flex flex-col justify-between gap-4 rounded-2xl bg-ci-navy p-8 text-white sm:flex-row sm:items-center dark:bg-card dark:ring-1 dark:ring-border"
-        >
-          <div>
-            <p className="text-sm text-white/70 dark:text-muted-foreground">충남 탄소중립</p>
-            <p className="mt-1 text-xl font-bold">충청남도 온실가스 배출현황 보기</p>
+      {charts.length > 0 && (
+        <Container className="py-16">
+          <h2 className="text-2xl font-bold">데이터로 보는 충남 탄소중립</h2>
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            {charts.map((chart) => (
+              <ChartCard key={chart.id} dataset={chart} />
+            ))}
           </div>
-          <ArrowRight className="size-6 transition group-hover:translate-x-1" aria-hidden />
-        </Link>
-      </Container>
+        </Container>
+      )}
+
+      {isVisible(navigation, "/carbon-neutral/emissions") && (
+        <Container className="pb-16">
+          <Link
+            href="/carbon-neutral/emissions"
+            className="group flex flex-col justify-between gap-4 rounded-2xl bg-ci-navy p-8 text-white sm:flex-row sm:items-center dark:bg-card dark:ring-1 dark:ring-border"
+          >
+            <div>
+              <p className="text-sm text-white/70 dark:text-muted-foreground">충남 탄소중립</p>
+              <p className="mt-1 text-xl font-bold">충청남도 온실가스 배출현황 보기</p>
+            </div>
+            <ArrowRight className="size-6 transition group-hover:translate-x-1" aria-hidden />
+          </Link>
+        </Container>
+      )}
 
       <Suspense>
         <HomePopups />

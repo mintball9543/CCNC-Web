@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminSuspense } from "@/components/admin/admin-suspense";
 import { AnswerForm } from "@/components/admin/answer-form";
 import { InquiryStatusBadge } from "@/components/inquiry/inquiry-table";
 import { ButtonLink } from "@/components/ui/button";
@@ -7,12 +8,21 @@ import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { Badge, Card } from "@/components/ui/feedback";
 import { deleteAnswerAction, deleteInquiryAction } from "@/lib/actions/inquiry-admin.actions";
 import { requireAdmin } from "@/lib/auth/guard";
+import { isMailConfigured } from "@/lib/mail/mailer";
 import * as inquiryRepository from "@/lib/repositories/inquiry.repository";
 import { formatDateTime } from "@/lib/utils/format";
 
 export const metadata = { title: "문의 상세" };
 
-export default async function AdminInquiryPage({ params }: PageProps<"/admin/inquiries/[id]">) {
+export default function AdminInquiryPage(props: PageProps<"/admin/inquiries/[id]">) {
+  return (
+    <AdminSuspense>
+      <Content {...props} />
+    </AdminSuspense>
+  );
+}
+
+async function Content({ params }: PageProps<"/admin/inquiries/[id]">) {
   await requireAdmin();
   const inquiry = await inquiryRepository.findInquiry(Number((await params).id));
   if (!inquiry) notFound();
@@ -75,7 +85,17 @@ export default async function AdminInquiryPage({ params }: PageProps<"/admin/inq
               </form>
             </div>
           )}
-          <AnswerForm inquiryId={inquiry.id} answer={inquiry.answer} />
+          <AnswerForm
+            inquiryId={inquiry.id}
+            answer={inquiry.answer}
+            email={inquiry.email}
+            mailConfigured={isMailConfigured()}
+          />
+          {inquiry.notifiedAt && (
+            <p className="text-xs text-muted-foreground">
+              알림 메일 발송: {formatDateTime(inquiry.notifiedAt)}
+            </p>
+          )}
         </Card>
       </div>
     </>

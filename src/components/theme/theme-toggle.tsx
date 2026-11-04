@@ -23,11 +23,14 @@ export function ThemeToggle({ className }: { className?: string }) {
     () => false,
   );
 
-  const currentIndex = Math.max(
-    0,
-    options.findIndex((o) => o.value === theme),
-  );
-  const current = mounted ? options[currentIndex] : options[2];
+  // 서버 렌더링에서는 테마를 알 수 없으므로 '시스템 설정' 기준으로 렌더링 (하이드레이션 불일치 방지)
+  const currentIndex = mounted
+    ? Math.max(
+        0,
+        options.findIndex((o) => o.value === theme),
+      )
+    : 2;
+  const current = options[currentIndex];
   const next = options[(currentIndex + 1) % options.length];
 
   return (

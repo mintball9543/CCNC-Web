@@ -1,18 +1,19 @@
 import { Bus, Car, MapPin, Phone } from "lucide-react";
-import { siteConfig } from "@/lib/config/site";
+import { getContactSettings } from "@/lib/queries/site";
 import { navMetadata } from "@/lib/seo";
 
 export const metadata = navMetadata("/about/location");
 
-/** 오시는 길 — 주소·대중교통·주차 안내 (개편 검토: 본문에 주소·교통 정보 누락) */
-export default function Page() {
-  const { contact } = siteConfig;
+/** 오시는 길 — 주소·연락처·교통·주차 (관리자 > 기관 정보에서 수정) */
+export default async function Page() {
+  const contact = await getContactSettings();
+  const pending = "관리자 확인 후 게시됩니다.";
   const rows = [
     {
       Icon: MapPin,
       label: "주소",
       value: contact.address
-        ? `${contact.address} ${contact.addressDetail}`
+        ? `${contact.postalCode ? `(${contact.postalCode}) ` : ""}${contact.address} ${contact.addressDetail}`
         : `${contact.addressDetail} (도로명 주소 확인 후 게시)`,
     },
     {
@@ -22,13 +23,13 @@ export default function Page() {
         [
           contact.phone && `전화 ${contact.phone}`,
           contact.fax && `팩스 ${contact.fax}`,
-          contact.email && contact.email,
+          contact.email,
         ]
           .filter(Boolean)
-          .join(" · ") || "확인 후 게시",
+          .join(" · ") || pending,
     },
-    { Icon: Bus, label: "대중교통", value: "확인 후 게시" },
-    { Icon: Car, label: "주차", value: "확인 후 게시" },
+    { Icon: Bus, label: "대중교통", value: contact.transit || pending },
+    { Icon: Car, label: "주차", value: contact.parking || pending },
   ];
 
   return (
@@ -43,7 +44,7 @@ export default function Page() {
               <Icon className="size-4 text-primary" aria-hidden />
               {label}
             </dt>
-            <dd className="text-muted-foreground">{value}</dd>
+            <dd className="whitespace-pre-line text-muted-foreground">{value}</dd>
           </div>
         ))}
       </dl>

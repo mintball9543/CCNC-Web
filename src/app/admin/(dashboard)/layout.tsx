@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ExternalLink, LogOut } from "lucide-react";
 import { Suspense } from "react";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { Logo } from "@/components/brand/logo";
+import { BrandLockup } from "@/components/brand/brand-lockup";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Skeleton } from "@/components/ui/feedback";
 import { logoutAction } from "@/lib/actions/auth.actions";
@@ -18,7 +18,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside className="border-b border-border bg-card lg:w-60 lg:shrink-0 lg:border-r lg:border-b-0">
         <div className="flex items-center justify-between p-4 lg:block lg:p-5">
           <Link href="/admin" className="block">
-            <Logo variant="horizontal" className="h-9" />
+            <BrandLockup compact />
             <span className="sr-only">관리자 홈</span>
           </Link>
         </div>
@@ -52,7 +52,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </form>
         </header>
         <main className="flex-1 p-4 lg:p-8">
-          <Suspense fallback={<Skeleton className="h-96 w-full" />}>{children}</Suspense>
+          {/* 각 페이지가 자체 AdminSuspense 경계를 가진다 */}
+          {children}
         </main>
       </div>
     </div>

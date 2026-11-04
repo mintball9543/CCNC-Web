@@ -1,49 +1,25 @@
 import Link from "next/link";
 import { Menu } from "lucide-react";
 import { Suspense } from "react";
-import { Logo } from "@/components/brand/logo";
+import { BrandLockup } from "@/components/brand/brand-lockup";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Container } from "@/components/ui/container";
-import { mainNavigation } from "@/lib/config/navigation";
+import type { NavSection } from "@/types";
+import { DesktopNav } from "./desktop-nav";
 import { MobileNav } from "./mobile-nav";
 
-/** 상단 헤더 + GNB (데스크톱: hover/focus 드롭다운, 모바일: 드로어) */
-export function SiteHeader() {
+/** 상단 헤더 + GNB (관리자 메뉴 노출 설정이 적용된 메뉴를 받는다) */
+export function SiteHeader({ navigation }: { navigation: NavSection[] }) {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-header backdrop-blur">
-      <Container className="flex h-16 items-center justify-between gap-6 lg:h-20">
+      <Container className="flex h-18 items-center justify-between gap-6 lg:h-22">
         <Link href="/" className="shrink-0" aria-label="충청남도 탄소중립지원센터 홈">
-          <Logo variant="horizontal" priority className="h-9 lg:h-11" />
+          <BrandLockup />
         </Link>
 
-        <nav aria-label="주 메뉴" className="hidden h-full lg:block">
-          <ul className="flex h-full items-center gap-1">
-            {mainNavigation.map((section) => (
-              <li key={section.key} className="group relative flex h-full items-center">
-                <Link
-                  href={section.href}
-                  className="rounded-lg px-4 py-2 text-[15px] font-semibold transition hover:text-primary"
-                >
-                  {section.title}
-                </Link>
-                <div className="invisible absolute top-full left-1/2 w-52 -translate-x-1/2 pt-2 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
-                  <ul className="rounded-xl border border-border bg-card p-2 shadow-lg">
-                    {section.items.map((item) => (
-                      <li key={item.href}>
-                        <Link
-                          href={item.href}
-                          className="block rounded-lg px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                        >
-                          {item.title}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <Suspense fallback={<StaticNav sections={navigation} />}>
+          <DesktopNav sections={navigation} />
+        </Suspense>
 
         <div className="flex items-center gap-1">
           <ThemeToggle />
@@ -57,10 +33,27 @@ export function SiteHeader() {
               </span>
             }
           >
-            <MobileNav sections={mainNavigation} />
+            <MobileNav sections={navigation} />
           </Suspense>
         </div>
       </Container>
     </header>
+  );
+}
+
+/** 하이드레이션 전 GNB (대메뉴 링크만) */
+function StaticNav({ sections }: { sections: NavSection[] }) {
+  return (
+    <nav aria-label="주 메뉴" className="hidden lg:block">
+      <ul className="flex items-center gap-1">
+        {sections.map((section) => (
+          <li key={section.key}>
+            <Link href={section.href} className="rounded-lg px-4 py-2 text-[16px] font-bold">
+              {section.title}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }

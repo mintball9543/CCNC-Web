@@ -1,39 +1,54 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getClientIp } from "@/lib/auth/client-ip";
+import { verifyPassword } from "@/lib/auth/password";
+import { getLimiter } from "@/lib/auth/rate-limit";
 import { createSession, deleteSession } from "@/lib/auth/session";
-import { hashPassword, verifyPassword } from "@/lib/auth/password";
-import { findAdminByUsername, touchAdminLogin } from "@/lib/repositories/admin-user.repository";
+import { findPrimaryAdmin, touchAdminLogin } from "@/lib/repositories/admin-user.repository";
 import { formDataToObject, validationError } from "@/lib/validation/common";
 import { loginSchema } from "@/lib/validation/auth.schema";
 import type { ActionState } from "@/types";
 
-/** 계정이 없을 때도 응답 시간이 같도록 비교에 사용하는 더미 해시 (최초 1회 생성) */
-let dummyHash: Promise<string> | undefined;
-const getDummyHash = () => (dummyHash ??= hashPassword("ccnc-dummy-password"));
+/** IP 당 15분에 5회 실패 시 잠금 */
+const loginLimiter = () => getLimiter("admin-login", 5, 15 * 60 * 1000);
 
 export async function loginAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const raw = formDataToObject(formData);
   const parsed = loginSchema.safeParse(raw);
   if (!parsed.success) return validationError(parsed.error, raw);
 
-  const { username, password, next } = parsed.data;
-  const user = await findAdminByUsername(username);
-  const valid = await verifyPassword(password, user?.passwordHash ?? (await getDummyHash()));
-
-  if (!user || !valid) {
+  const ip = await getClientIp();
+  const blocked = loginLimiter().blockedFor(ip);
+  if (blocked > 0) {
     return {
       ok: false,
-      message: "아이디 또는 비밀번호가 올바르지 않습니다.",
-      values: { username, next: next ?? "" },
+      message: `로그인 시도가 너무 많습니다. ${Math.ceil(blocked / 60000)}분 후 다시 시도하세요.`,
+      values: { next: raw.next ?? "" },
     };
   }
 
-  await createSession({ userId: user.id, username: user.username, displayName: user.displayName });
-  await touchAdminLogin(user.id);
+  const admin = await findPrimaryAdmin();
+  const valid = admin ? await verifyPassword(parsed.data.password, admin.passwordHash) : false;
+  if (!admin || !valid) {
+    loginLimiter().fail(ip);
+    return {
+      ok: false,
+      message: "비밀번호가 올바르지 않습니다.",
+      values: { next: raw.next ?? "" },
+    };
+  }
 
-  const safeNext = next && next.startsWith("/admin") && !next.startsWith("//") ? next : "/admin";
-  redirect(safeNext);
+  loginLimiter().reset(ip);
+  await createSession({
+    userId: admin.id,
+    username: admin.username,
+    displayName: admin.displayName,
+  });
+  await touchAdminLogin(admin.id);
+
+  const next = parsed.data.next;
+  redirect(next && next.startsWith("/admin") && !next.startsWith("//") ? next : "/admin");
 }
 
 export async function logoutAction(): Promise<void> {

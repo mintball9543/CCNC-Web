@@ -1,8 +1,10 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { cacheTags } from "@/lib/cache/tags";
-import { POSTS_PAGE_SIZE } from "@/lib/config/boards";
+import { boards, GALLERY_PAGE_SIZE, POSTS_PAGE_SIZE } from "@/lib/config/boards";
+import * as fileRepository from "@/lib/repositories/file.repository";
 import * as postRepository from "@/lib/repositories/post.repository";
+import { fileUrl } from "@/lib/uploads/url";
 import type { BoardKey } from "@/types";
 
 /** 공개 화면용 게시글 조회 (캐시됨 — 관리자 변경 시 updateTag 로 즉시 갱신) */
@@ -18,7 +20,8 @@ export async function getPublishedPosts(
   "use cache";
   cacheLife("hours");
   cacheTag(cacheTags.posts(boardKey));
-  return postRepository.listPosts({ boardKey, page, category, keyword, pageSize: POSTS_PAGE_SIZE });
+  const pageSize = boards[boardKey].layout === "gallery" ? GALLERY_PAGE_SIZE : POSTS_PAGE_SIZE;
+  return postRepository.listPosts({ boardKey, page, category, keyword, pageSize });
 }
 
 export async function getPublishedPost(boardKey: BoardKey, id: number) {
@@ -33,4 +36,29 @@ export async function getLatestPosts(boardKey: BoardKey, limit = 5) {
   cacheLife("hours");
   cacheTag(cacheTags.posts(boardKey));
   return postRepository.listLatestPosts(boardKey, limit);
+}
+
+/** 게시글 첨부파일 (공개 화면) */
+export async function getPostAttachments(postId: number) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(cacheTags.post(postId));
+  const rows = await fileRepository.listPostAttachments(postId);
+  return rows.map((f) => ({
+    id: f.id,
+    url: fileUrl(f.id),
+    originalName: f.originalName,
+    mimeType: f.mimeType,
+    size: f.size,
+    kind: f.kind,
+  }));
+}
+
+/** 메인 '센터 활동' — 대표 사진이 있는 최신 센터소식 */
+export async function getLatestActivityPhotos(limit = 6) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(cacheTags.posts("center-news"));
+  const result = await postRepository.listPosts({ boardKey: "center-news", page: 1, pageSize: 30 });
+  return result.items.filter((p) => p.thumbnailUrl).slice(0, limit);
 }

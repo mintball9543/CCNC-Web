@@ -258,7 +258,17 @@ export function PopupForm({ popup }: { popup?: Popup }) {
       </div>
 
       <div className="xl:sticky xl:top-6 xl:self-start">
-        <PopupPreview draft={draft} />
+        <PopupPreview
+          draft={draft}
+          onGeometryChange={(rect, mode) =>
+            setDraft((d) =>
+              mode === "move"
+                ? // 끌어서 옮기면 좌표 지정 방식으로 전환
+                  { ...d, position: "custom", left: String(rect.left), top: String(rect.top) }
+                : { ...d, width: String(rect.width), height: String(rect.height) },
+            )
+          }
+        />
       </div>
     </form>
   );

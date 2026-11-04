@@ -23,6 +23,13 @@
   --ring: #16a05a;
   --header: rgb(255 255 255 / 0.92);
   --footer: #f3f6f5;
+  /* 도표 계열 색 — dataviz 검증 스크립트 통과 (라이트 표면 기준) */
+  --series-1: #0f8a4c;
+  --series-2: #2a78d6;
+  --series-3: #eb6834;
+  --series-4: #6250d6;
+  --series-5: #eda100;
+  --series-6: #e87ba4;
   color-scheme: light;
 }
 
@@ -42,6 +49,13 @@
   --ring: #3fca78;
   --header: rgb(11 18 23 / 0.9);
   --footer: #0e171c;
+  /* 도표 계열 색 — 다크 표면 기준으로 별도 선택·검증 */
+  --series-1: #28a862;
+  --series-2: #3987e5;
+  --series-3: #d95926;
+  --series-4: #9085e9;
+  --series-5: #c98500;
+  --series-6: #d55181;
   color-scheme: dark;
 }
 
@@ -119,6 +133,57 @@
   .prose-ccnc ul {
     list-style: disc;
     padding-left: 1.25rem;
+  }
+  .prose-ccnc ol {
+    list-style: decimal;
+    padding-left: 1.25rem;
+  }
+  .prose-ccnc :where(ul, ol, blockquote, img, hr) {
+    margin-block: 1rem;
+  }
+  .prose-ccnc h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+  .prose-ccnc a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .prose-ccnc blockquote {
+    border-left: 3px solid var(--primary);
+    padding-left: 1rem;
+    color: var(--muted-foreground);
+  }
+  .prose-ccnc img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+  }
+  .prose-ccnc hr {
+    border-color: var(--border);
+  }
+  .prose-ccnc code {
+    border-radius: 0.25rem;
+    background: var(--muted);
+    padding: 0.1rem 0.3rem;
+    font-size: 0.9em;
+  }
+  /* 편집기 */
+  .tiptap img.ProseMirror-selectednode {
+    outline: 3px solid var(--ring);
+  }
+  .tiptap p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+    color: var(--muted-foreground);
+  }
+  /* HWP 미리보기 (hwp.js 출력) */
+  .hwp-viewer {
+    color-scheme: light;
   }
   .prose-ccnc li + li {
     margin-top: 0.375rem;

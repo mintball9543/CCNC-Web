@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { BoardSkeleton } from "@/components/board/board-skeleton";
 import { BoardToolbar } from "@/components/board/board-toolbar";
+import { PostGallery } from "@/components/board/post-gallery";
 import { PostTable } from "@/components/board/post-table";
 import { Pagination } from "@/components/ui/pagination";
 import { boardList, getBoard } from "@/lib/config/boards";
@@ -59,13 +60,21 @@ async function BoardList({ params, searchParams }: PageProps<"/news/[board]">) {
         category={category}
         keyword={keyword}
       />
-      <PostTable
-        boardKey={board.key}
-        posts={result.items}
-        startNumber={result.total - (result.page - 1) * result.pageSize}
-        hrefFor={(post) => `${basePath}/${post.id}`}
-        emptyText={keyword ? "검색 결과가 없습니다." : undefined}
-      />
+      {board.layout === "gallery" ? (
+        <PostGallery
+          posts={result.items}
+          hrefFor={(post) => `${basePath}/${post.id}`}
+          emptyText={keyword ? "검색 결과가 없습니다." : undefined}
+        />
+      ) : (
+        <PostTable
+          boardKey={board.key}
+          posts={result.items}
+          startNumber={result.total - (result.page - 1) * result.pageSize}
+          hrefFor={(post) => `${basePath}/${post.id}`}
+          emptyText={keyword ? "검색 결과가 없습니다." : undefined}
+        />
+      )}
       <Pagination page={result.page} totalPages={result.totalPages} hrefFor={query} />
     </>
   );

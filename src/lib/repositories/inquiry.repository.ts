@@ -121,3 +121,7 @@ export async function deleteInquiry(id: number): Promise<void> {
 export async function countPendingInquiries(): Promise<number> {
   return db.$count(inquiries, isNull(inquiries.answeredAt));
 }
+
+export async function markInquiryNotified(id: number): Promise<void> {
+  await db.update(inquiries).set({ notifiedAt: new Date() }).where(eq(inquiries.id, id));
+}

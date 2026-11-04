@@ -28,6 +28,8 @@ export const inquiryPasswordSchema = z.object({
 export const inquiryAnswerSchema = z.object({
   id: z.coerce.number().int().positive(),
   answer: z.string().trim().min(1, "답변 내용을 입력하세요.").max(10_000),
+  /** 작성자에게 답변 알림 메일 발송 */
+  notify: checkbox,
 });
 
 export type InquiryInput = z.infer<typeof inquirySchema>;

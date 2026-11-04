@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { BoardSkeleton } from "@/components/board/board-skeleton";
 import { PostDetail } from "@/components/board/post-detail";
 import { getBoard } from "@/lib/config/boards";
-import { getPublishedPost } from "@/lib/queries/posts";
+import { getPostAttachments, getPublishedPost } from "@/lib/queries/posts";
 
 async function load(params: PageProps<"/news/[board]/[id]">["params"]) {
   const { board: boardKey, id } = await params;
@@ -33,5 +33,8 @@ export default function PostPage(props: PageProps<"/news/[board]/[id]">) {
 async function PostContent({ params }: PageProps<"/news/[board]/[id]">) {
   const data = await load(params);
   if (!data) notFound();
-  return <PostDetail post={data.post} listHref={`/news/${data.board.key}`} />;
+  const attachments = await getPostAttachments(data.post.id);
+  return (
+    <PostDetail post={data.post} attachments={attachments} listHref={`/news/${data.board.key}`} />
+  );
 }

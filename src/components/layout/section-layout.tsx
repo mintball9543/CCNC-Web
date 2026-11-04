@@ -1,29 +1,35 @@
+import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
-import { Skeleton } from "@/components/ui/feedback";
 import { Container } from "@/components/ui/container";
+import { Skeleton } from "@/components/ui/feedback";
 import { mainNavigation } from "@/lib/config/navigation";
+import { getVisibleNavigation } from "@/lib/queries/site";
 import { PageHeading } from "./page-heading";
 import { SectionSideNav } from "./section-side-nav";
 import { SectionSideNavView } from "./section-side-nav-view";
 
 /**
  * 서브 페이지 공통 레이아웃: 서브 비주얼 + 좌측 메뉴(LNB) + 위치표시/제목 + 본문.
- * 각 대메뉴의 layout.tsx 에서 sectionKey 만 넘겨 사용한다.
+ * 관리자 메뉴 노출 설정을 적용한다 — 숨긴 메뉴는 LNB 에서 빠진다.
+ * 숨긴 페이지에 직접 접근하는 경우는 proxy.ts 가 렌더링 전에 404 로 처리한다.
  */
-export function SectionLayout({
+export async function SectionLayout({
   sectionKey,
   children,
 }: {
   sectionKey: string;
   children: ReactNode;
 }) {
-  const section = mainNavigation.find((s) => s.key === sectionKey);
-  if (!section) throw new Error(`Unknown navigation section: ${sectionKey}`);
+  if (!mainNavigation.some((s) => s.key === sectionKey))
+    throw new Error(`Unknown navigation section: ${sectionKey}`);
+  const navigation = await getVisibleNavigation();
+  const section = navigation.find((s) => s.key === sectionKey);
+  if (!section) notFound();
 
   return (
     <>
-      <div className="border-b border-border bg-gradient-to-br from-primary-soft via-background to-background">
-        <Container className="py-10 lg:py-14">
+      <div className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary-soft via-background to-background">
+        <Container className="relative py-10 lg:py-14">
           <p className="text-sm font-semibold text-primary">{section.title}</p>
           <p className="mt-2 text-lg text-muted-foreground">{section.description}</p>
         </Container>

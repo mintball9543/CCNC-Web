@@ -44,6 +44,7 @@ export async function listPosts(query: PostListQuery): Promise<Paginated<PostSum
         author: posts.author,
         isPinned: posts.isPinned,
         publishedAt: posts.publishedAt,
+        thumbnailUrl: posts.thumbnailUrl,
       })
       .from(posts)
       .where(where)

@@ -81,3 +81,46 @@ function clamp(value: number, min: number, max: number) {
   if (max < min) return min;
   return Math.min(Math.max(value, min), max);
 }
+
+/** 드래그·크기 조절 대상 사각형 (px) */
+export interface Rect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+export const POPUP_MIN_WIDTH = 200;
+export const POPUP_MIN_HEIGHT = 120;
+
+/** 이동 — 사각형이 화면(bounds) 밖으로 나가지 않도록 보정 */
+export function moveRect(rect: Rect, dx: number, dy: number, bounds: Viewport): Rect {
+  return {
+    ...rect,
+    left: clamp(Math.round(rect.left + dx), 0, Math.max(bounds.width - rect.width, 0)),
+    top: clamp(Math.round(rect.top + dy), 0, Math.max(bounds.height - rect.height, 0)),
+  };
+}
+
+/** 우하단 기준 크기 조절 — 최소 크기와 화면 경계 적용 */
+export function resizeRect(
+  rect: Rect,
+  dw: number,
+  dh: number,
+  bounds: Viewport,
+  min = { width: POPUP_MIN_WIDTH, height: POPUP_MIN_HEIGHT },
+): Rect {
+  return {
+    ...rect,
+    width: clamp(
+      Math.round(rect.width + dw),
+      min.width,
+      Math.max(bounds.width - rect.left, min.width),
+    ),
+    height: clamp(
+      Math.round(rect.height + dh),
+      min.height,
+      Math.max(bounds.height - rect.top, min.height),
+    ),
+  };
+}

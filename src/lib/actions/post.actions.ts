@@ -5,7 +5,10 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/guard";
 import { cacheTags } from "@/lib/cache/tags";
 import { boards } from "@/lib/config/boards";
+import { extractFirstImage, sanitizePostHtml } from "@/lib/content/sanitize";
+import * as fileRepository from "@/lib/repositories/file.repository";
 import * as postRepository from "@/lib/repositories/post.repository";
+import { fileUrl } from "@/lib/uploads/url";
 import { formDataToObject, validationError } from "@/lib/validation/common";
 import { postSchema } from "@/lib/validation/post.schema";
 import type { ActionState, BoardKey } from "@/types";
@@ -27,21 +30,37 @@ export async function savePostAction(_prev: ActionState, formData: FormData): Pr
       values: raw,
     };
   }
-  const values = { ...input, category: categories ? input.category : null };
+  const { attachmentIds, ...fields } = input;
+  const content = sanitizePostHtml(fields.content);
+  const attachments = await fileRepository.listFilesByIds(attachmentIds);
+  const firstImageAttachment = attachmentIds
+    .map((aid) => attachments.find((a) => a.id === aid))
+    .find((a) => a?.mimeType.startsWith("image/"));
+  const values = {
+    ...fields,
+    content,
+    format: "html" as const,
+    category: categories ? fields.category : null,
+    thumbnailUrl:
+      extractFirstImage(content) ??
+      (firstImageAttachment ? fileUrl(firstImageAttachment.id) : null),
+  };
 
-  const id = raw.id ? Number(raw.id) : null;
+  let id = raw.id ? Number(raw.id) : null;
   if (id) {
     await postRepository.updatePost(id, values);
-    updateTag(cacheTags.post(id));
   } else {
-    await postRepository.insertPost(values);
+    id = await postRepository.insertPost(values);
   }
+  await fileRepository.syncPostAttachments(id, attachmentIds);
+  updateTag(cacheTags.post(id));
   updateTag(cacheTags.posts(input.boardKey));
   redirect(`/admin/boards/${input.boardKey}`);
 }
 
 export async function deletePostAction(boardKey: BoardKey, id: number): Promise<void> {
   await requireAdmin();
+  await fileRepository.deletePostAttachments(id);
   await postRepository.deletePost(id);
   updateTag(cacheTags.posts(boardKey));
   updateTag(cacheTags.post(id));

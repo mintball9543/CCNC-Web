@@ -1,9 +1,24 @@
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { siteConfig } from "@/lib/config/site";
+import { getActiveHeroSlides } from "@/lib/queries/site";
+import { HeroCarousel } from "./hero-carousel";
 
-/** 메인 비주얼 — 기존 CO₂ 영상 대신 센터 소개와 주요 동선을 상단에 배치 (개편 검토 4. 추가 사항) */
-export function HeroSection() {
+const TITLE = "도민과 함께 만드는 충남의 탄소중립";
+
+/** 메인 비주얼 — 관리자 > 메인 비주얼에 사진이 있으면 슬라이드, 없으면 CI 패턴 */
+export async function HeroSection() {
+  const slides = await getActiveHeroSlides();
+  if (slides.length > 0) {
+    return (
+      <HeroCarousel
+        slides={slides}
+        fallbackTitle={TITLE}
+        fallbackSubtitle={siteConfig.description}
+      />
+    );
+  }
+
   return (
     <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary-soft via-background to-background">
       <CiPattern />
@@ -23,8 +38,8 @@ export function HeroSection() {
           <ButtonLink href="/business/policy" size="lg">
             주요사업 보기
           </ButtonLink>
-          <ButtonLink href="/participation/practice-group" size="lg" variant="secondary">
-            참여 프로그램
+          <ButtonLink href="/news/center-news" size="lg" variant="secondary">
+            센터 활동 보기
           </ButtonLink>
         </div>
       </Container>

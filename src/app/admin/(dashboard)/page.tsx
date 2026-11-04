@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { InquiryTable } from "@/components/inquiry/inquiry-table";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { AdminSuspense } from "@/components/admin/admin-suspense";
+import { InquiryTable } from "@/components/inquiry/inquiry-table";
 import { Card } from "@/components/ui/feedback";
 import { requireAdmin } from "@/lib/auth/guard";
 import { boardList } from "@/lib/config/boards";
@@ -10,7 +11,18 @@ import * as postRepository from "@/lib/repositories/post.repository";
 
 export const metadata = { title: "대시보드" };
 
-export default async function AdminDashboardPage() {
+export default function AdminDashboardPage() {
+  return (
+    <>
+      <AdminPageHeader title="대시보드" />
+      <AdminSuspense>
+        <Dashboard />
+      </AdminSuspense>
+    </>
+  );
+}
+
+async function Dashboard() {
   await requireAdmin();
   const [postCounts, pendingCount, popups, pending] = await Promise.all([
     postRepository.countPostsByBoard(),
@@ -19,7 +31,6 @@ export default async function AdminDashboardPage() {
     inquiryRepository.listInquiries({ status: "pending", pageSize: 5 }),
   ]);
   const activePopups = popups.filter((p) => p.isActive).length;
-
   const stats = [
     { label: "답변 대기 문의", value: pendingCount, href: "/admin/inquiries?status=pending" },
     { label: "사용 중 팝업", value: `${activePopups} / ${popups.length}`, href: "/admin/popups" },
@@ -32,7 +43,6 @@ export default async function AdminDashboardPage() {
 
   return (
     <>
-      <AdminPageHeader title="대시보드" />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {stats.map((s) => (
           <Link key={s.label} href={s.href}>

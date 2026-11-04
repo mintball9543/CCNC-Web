@@ -57,3 +57,22 @@ describe("isPopupInSchedule", () => {
     ).toBe(false);
   });
 });
+
+describe("moveRect / resizeRect", () => {
+  const bounds = { width: 1000, height: 800 };
+  const rect = { left: 100, top: 100, width: 300, height: 200 };
+
+  it("이동하며 화면 경계 안으로 보정", async () => {
+    const { moveRect } = await import("./layout");
+    expect(moveRect(rect, 50, -20, bounds)).toEqual({ ...rect, left: 150, top: 80 });
+    expect(moveRect(rect, 5000, 5000, bounds)).toEqual({ ...rect, left: 700, top: 600 });
+    expect(moveRect(rect, -500, -500, bounds)).toEqual({ ...rect, left: 0, top: 0 });
+  });
+
+  it("크기 조절 시 최소 크기와 화면 경계 적용", async () => {
+    const { resizeRect } = await import("./layout");
+    expect(resizeRect(rect, 100, 50, bounds)).toEqual({ ...rect, width: 400, height: 250 });
+    expect(resizeRect(rect, -1000, -1000, bounds)).toEqual({ ...rect, width: 200, height: 120 });
+    expect(resizeRect(rect, 5000, 5000, bounds)).toEqual({ ...rect, width: 900, height: 700 });
+  });
+});

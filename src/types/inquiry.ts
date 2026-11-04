@@ -12,6 +12,7 @@ export interface Inquiry {
   answer: string | null;
   answeredBy: string | null;
   answeredAt: Date | null;
+  notifiedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
