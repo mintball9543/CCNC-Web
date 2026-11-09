@@ -9,7 +9,7 @@ export const metadata = { title: "사진 추가" };
 export default function NewHeroPage() {
   return (
     <>
-      <AdminPageHeader title="메인 비주얼 사진 추가" />
+      <AdminPageHeader title="메인 상단 대표 사진 추가" />
       <AdminSuspense>
         <Content />
       </AdminSuspense>

@@ -28,9 +28,9 @@ const groups = [
   {
     title: "메인 화면",
     items: [
-      { href: "/admin/hero", label: "메인 비주얼(사진)", Icon: Images },
+      { href: "/admin/hero", label: "메인 상단 대표 사진", Icon: Images },
       { href: "/admin/popups", label: "팝업 관리", Icon: PanelTop },
-      { href: "/admin/stats", label: "숫자로 보는 센터", Icon: Hash },
+      { href: "/admin/stats", label: "수치 관리", Icon: Hash },
       { href: "/admin/charts", label: "도표 관리", Icon: BarChart3 },
     ],
   },

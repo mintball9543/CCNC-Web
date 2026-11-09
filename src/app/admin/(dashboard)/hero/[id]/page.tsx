@@ -25,10 +25,10 @@ async function Content({ params }: PageProps<"/admin/hero/[id]">) {
   return (
     <>
       <AdminPageHeader
-        title="메인 비주얼 사진 수정"
+        title="메인 상단 대표 사진 수정"
         actions={
           <form action={deleteHeroSlideAction.bind(null, slide.id)}>
-            <ConfirmSubmitButton message="이 사진을 메인 비주얼에서 삭제하시겠습니까?">
+            <ConfirmSubmitButton message="이 사진을 메인 상단에서 삭제하시겠습니까?">
               삭제
             </ConfirmSubmitButton>
           </form>

@@ -12,7 +12,7 @@ export default function StatsPage() {
   return (
     <>
       <AdminPageHeader
-        title="숫자로 보는 센터"
+        title="함께 만든 변화, 우리의 발자국🌱"
         description="메인 화면에 표시되는 주요 실적 수치입니다(예: 교육 횟수, 참여 인원). 실제 집계된 수치만 입력하세요."
       />
       <AdminSuspense>

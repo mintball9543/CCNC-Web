@@ -7,13 +7,13 @@ import { Badge, EmptyState } from "@/components/ui/feedback";
 import { requireAdmin } from "@/lib/auth/guard";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 
-export const metadata = { title: "메인 비주얼" };
+export const metadata = { title: "메인 상단 대표 사진" };
 
 export default function HeroAdminPage() {
   return (
     <>
       <AdminPageHeader
-        title="메인 비주얼(사진)"
+        title="메인 상단 대표 사진"
         description="메인 화면 상단 슬라이드 사진입니다. 직접 올리거나 활동 갤러리 게시글에서 가져올 수 있고, 갤러리 글쓰기에서 '메인 비주얼에도 표시'를 선택해도 추가됩니다. 사진이 없으면 기본 디자인이 표시됩니다."
         actions={
           <ButtonLink href="/admin/hero/new">
