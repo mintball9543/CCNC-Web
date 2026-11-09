@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Pin } from "lucide-react";
 import { RowCheckbox, SelectAllCheckbox } from "@/components/admin/bulk-delete-form";
+import { SELECT_CELL_CLASS, SELECTABLE_ROW_CLASS } from "@/components/admin/bulk-select-classes";
+import { cn } from "@/lib/utils/cn";
 import { Badge, EmptyState } from "@/components/ui/feedback";
 import { getCategoryLabel } from "@/lib/config/boards";
 import { formatDate } from "@/lib/utils/format";
@@ -33,11 +35,11 @@ export function PostTable({
         <thead className="hidden border-b border-border bg-muted/60 sm:table-header-group">
           <tr>
             {selectable && (
-              <th scope="col" className="w-10 py-3">
+              <th scope="col" className={cn(SELECT_CELL_CLASS, "py-2")}>
                 <SelectAllCheckbox />
               </th>
             )}
-            <th scope="col" className="w-20 py-3 font-medium">
+            <th scope="col" className={cn("py-3 font-medium", selectable ? "w-16" : "w-20")}>
               번호
             </th>
             <th scope="col" className="py-3 font-medium">
@@ -57,10 +59,13 @@ export function PostTable({
             return (
               <tr
                 key={post.id}
-                className="flex flex-wrap items-center border-b border-border sm:table-row"
+                className={cn(
+                  "flex flex-wrap items-center border-b border-border sm:table-row",
+                  selectable && SELECTABLE_ROW_CLASS,
+                )}
               >
                 {selectable && (
-                  <td className="pt-4 pr-2 pl-1 sm:py-4 sm:text-center">
+                  <td className={cn(SELECT_CELL_CLASS, "p-0")}>
                     <RowCheckbox id={post.id} label={post.title} />
                   </td>
                 )}

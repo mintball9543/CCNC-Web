@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { MAX_SERIES } from "@/lib/charts/limits";
+import { chartPlacementOf } from "@/lib/config/charts";
 import { checkbox, optionalLink, optionalText } from "./common";
 
 const text = (max: number) => z.string().trim().max(max, `${max}자 이내로 입력하세요.`).default("");
@@ -54,10 +55,12 @@ const jsonField = <T extends z.ZodType>(schema: T, message: string) =>
 export const chartSchema = z
   .object({
     title: z.string().trim().min(1, "제목을 입력하세요.").max(100),
-    slug: z
+    /** 표시할 페이지(메뉴) — 빈 값이면 어느 페이지에도 넣지 않음 (내부 키는 서버에서 정함) */
+    placement: z
       .string()
       .trim()
-      .regex(/^[a-z0-9-]{2,50}$/, "영문 소문자·숫자·하이픈 2~50자로 입력하세요."),
+      .default("")
+      .refine((v) => v === "" || chartPlacementOf(v) !== null, "표시 위치를 다시 선택하세요."),
     description: text(300),
     unit: text(30),
     chartType: z.enum(["bar", "line", "stacked"]),

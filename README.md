@@ -132,7 +132,7 @@ GNB·모바일 메뉴·LNB·브레드크럼·페이지 제목·sitemap.xml이 �
 
 **DB 스키마 변경** — `src/lib/db/schema.ts` 수정 → `npm run db:generate` → `npm run db:migrate`.
 
-**도표 수치 갱신** — 관리자 > 도표 관리에서 행(연도)을 추가하거나 엑셀 표를 붙여넣습니다(공개 시 출처 필수). 배출현황 페이지는 키 `chungnam-emissions` 도표를 사용합니다(`src/lib/config/charts.ts`).
+**도표 수치 갱신** — 관리자 > 도표 관리에서 행(연도)을 추가하거나 엑셀 표를 붙여넣습니다(공개 시 출처 필수). 도표가 나올 곳은 각 도표의 **'표시할 메뉴'** 드롭다운에서 고릅니다(메뉴 하나에 도표 하나). 선택지는 `src/lib/config/charts.ts` 의 `CHART_PLACEMENTS` 에서 관리하며, 새 페이지에 도표를 넣으려면 여기에 추가하고 그 페이지에서 `getPublishedChart(slug)` 를 호출합니다. 내부 키(slug)는 관리자에게 보이지 않고 서버가 정합니다.
 
 **메뉴 숨기기** — 관리자 > 메뉴 표시 설정. 새 대메뉴를 추가하면 `src/proxy.ts`의 `matcher`에도 경로를 추가하세요(테스트가 누락을 잡아냅니다).
 

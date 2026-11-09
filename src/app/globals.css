@@ -171,8 +171,54 @@
     font-size: 0.9em;
   }
   /* 편집기 */
-  .tiptap img.ProseMirror-selectednode {
+  .tiptap img.ProseMirror-selectednode,
+  .tiptap [data-resize-container].ProseMirror-selectednode img {
     outline: 3px solid var(--ring);
+  }
+  /* 편집기 사진 크기 조절 (Tiptap ResizableNodeView) */
+  .tiptap [data-resize-container] {
+    margin-block: 1rem;
+  }
+  .tiptap [data-resize-wrapper] {
+    max-width: 100%;
+  }
+  .tiptap [data-resize-wrapper] img {
+    display: block;
+    margin: 0;
+    max-width: 100%;
+    height: auto !important;
+  }
+  .tiptap [data-resize-handle] {
+    z-index: 1;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--background);
+    border-radius: 3px;
+    background: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .tiptap [data-resize-handle="top-left"] {
+    margin: -6px 0 0 -6px;
+    cursor: nwse-resize;
+  }
+  .tiptap [data-resize-handle="bottom-right"] {
+    margin: 0 -6px -6px 0;
+    cursor: nwse-resize;
+  }
+  .tiptap [data-resize-handle="top-right"] {
+    margin: -6px -6px 0 0;
+    cursor: nesw-resize;
+  }
+  .tiptap [data-resize-handle="bottom-left"] {
+    margin: 0 0 -6px -6px;
+    cursor: nesw-resize;
+  }
+  .tiptap [data-resize-container]:hover [data-resize-handle],
+  .tiptap [data-resize-container].ProseMirror-selectednode [data-resize-handle],
+  .tiptap [data-resize-container][data-resize-state="true"] [data-resize-handle] {
+    opacity: 1;
   }
   .tiptap p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);

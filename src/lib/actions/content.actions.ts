@@ -1,10 +1,12 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { recordAudit } from "@/lib/audit/record";
 import { requireAdmin } from "@/lib/auth/guard";
 import { cacheTags } from "@/lib/cache/tags";
+import { chartPlacementOf, unplacedChartSlug } from "@/lib/config/charts";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 import { formDataToObject, validationError } from "@/lib/validation/common";
 import {
@@ -67,22 +69,34 @@ export async function saveChartAction(
   if (!parsed.success) return validationError(parsed.error, raw);
 
   const id = idOf(raw);
-  const duplicate = await settingsRepository.findChartBySlug(parsed.data.slug);
-  if (duplicate && duplicate.id !== id) {
-    return {
-      ok: false,
-      message: "이미 사용 중인 키입니다.",
-      fieldErrors: { slug: ["이미 사용 중인 키입니다."] },
-      values: raw,
-    };
+  const { placement, ...data } = parsed.data;
+  const current = id ? await settingsRepository.findChart(id) : null;
+  if (id && !current) return { ok: false, message: "도표를 찾을 수 없습니다.", values: raw };
+
+  // 내부 키(slug)는 관리자에게 보이지 않는다 — 표시 위치(페이지)에 따라 서버가 정한다.
+  let slug: string;
+  let displaced: { id: number; slug: string; title: string } | null = null;
+  if (placement) {
+    // 한 페이지에는 도표 1개 — 이미 다른 도표가 있으면 그 도표는 '표시 안 함'으로 옮긴다
+    const holder = await settingsRepository.findChartBySlug(placement);
+    if (holder && holder.id !== id) {
+      displaced = { id: holder.id, slug: unplacedChartSlug(holder.id), title: holder.title };
+    }
+    slug = placement;
+  } else if (current && !chartPlacementOf(current.slug)) {
+    slug = current.slug;
+  } else {
+    slug = id ? unplacedChartSlug(id) : unplacedChartSlug(randomUUID().slice(0, 8));
   }
-  const savedId = await settingsRepository.saveChart(id, parsed.data);
+
+  const savedId = await settingsRepository.saveChart(id, { ...data, slug }, displaced);
+  const where = chartPlacementOf(slug)?.label ?? "페이지 표시 안 함";
   await recordAudit({
     action: id ? "chart.update" : "chart.create",
     target: `chart_datasets:${savedId}`,
-    summary: `도표 ${verb(id)}: ${parsed.data.title} (${parsed.data.rows.length}행, ${
-      parsed.data.isPublished ? "공개" : "비공개"
-    })`,
+    summary: `도표 ${verb(id)}: ${data.title} (${data.rows.length}행, ${
+      data.isPublished ? "공개" : "비공개"
+    }, 표시 위치: ${where}${displaced ? `, 기존 도표 '${displaced.title}' 는 표시 해제` : ""})`,
   });
   updateTag(cacheTags.charts);
   redirect("/admin/charts");

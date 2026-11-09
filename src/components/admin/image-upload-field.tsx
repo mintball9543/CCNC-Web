@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlus, Loader2 } from "lucide-react";
+import { ImageOff, ImagePlus, Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { uploadFile } from "@/lib/uploads/client";
 import { cn } from "@/lib/utils/cn";
@@ -16,6 +16,7 @@ export function ImageUploadField({
   onChange,
   invalid,
   aspect = "aspect-[16/7]",
+  fit = "cover",
 }: {
   name: string;
   defaultValue?: string;
@@ -24,6 +25,8 @@ export function ImageUploadField({
   invalid?: boolean;
   /** 미리보기 비율 (Tailwind aspect 클래스) */
   aspect?: string;
+  /** cover: 칸을 가득 채움(사진) / contain: 잘리지 않게 전체 표시(로고) */
+  fit?: "cover" | "contain";
 }) {
   const [innerUrl, setInnerUrl] = useState(defaultValue ?? "");
   const url = value ?? innerUrl;
@@ -32,6 +35,9 @@ export function ImageUploadField({
     onChange?.(next);
   };
   const [busy, setBusy] = useState(false);
+  /** 불러오지 못한 이미지 주소 (주소가 바뀌면 자동으로 다시 시도) */
+  const [brokenUrl, setBrokenUrl] = useState<string | null>(null);
+  const broken = !!url && brokenUrl === url;
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -60,17 +66,29 @@ export function ImageUploadField({
           void handle(e.dataTransfer.files[0]);
         }}
         className={cn(
-          "relative flex w-full items-center justify-center overflow-hidden rounded-xl border-2 border-dashed bg-muted text-sm text-muted-foreground transition hover:border-primary",
+          "relative flex w-full items-center justify-center overflow-hidden rounded-xl border-2 text-sm text-muted-foreground transition hover:border-primary",
           aspect,
+          url && !broken ? "border-solid" : "border-dashed",
+          url && !broken && fit === "contain" ? "bg-white" : "bg-muted",
           invalid ? "border-danger" : "border-border",
         )}
       >
-        {url ? (
+        {url && broken ? (
+          <span className="flex flex-col items-center gap-1 px-3 text-center text-xs text-danger">
+            <ImageOff className="size-5" aria-hidden />
+            이미지를 불러올 수 없습니다. 눌러서 다른 사진을 올려 주세요.
+            <span className="break-all text-muted-foreground">{url}</span>
+          </span>
+        ) : url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={url}
             alt="선택한 이미지 미리보기"
-            className="absolute inset-0 size-full object-cover"
+            onError={() => setBrokenUrl(url)}
+            className={cn(
+              "absolute inset-0 size-full",
+              fit === "contain" ? "object-contain p-2" : "object-cover",
+            )}
           />
         ) : (
           <span className="flex flex-col items-center gap-2">

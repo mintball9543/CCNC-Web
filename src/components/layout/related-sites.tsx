@@ -15,34 +15,49 @@ export function RelatedSites({ sites }: { sites: RelatedSite[] }) {
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {sites.map((site) => (
           <li key={site.id}>
-            <a
-              href={site.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex h-full flex-col gap-2.5 rounded-lg border border-border bg-card p-3 transition hover:border-primary hover:shadow-md"
-            >
-              <span className="flex aspect-[266/65] items-center justify-center overflow-hidden rounded bg-white px-2">
-                {site.logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={site.logoUrl}
-                    alt=""
-                    loading="lazy"
-                    className="max-h-full max-w-full object-contain"
-                  />
-                ) : (
-                  <span className="text-center text-sm font-bold text-ci-navy">{site.name}</span>
-                )}
-              </span>
-              <span className="flex items-center justify-center gap-1 text-center text-sm text-muted-foreground group-hover:text-foreground">
-                <span className="line-clamp-2">{site.name}</span>
-                <ExternalLink className="size-3 shrink-0 opacity-60" aria-hidden />
-                <span className="sr-only"> (새 창)</span>
-              </span>
-            </a>
+            <RelatedSiteCard name={site.name} url={site.url} logoUrl={site.logoUrl} />
           </li>
         ))}
       </ul>
     </section>
+  );
+}
+
+/** 관련 사이트 카드 1개 — 홈페이지 하단과 관리자 미리보기에서 함께 사용 */
+export function RelatedSiteCard({
+  name,
+  url,
+  logoUrl,
+}: {
+  name: string;
+  url: string;
+  logoUrl: string | null;
+}) {
+  return (
+    <a
+      href={url || undefined}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex h-full flex-col gap-2.5 rounded-lg border border-border bg-card p-3 transition hover:border-primary hover:shadow-md"
+    >
+      <span className="flex aspect-[266/65] items-center justify-center overflow-hidden rounded bg-white px-2">
+        {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoUrl}
+            alt=""
+            loading="lazy"
+            className="max-h-full max-w-full object-contain"
+          />
+        ) : (
+          <span className="text-center text-sm font-bold text-ci-navy">{name}</span>
+        )}
+      </span>
+      <span className="flex items-center justify-center gap-1 text-center text-sm text-muted-foreground group-hover:text-foreground">
+        <span className="line-clamp-2">{name}</span>
+        <ExternalLink className="size-3 shrink-0 opacity-60" aria-hidden />
+        <span className="sr-only"> (새 창)</span>
+      </span>
+    </a>
   );
 }

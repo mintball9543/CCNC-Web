@@ -12,6 +12,7 @@ import { Checkbox, Field, Input, Select, Textarea } from "@/components/ui/form";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { saveChartAction } from "@/lib/actions/content.actions";
 import { MAX_SERIES } from "@/lib/charts/limits";
+import { CHART_PLACEMENTS, chartPlacementOf } from "@/lib/config/charts";
 import { parseClipboardTable, parseNumber } from "@/lib/charts/scale";
 import { initialActionState, type ChartDataset, type ChartRow, type ChartType } from "@/types";
 
@@ -32,9 +33,23 @@ const fromGrid = (rows: GridRow[]): ChartRow[] =>
  * 도표 편집기 — 표에 수치를 입력하면 오른쪽 미리보기가 바로 갱신된다.
  * 새 자료는 행만 추가하면 되고(가로축은 연도·지역 등 자유), 엑셀에서 복사한 표를 그대로 붙여넣을 수도 있다.
  */
-function ChartEditorInner({ chart }: { chart?: ChartDataset }) {
+/** 페이지별로 현재 표시 중인 도표 (키 → 도표) */
+export type ChartPlacementHolders = Record<string, { id: number; title: string }>;
+
+function ChartEditorInner({
+  chart,
+  holders = {},
+}: {
+  chart?: ChartDataset;
+  holders?: ChartPlacementHolders;
+}) {
   const [state, action] = useActionState(saveChartAction, initialActionState);
   const v = state.values;
+  const [placement, setPlacement] = useState(
+    v?.placement ?? (chart && chartPlacementOf(chart.slug) ? chart.slug : ""),
+  );
+  const otherHolder = placement ? holders[placement] : undefined;
+  const replacing = otherHolder && otherHolder.id !== chart?.id ? otherHolder : null;
   const [title, setTitle] = useState(v?.title ?? chart?.title ?? "");
   const [unit, setUnit] = useState(v?.unit ?? chart?.unit ?? "");
   const [chartType, setChartType] = useState<ChartType>(
@@ -99,32 +114,15 @@ function ChartEditorInner({ chart }: { chart?: ChartDataset }) {
         <input type="hidden" name="chartType" value={chartType} />
         {state.message && !state.ok && <Alert tone="danger">{state.message}</Alert>}
 
-        <div className="grid gap-4 sm:grid-cols-[1fr_12rem]">
-          <Field label="제목" htmlFor="title" required errors={err("title")}>
-            <Input
-              id="title"
-              name="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </Field>
-          <Field
-            label="키 (영문)"
-            htmlFor="slug"
+        <Field label="제목" htmlFor="title" required errors={err("title")}>
+          <Input
+            id="title"
+            name="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             required
-            errors={err("slug")}
-            hint="배출현황: chungnam-emissions"
-          >
-            <Input
-              id="slug"
-              name="slug"
-              defaultValue={v?.slug ?? chart?.slug}
-              pattern="[a-z0-9-]{2,50}"
-              required
-            />
-          </Field>
-        </div>
+          />
+        </Field>
         <Field label="설명" htmlFor="description" errors={err("description")}>
           <Input
             id="description"
@@ -315,7 +313,7 @@ function ChartEditorInner({ chart }: { chart?: ChartDataset }) {
               defaultValue={v?.sourceUrl ?? chart?.sourceUrl ?? ""}
             />
           </Field>
-          <Field label="순서" htmlFor="sortOrder">
+          <Field label="순서" htmlFor="sortOrder" hint="메인 화면에서 작을수록 앞">
             <Input
               id="sortOrder"
               name="sortOrder"
@@ -325,18 +323,53 @@ function ChartEditorInner({ chart }: { chart?: ChartDataset }) {
             />
           </Field>
         </div>
-        <div className="flex flex-wrap gap-6">
-          <Checkbox
-            name="isPublished"
-            defaultChecked={checked("isPublished", chart?.isPublished ?? false)}
-            label="공개"
-          />
-          <Checkbox
-            name="showOnHome"
-            defaultChecked={checked("showOnHome", chart?.showOnHome ?? false)}
-            label="메인 화면에도 표시"
-          />
-        </div>
+        <fieldset className="space-y-4 rounded-lg border border-border p-4">
+          <legend className="px-1 text-sm font-medium">홈페이지 어디에 보일까요?</legend>
+          <Field
+            label="표시할 메뉴"
+            htmlFor="placement"
+            errors={err("placement")}
+            hint="선택한 메뉴 화면에 이 도표가 나옵니다. 메뉴 하나에는 도표 하나만 넣을 수 있습니다."
+          >
+            <Select
+              id="placement"
+              name="placement"
+              value={placement}
+              onChange={(e) => setPlacement(e.target.value)}
+            >
+              <option value="">메뉴에 넣지 않음 (메인 화면에만 두거나 보관)</option>
+              {CHART_PLACEMENTS.map((p) => {
+                const holder = holders[p.slug];
+                const note = holder && holder.id !== chart?.id ? ` — 지금: ${holder.title}` : "";
+                return (
+                  <option key={p.slug} value={p.slug}>
+                    {p.label}
+                    {note}
+                  </option>
+                );
+              })}
+            </Select>
+          </Field>
+          {replacing && (
+            <Alert tone="info">
+              지금 이 메뉴에는 &lsquo;{replacing.title}&rsquo; 도표가 나오고 있습니다. 저장하면 이
+              도표로 바뀌고, 기존 도표는 &lsquo;메뉴에 넣지 않음&rsquo;으로 옮겨집니다(삭제되지
+              않음).
+            </Alert>
+          )}
+          <div className="flex flex-wrap gap-6">
+            <Checkbox
+              name="showOnHome"
+              defaultChecked={checked("showOnHome", chart?.showOnHome ?? false)}
+              label="메인 화면에도 표시"
+            />
+            <Checkbox
+              name="isPublished"
+              defaultChecked={checked("isPublished", chart?.isPublished ?? false)}
+              label="공개 (체크하지 않으면 어디에도 보이지 않음)"
+            />
+          </div>
+        </fieldset>
         <div className="flex gap-2 border-t border-border pt-5">
           <SubmitButton pendingText="저장 중…">{chart ? "수정" : "등록"}</SubmitButton>
           <ButtonLink href="/admin/charts" variant="secondary">

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "@tiptap/extension-image";
 import { Placeholder } from "@tiptap/extensions";
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -23,6 +22,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { EditorView } from "@tiptap/pm/view";
 import { isImageFile, isImageUrl, uploadFile } from "@/lib/uploads/client";
 import { cn } from "@/lib/utils/cn";
+import { applyImageSizePreset, IMAGE_SIZE_PRESETS, ResizableImage } from "./resizable-image";
 
 interface RichTextEditorProps {
   /** form 에 전송될 hidden input 이름 */
@@ -38,6 +38,7 @@ interface RichTextEditorProps {
  * 게시글 본문 편집기 (Tiptap).
  * - 이미지: 툴바 버튼 / 드래그 앤 드롭 / 클립보드 붙여넣기 → 업로드 후 본문에 삽입
  * - 이미지 주소(URL) 붙여넣기 → 이미지로 자동 변환 (노션 방식)
+ * - 사진 크기 조절: 사진을 누르고 모서리를 끌거나, 툴바의 '작게·보통·크게·원래 크기' 선택
  * - 저장되는 HTML 은 서버에서 다시 살균된다.
  */
 export function RichTextEditor({
@@ -99,7 +100,7 @@ export function RichTextEditor({
         codeBlock: false,
         link: { openOnClick: false, autolink: true, defaultProtocol: "https" },
       }),
-      Image.configure({ inline: false, allowBase64: false }),
+      ResizableImage,
       Placeholder.configure({
         placeholder:
           placeholder ?? "내용을 입력하세요. 이미지는 끌어다 놓거나 붙여넣을 수 있습니다.",
@@ -206,6 +207,9 @@ function Toolbar({ editor, onPickImage }: { editor: Editor | null; onPickImage: 
             ordered: e.isActive("orderedList"),
             quote: e.isActive("blockquote"),
             link: e.isActive("link"),
+            image: e.isActive("image"),
+            imageWidth: (e.isActive("image") ? e.getAttributes("image").width : null) as
+              number | null,
             canUndo: e.can().undo(),
             canRedo: e.can().redo(),
           }
@@ -288,6 +292,35 @@ function Toolbar({ editor, onPickImage }: { editor: Editor | null; onPickImage: 
         <ImagePlus />
       </ToolButton>
       <Divider />
+      {state.image && (
+        <>
+          <span
+            className="flex items-center gap-1"
+            role="group"
+            aria-label="사진 크기"
+            title="사진 모서리의 손잡이를 끌어서도 크기를 바꿀 수 있습니다."
+          >
+            <span className="px-1 text-xs text-muted-foreground">
+              사진 크기{state.imageWidth ? ` ${state.imageWidth}px` : ""}
+            </span>
+            {IMAGE_SIZE_PRESETS.map((p) => (
+              <button
+                key={p.key}
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => applyImageSizePreset(editor, p.key)}
+                className={cn(
+                  "h-7 rounded-md border border-border bg-background px-2 text-xs transition hover:border-primary hover:text-primary",
+                  p.key === "original" && !state.imageWidth && "border-primary text-primary",
+                )}
+              >
+                {p.label}
+              </button>
+            ))}
+          </span>
+          <Divider />
+        </>
+      )}
       <ToolButton label="실행 취소" disabled={!state.canUndo} onClick={() => chain().undo().run()}>
         <Undo2 />
       </ToolButton>

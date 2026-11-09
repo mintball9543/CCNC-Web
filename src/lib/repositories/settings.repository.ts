@@ -96,16 +96,29 @@ export async function findChartBySlug(slug: string): Promise<ChartDataset | null
   return (await db.query.chartDatasets.findFirst({ where: eq(chartDatasets.slug, slug) })) ?? null;
 }
 
+/**
+ * 도표 저장. displaced 가 있으면 같은 트랜잭션에서 그 도표의 키를 먼저 바꾼다
+ * (한 페이지에 도표 1개 — 표시 위치를 넘겨받을 때 기존 도표를 '표시 안 함'으로).
+ */
 export async function saveChart(
   id: number | null,
   values: Omit<ChartDataset, "id">,
+  displaced: { id: number; slug: string } | null = null,
 ): Promise<number> {
-  if (id) {
-    await db.update(chartDatasets).set(values).where(eq(chartDatasets.id, id));
-    return id;
-  }
-  const [row] = await db.insert(chartDatasets).values(values).returning({ id: chartDatasets.id });
-  return row.id;
+  return db.transaction(async (tx) => {
+    if (displaced) {
+      await tx
+        .update(chartDatasets)
+        .set({ slug: displaced.slug })
+        .where(eq(chartDatasets.id, displaced.id));
+    }
+    if (id) {
+      await tx.update(chartDatasets).set(values).where(eq(chartDatasets.id, id));
+      return id;
+    }
+    const [row] = await tx.insert(chartDatasets).values(values).returning({ id: chartDatasets.id });
+    return row.id;
+  });
 }
 
 export async function deleteChart(id: number): Promise<void> {
