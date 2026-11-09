@@ -11,7 +11,7 @@ export function StatHighlights({ stats }: { stats: StatHighlight[] }) {
     >
       <Container className="py-14">
         <h2 id="stats-heading" className="text-2xl font-bold">
-          숫자로 보는 센터
+          함께 만든 변화, 우리의 발자국🌱
         </h2>
         <dl className="mt-8 grid grid-cols-2 gap-6 lg:grid-cols-4">
           {stats.map((stat) => (

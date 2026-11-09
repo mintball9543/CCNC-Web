@@ -49,7 +49,7 @@ export default async function HomePage() {
 
       {charts.length > 0 && (
         <Container className="py-16">
-          <h2 className="text-2xl font-bold">데이터로 보는 충남 탄소중립</h2>
+          <h2 className="text-2xl font-bold">우리가 이뤄낸 탄소중립의 기록</h2>
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             {charts.map((chart) => (
               <ChartCard key={chart.id} dataset={chart} />
