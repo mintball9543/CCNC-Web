@@ -1,5 +1,8 @@
 "use client";
 
+import { Fresh } from "@/components/ui/fresh";
+import type { ComponentProps } from "react";
+import { ActionForm } from "@/components/ui/action-form";
 import { ClipboardPaste, Plus, Trash2 } from "lucide-react";
 import { useActionState, useState } from "react";
 import { DataChart } from "@/components/charts/data-chart";
@@ -27,9 +30,9 @@ const fromGrid = (rows: GridRow[]): ChartRow[] =>
 
 /**
  * 도표 편집기 — 표에 수치를 입력하면 오른쪽 미리보기가 바로 갱신된다.
- * 매년 행(연도)만 추가하면 되고, 엑셀에서 복사한 표를 그대로 붙여넣을 수도 있다.
+ * 새 자료는 행만 추가하면 되고(가로축은 연도·지역 등 자유), 엑셀에서 복사한 표를 그대로 붙여넣을 수도 있다.
  */
-export function ChartEditor({ chart }: { chart?: ChartDataset }) {
+function ChartEditorInner({ chart }: { chart?: ChartDataset }) {
   const [state, action] = useActionState(saveChartAction, initialActionState);
   const v = state.values;
   const [title, setTitle] = useState(v?.title ?? chart?.title ?? "");
@@ -88,7 +91,7 @@ export function ChartEditor({ chart }: { chart?: ChartDataset }) {
   const dataRows = fromGrid(rows);
 
   return (
-    <form action={action} className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <ActionForm action={action} className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="space-y-5">
         {chart && <input type="hidden" name="id" value={chart.id} />}
         <input type="hidden" name="series" value={JSON.stringify(series)} />
@@ -249,7 +252,6 @@ export function ChartEditor({ chart }: { chart?: ChartDataset }) {
                         }
                         aria-label={`${r + 1}행 ${categoryLabel}`}
                         className="h-8"
-                        placeholder="2024"
                       />
                     </td>
                     {row.cells.map((cell, c) => (
@@ -283,7 +285,7 @@ export function ChartEditor({ chart }: { chart?: ChartDataset }) {
             variant="ghost"
             onClick={() => setRows((list) => [...list, { label: "", cells: series.map(() => "") }])}
           >
-            <Plus className="size-4" aria-hidden />행 추가 (새 연도)
+            <Plus className="size-4" aria-hidden />행 추가
           </Button>
           {(err("rows") ?? err("series"))?.map((e) => (
             <p key={e} className="text-xs text-danger">
@@ -359,6 +361,14 @@ export function ChartEditor({ chart }: { chart?: ChartDataset }) {
           )}
         </div>
       </div>
-    </form>
+    </ActionForm>
+  );
+}
+
+export function ChartEditor(props: ComponentProps<typeof ChartEditorInner>) {
+  return (
+    <Fresh dataKey={props.chart?.updatedAt?.getTime()}>
+      <ChartEditorInner {...props} />
+    </Fresh>
   );
 }

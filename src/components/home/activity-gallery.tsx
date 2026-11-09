@@ -4,7 +4,7 @@ import { Container } from "@/components/ui/container";
 import { formatDate } from "@/lib/utils/format";
 import type { PostSummary } from "@/types";
 
-/** 센터 활동 — 센터소식 게시판의 대표 사진 (행사·활동을 도민에게 알리는 영역) */
+/** 활동 갤러리 — 활동 갤러리 게시판의 대표 사진 (센터가 수행해 온 행사·활동을 도민에게 알리는 영역) */
 export function ActivityGallery({ posts }: { posts: PostSummary[] }) {
   if (posts.length === 0) return null;
   const [feature, ...rest] = posts;
@@ -15,14 +15,14 @@ export function ActivityGallery({ posts }: { posts: PostSummary[] }) {
         <div className="flex items-end justify-between gap-4">
           <div>
             <h2 id="activity-heading" className="text-2xl font-bold">
-              센터 활동
+              활동 갤러리
             </h2>
             <p className="mt-1 text-muted-foreground">
-              충청남도 탄소중립지원센터의 행사와 활동을 소개합니다.
+              충청남도 탄소중립지원센터가 함께해 온 행사와 활동을 사진으로 소개합니다.
             </p>
           </div>
           <Link
-            href="/news/center-news"
+            href="/news/gallery"
             className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline"
           >
             전체 보기 <ArrowRight className="size-4" aria-hidden />
@@ -47,7 +47,7 @@ export function ActivityGallery({ posts }: { posts: PostSummary[] }) {
 function PhotoCard({ post, large }: { post: PostSummary; large?: boolean }) {
   return (
     <Link
-      href={`/news/center-news/${post.id}`}
+      href={`/news/gallery/${post.id}`}
       className="group relative block h-full min-h-48 overflow-hidden rounded-2xl bg-muted"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}

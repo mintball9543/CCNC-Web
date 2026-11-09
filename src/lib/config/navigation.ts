@@ -64,6 +64,7 @@ export const mainNavigation: NavSection[] = [
     items: [
       { title: "공지사항", href: "/news/notice" },
       { title: "센터소식", href: "/news/center-news" },
+      { title: "활동 갤러리", href: "/news/gallery" },
       { title: "보도자료", href: "/news/press" },
       { title: "자료실", href: "/news/archive" },
       { title: "문의하기", href: "/news/inquiry" },

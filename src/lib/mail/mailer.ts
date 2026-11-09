@@ -1,36 +1,39 @@
 import "server-only";
 import nodemailer, { type Transporter } from "nodemailer";
+import { resolveMailMode } from "./config";
 
 /**
  * 메일 발송 (SMTP).
  * 환경 변수: SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, MAIL_FROM
  * MAIL_TRANSPORT=log 이면 실제로 보내지 않고 서버 로그에만 남긴다(개발·테스트용).
+ * 설정 점검: npm run env:check
  */
 export type MailResult =
   { sent: true } | { sent: false; reason: "not-configured" | "error"; error?: string };
 
-let transporter: Transporter | null = null;
+let cached: { key: string; transporter: Transporter; from: string } | null = null;
 
 export function isMailConfigured(): boolean {
-  return (
-    process.env.MAIL_TRANSPORT === "log" || Boolean(process.env.SMTP_HOST && process.env.MAIL_FROM)
-  );
+  return resolveMailMode(process.env).mode !== "off";
 }
 
-function getTransporter(): Transporter {
-  if (transporter) return transporter;
-  transporter =
-    process.env.MAIL_TRANSPORT === "log"
+function getTransporter(): { transporter: Transporter; from: string } | null {
+  const mode = resolveMailMode(process.env);
+  if (mode.mode === "off") return null;
+  // 설정이 바뀌면(개발 서버 재시작 없이 env 변경 등) 새로 만든다
+  const key = JSON.stringify(mode);
+  if (cached?.key === key) return cached;
+  const transporter =
+    mode.mode === "log"
       ? nodemailer.createTransport({ jsonTransport: true })
       : nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: Number(process.env.SMTP_PORT ?? 587),
-          secure: process.env.SMTP_SECURE === "true",
-          auth: process.env.SMTP_USER
-            ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-            : undefined,
+          host: mode.smtp.host,
+          port: mode.smtp.port,
+          secure: mode.smtp.secure,
+          auth: mode.smtp.auth,
         });
-  return transporter;
+  cached = { key, transporter, from: mode.mode === "log" ? mode.from : mode.smtp.from };
+  return cached;
 }
 
 export async function sendMail(message: {
@@ -39,12 +42,10 @@ export async function sendMail(message: {
   text: string;
   html: string;
 }): Promise<MailResult> {
-  if (!isMailConfigured()) return { sent: false, reason: "not-configured" };
+  const t = getTransporter();
+  if (!t) return { sent: false, reason: "not-configured" };
   try {
-    const info = await getTransporter().sendMail({
-      from: process.env.MAIL_FROM ?? "no-reply@localhost",
-      ...message,
-    });
+    const info = await t.transporter.sendMail({ from: t.from, ...message });
     if (process.env.MAIL_TRANSPORT === "log") {
       console.info("[mail:log]", message.to, message.subject, String(info.messageId ?? ""));
     }

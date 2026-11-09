@@ -2,9 +2,11 @@ import { notFound } from "next/navigation";
 import { Plus } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminSuspense } from "@/components/admin/admin-suspense";
+import { BulkDeleteForm } from "@/components/admin/bulk-delete-form";
 import { PostTable } from "@/components/board/post-table";
 import { ButtonLink } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
+import { bulkDeletePostsAction } from "@/lib/actions/post.actions";
 import { requireAdmin } from "@/lib/auth/guard";
 import { getBoard } from "@/lib/config/boards";
 import * as postRepository from "@/lib/repositories/post.repository";
@@ -43,12 +45,15 @@ async function Content({ params, searchParams }: PageProps<"/admin/boards/[board
         }
       />
       <div className="rounded-xl bg-card p-4">
-        <PostTable
-          boardKey={board.key}
-          posts={result.items}
-          startNumber={result.total - (result.page - 1) * result.pageSize}
-          hrefFor={(post) => `${base}/${post.id}`}
-        />
+        <BulkDeleteForm action={bulkDeletePostsAction.bind(null, board.key)}>
+          <PostTable
+            boardKey={board.key}
+            posts={result.items}
+            startNumber={result.total - (result.page - 1) * result.pageSize}
+            hrefFor={(post) => `${base}/${post.id}`}
+            selectable
+          />
+        </BulkDeleteForm>
         <Pagination
           page={result.page}
           totalPages={result.totalPages}

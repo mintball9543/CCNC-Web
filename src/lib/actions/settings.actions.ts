@@ -1,6 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
+import { recordAudit } from "@/lib/audit/record";
 import { requireAdmin } from "@/lib/auth/guard";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { cacheTags } from "@/lib/cache/tags";
@@ -25,6 +26,18 @@ export async function saveMenuSettingsAction(
     for (const item of section.items) entries[item.href] = visible.has(item.href);
   }
   await settingsRepository.saveMenuSettings(entries);
+  const hidden = mainNavigation.flatMap((section) =>
+    !entries[sectionKey(section.key)]
+      ? [`${section.title}(전체)`]
+      : section.items
+          .filter((item) => !entries[item.href])
+          .map((item) => `${section.title} > ${item.title}`),
+  );
+  await recordAudit({
+    action: "menu.update",
+    target: "menu_settings",
+    summary: `메뉴 표시 설정 변경 — 숨김: ${hidden.length ? hidden.join(", ") : "없음"}`,
+  });
   updateTag(cacheTags.menu);
   return { ok: true, message: "메뉴 표시 설정을 저장했습니다." };
 }
@@ -39,6 +52,11 @@ export async function saveContactAction(
   const parsed = contactSchema.safeParse(raw);
   if (!parsed.success) return validationError(parsed.error, raw);
   await settingsRepository.saveContactSettings(parsed.data);
+  await recordAudit({
+    action: "contact.update",
+    target: "site_settings:contact",
+    summary: "기관 정보(주소·연락처) 수정",
+  });
   updateTag(cacheTags.settings);
   return { ok: true, message: "기관 정보를 저장했습니다." };
 }
@@ -54,6 +72,10 @@ export async function changePasswordAction(
 
   const admin = await findAdminById(session.userId);
   if (!admin || !(await verifyPassword(parsed.data.currentPassword, admin.passwordHash))) {
+    await recordAudit({
+      action: "auth.password_change_failed",
+      summary: "관리자 비밀번호 변경 실패 (현재 비밀번호 불일치)",
+    });
     return {
       ok: false,
       message: "현재 비밀번호가 올바르지 않습니다.",
@@ -61,6 +83,11 @@ export async function changePasswordAction(
     };
   }
   await updateAdminPassword(admin.id, await hashPassword(parsed.data.newPassword));
+  await recordAudit({
+    action: "auth.password_change",
+    target: `admin_users:${admin.id}`,
+    summary: "관리자 비밀번호 변경",
+  });
   return {
     ok: true,
     message: "비밀번호를 변경했습니다. 다음 로그인부터 새 비밀번호를 사용하세요.",

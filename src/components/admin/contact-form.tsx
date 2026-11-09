@@ -1,5 +1,8 @@
 "use client";
 
+import { Fresh } from "@/components/ui/fresh";
+import type { ComponentProps } from "react";
+import { ActionForm } from "@/components/ui/action-form";
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/feedback";
 import { Field, Input, Textarea } from "@/components/ui/form";
@@ -8,12 +11,12 @@ import { saveContactAction } from "@/lib/actions/settings.actions";
 import { initialActionState, type ContactSettings } from "@/types";
 
 /** 기관 정보 — 하단(푸터)·오시는 길에 표시 */
-export function ContactForm({ contact }: { contact: ContactSettings }) {
+function ContactFormInner({ contact }: { contact: ContactSettings }) {
   const [state, action] = useActionState(saveContactAction, initialActionState);
   const v = (k: keyof ContactSettings) => state.values?.[k] ?? contact[k];
   const err = (k: string) => state.fieldErrors?.[k];
   return (
-    <form action={action} className="max-w-3xl space-y-4">
+    <ActionForm action={action} className="max-w-3xl space-y-4">
       {state.message && <Alert tone={state.ok ? "success" : "danger"}>{state.message}</Alert>}
       <div className="grid gap-4 sm:grid-cols-[8rem_1fr]">
         <Field label="우편번호" htmlFor="postalCode" errors={err("postalCode")}>
@@ -61,6 +64,14 @@ export function ContactForm({ contact }: { contact: ContactSettings }) {
         />
       </Field>
       <SubmitButton pendingText="저장 중…">저장</SubmitButton>
-    </form>
+    </ActionForm>
+  );
+}
+
+export function ContactForm(props: ComponentProps<typeof ContactFormInner>) {
+  return (
+    <Fresh>
+      <ContactFormInner {...props} />
+    </Fresh>
   );
 }

@@ -1,5 +1,8 @@
 "use client";
 
+import { Fresh } from "@/components/ui/fresh";
+import type { ComponentProps } from "react";
+import { ActionForm } from "@/components/ui/action-form";
 import { useActionState } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Alert } from "@/components/ui/feedback";
@@ -8,7 +11,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { saveOrgMemberAction } from "@/lib/actions/content.actions";
 import { initialActionState, type OrgMember } from "@/types";
 
-export function OrgMemberForm({
+function OrgMemberFormInner({
   member,
   departments,
 }: {
@@ -20,17 +23,11 @@ export function OrgMemberForm({
   const err = (k: string) => state.fieldErrors?.[k];
   const checked = (k: "isHead" | "isVisible", fallback: boolean) => (v ? v[k] === "on" : fallback);
   return (
-    <form action={action} className="max-w-2xl space-y-4">
+    <ActionForm action={action} className="max-w-2xl space-y-4">
       {member && <input type="hidden" name="id" value={member.id} />}
       {state.message && !state.ok && <Alert tone="danger">{state.message}</Alert>}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field
-          label="소속"
-          htmlFor="department"
-          required
-          errors={err("department")}
-          hint="예: 센터장, 정책지원팀, 운영위원회"
-        >
+        <Field label="소속" htmlFor="department" required errors={err("department")}>
           <Input
             id="department"
             name="department"
@@ -105,6 +102,14 @@ export function OrgMemberForm({
           취소
         </ButtonLink>
       </div>
-    </form>
+    </ActionForm>
+  );
+}
+
+export function OrgMemberForm(props: ComponentProps<typeof OrgMemberFormInner>) {
+  return (
+    <Fresh dataKey={props.member?.updatedAt?.getTime()}>
+      <OrgMemberFormInner {...props} />
+    </Fresh>
   );
 }

@@ -120,7 +120,36 @@ export const heroSlideSchema = z.object({
   title: text(80),
   subtitle: text(200),
   linkUrl: optionalLink,
+  /** 활동 갤러리 게시글에서 가져온 경우 연동 */
+  postId: z
+    .string()
+    .nullish()
+    .transform((v) => (v && /^\d+$/.test(v) ? Number(v) : null)),
   isActive: checkbox,
+  sortOrder: order,
+});
+
+/** 하단 관련 기관 사이트 */
+export const relatedSiteSchema = z.object({
+  name: z.string().trim().min(1, "기관명을 입력하세요.").max(60),
+  url: z
+    .string()
+    .trim()
+    .refine((v) => /^https?:\/\/[^\s]+$/.test(v), "http(s):// 로 시작하는 주소를 입력하세요."),
+  logoUrl: z
+    .string()
+    .trim()
+    .nullish()
+    .transform((v) => (v ? v : null))
+    .refine(
+      (v) =>
+        v === null ||
+        /^\/files\/\d+$/.test(v) ||
+        /^\/related-sites\/[\w.-]+$/.test(v) ||
+        /^https:\/\//.test(v),
+      "로고는 업로드한 이미지 또는 https 주소만 사용할 수 있습니다.",
+    ),
+  isVisible: checkbox,
   sortOrder: order,
 });
 

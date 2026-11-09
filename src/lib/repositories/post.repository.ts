@@ -1,7 +1,7 @@
 import "server-only";
-import { and, count, desc, eq, like, or } from "drizzle-orm";
+import { and, count, desc, eq, exists, inArray, like, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { posts, type NewPostRow, type PostRow } from "@/lib/db/schema";
+import { files, posts, type NewPostRow, type PostRow } from "@/lib/db/schema";
 import type { BoardKey, Paginated, Post, PostSummary } from "@/types";
 
 /** 게시글 데이터 접근 계층 — Next.js 캐시/인증과 무관한 순수 DB 로직 */
@@ -83,6 +83,47 @@ export async function listLatestPosts(boardKey: BoardKey, limit = 5): Promise<Po
   return result.items;
 }
 
+/** 메인 위젯용 최신글 — 본문 앞부분(요약문 재료)과 첨부파일 여부 포함 */
+export async function listLatestPostsWithExcerpt(boardKey: BoardKey, limit = 5) {
+  const rows = await db
+    .select({
+      id: posts.id,
+      boardKey: posts.boardKey,
+      category: posts.category,
+      title: posts.title,
+      author: posts.author,
+      isPinned: posts.isPinned,
+      publishedAt: posts.publishedAt,
+      thumbnailUrl: posts.thumbnailUrl,
+      contentHead: sql<string>`substr(${posts.content}, 1, 800)`,
+      format: posts.format,
+      hasAttachment: exists(
+        db
+          .select({ one: sql`1` })
+          .from(files)
+          .where(and(eq(files.postId, posts.id), eq(files.kind, "attachment"))),
+      ),
+    })
+    .from(posts)
+    .where(and(eq(posts.boardKey, boardKey), eq(posts.isPublished, true)))
+    .orderBy(desc(posts.isPinned), desc(posts.publishedAt), desc(posts.id))
+    .limit(limit);
+  return rows.map((row) => ({
+    ...row,
+    boardKey: row.boardKey as BoardKey,
+    hasAttachment: Boolean(row.hasAttachment),
+  }));
+}
+
+/** 선택 삭제용 — 해당 게시판에 속한 글만 반환 */
+export async function findPostsByIds(boardKey: BoardKey, ids: number[]) {
+  if (ids.length === 0) return [];
+  return db
+    .select({ id: posts.id, title: posts.title })
+    .from(posts)
+    .where(and(eq(posts.boardKey, boardKey), inArray(posts.id, ids)));
+}
+
 export async function insertPost(values: NewPostRow): Promise<number> {
   const [row] = await db.insert(posts).values(values).returning({ id: posts.id });
   return row.id;
@@ -102,4 +143,17 @@ export async function countPostsByBoard(): Promise<Record<string, number>> {
     .from(posts)
     .groupBy(posts.boardKey);
   return Object.fromEntries(rows.map((r) => [r.boardKey, r.total]));
+}
+
+/** 메인 비주얼에서 고를 수 있는 활동 갤러리 게시글 (대표 사진이 있는 게시 글) */
+export async function listGalleryPicks(limit = 100) {
+  const rows = await db
+    .select({ id: posts.id, title: posts.title, thumbnailUrl: posts.thumbnailUrl })
+    .from(posts)
+    .where(and(eq(posts.boardKey, "gallery"), eq(posts.isPublished, true)))
+    .orderBy(desc(posts.publishedAt), desc(posts.id))
+    .limit(limit);
+  return rows.filter(
+    (r): r is { id: number; title: string; thumbnailUrl: string } => r.thumbnailUrl !== null,
+  );
 }

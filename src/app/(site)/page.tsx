@@ -24,7 +24,7 @@ export default async function HomePage() {
     getVisibleStats(),
     getHomeCharts(),
   ]);
-  const showActivity = isVisible(navigation, "/news/center-news");
+  const showActivity = isVisible(navigation, "/news/gallery");
   const latestBoards = (["notice", "press"] as BoardKey[]).filter((key) =>
     isVisible(navigation, `/news/${key}`),
   );

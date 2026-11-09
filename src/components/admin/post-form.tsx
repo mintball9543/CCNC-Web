@@ -1,5 +1,8 @@
 "use client";
 
+import { Fresh } from "@/components/ui/fresh";
+import type { ComponentProps } from "react";
+import { ActionForm } from "@/components/ui/action-form";
 import { useActionState, useRef } from "react";
 import { RichTextEditor } from "@/components/editor/rich-text-editor";
 import { ButtonLink } from "@/components/ui/button";
@@ -22,28 +25,31 @@ function textToHtml(text: string) {
 }
 
 /** 게시글 작성/수정 폼 — 본문 편집기(이미지 포함) + 첨부파일 칸 */
-export function PostForm({
+function PostFormInner({
   board,
   post,
   attachments = [],
   defaultAuthor,
+  heroLinked = false,
 }: {
   board: BoardDefinition;
   post?: Post;
   attachments?: UploadedFile[];
   defaultAuthor: string;
+  /** 활동 갤러리: 이미 메인 비주얼에 연동되어 있는지 */
+  heroLinked?: boolean;
 }) {
   const [state, action] = useActionState(savePostAction, initialActionState);
   const attachmentRef = useRef<AttachmentManagerHandle>(null);
   const err = (name: string) => state.fieldErrors?.[name];
   const v = state.values;
-  const checked = (name: "isPinned" | "isPublished", fallback: boolean) =>
+  const checked = (name: "isPinned" | "isPublished" | "featureOnHero", fallback: boolean) =>
     v ? v[name] === "on" : fallback;
   const initialContent =
     v?.content ?? (post ? (post.format === "html" ? post.content : textToHtml(post.content)) : "");
 
   return (
-    <form action={action} className="max-w-4xl space-y-5">
+    <ActionForm action={action} className="max-w-4xl space-y-5">
       {post && <input type="hidden" name="id" value={post.id} />}
       <input type="hidden" name="boardKey" value={board.key} />
       {state.message && !state.ok && <Alert tone="danger">{state.message}</Alert>}
@@ -99,7 +105,7 @@ export function PostForm({
           이미지는 끌어다 놓기·붙여넣기·이미지 주소 붙여넣기로 본문에 넣을 수 있습니다. PDF·HWP 등
           문서를 본문에 끌어다 놓으면 첨부파일로 등록됩니다.
           {board.layout === "gallery" &&
-            " 본문의 첫 번째 사진이 목록·메인 화면의 대표 사진으로 사용됩니다."}
+            " 본문의 첫 번째 사진이 목록·메인 화면의 대표 사진으로 사용됩니다. 사진 아래에 행사 설명을 적어 주세요."}
         </p>
         {err("content")?.map((e) => (
           <p key={e} className="text-xs text-danger" role="alert">
@@ -117,13 +123,31 @@ export function PostForm({
         <Checkbox
           name="isPinned"
           defaultChecked={checked("isPinned", post?.isPinned ?? false)}
-          label="상단 고정(공지)"
+          label={board.layout === "gallery" ? "상단 고정 (메인 화면 우선 표시)" : "상단 고정(공지)"}
         />
         <Checkbox
           name="isPublished"
           defaultChecked={checked("isPublished", post?.isPublished ?? true)}
           label="게시 (해제 시 비공개 저장)"
         />
+        {board.key === "gallery" && (
+          <div className="space-y-1">
+            <Checkbox
+              name="featureOnHero"
+              defaultChecked={checked("featureOnHero", heroLinked)}
+              label="메인 비주얼(상단 사진 슬라이드)에도 표시"
+            />
+            <p className="pl-6 text-xs text-muted-foreground">
+              대표 사진과 제목이 메인 상단 슬라이드에 추가되고, 누르면 이 게시글로 이동합니다.
+              문구·순서는 관리자 &gt; 메인 비주얼에서 바꿀 수 있습니다.
+            </p>
+            {err("featureOnHero")?.map((e) => (
+              <p key={e} className="pl-6 text-xs text-danger" role="alert">
+                {e}
+              </p>
+            ))}
+          </div>
+        )}
       </div>
       <div className="flex gap-2 border-t border-border pt-5">
         <SubmitButton pendingText="저장 중…">{post ? "수정" : "등록"}</SubmitButton>
@@ -131,6 +155,14 @@ export function PostForm({
           취소
         </ButtonLink>
       </div>
-    </form>
+    </ActionForm>
+  );
+}
+
+export function PostForm(props: ComponentProps<typeof PostFormInner>) {
+  return (
+    <Fresh dataKey={props.post?.updatedAt?.getTime()}>
+      <PostFormInner {...props} />
+    </Fresh>
   );
 }

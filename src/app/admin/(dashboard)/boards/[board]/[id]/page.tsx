@@ -8,6 +8,7 @@ import { requireAdmin } from "@/lib/auth/guard";
 import { getBoard } from "@/lib/config/boards";
 import * as fileRepository from "@/lib/repositories/file.repository";
 import * as postRepository from "@/lib/repositories/post.repository";
+import * as settingsRepository from "@/lib/repositories/settings.repository";
 import { fileUrl } from "@/lib/uploads/url";
 
 export default function EditPostPage(props: PageProps<"/admin/boards/[board]/[id]">) {
@@ -47,6 +48,10 @@ async function Content({ params }: PageProps<"/admin/boards/[board]/[id]">) {
         }
       />
       <PostForm
+        heroLinked={
+          board.key === "gallery" &&
+          (await settingsRepository.findHeroSlideByPostId(post.id)) !== null
+        }
         board={board}
         post={post}
         attachments={attachments}

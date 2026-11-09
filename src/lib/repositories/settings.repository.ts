@@ -1,15 +1,23 @@
 import "server-only";
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   chartDatasets,
   heroSlides,
   menuSettings,
   orgMembers,
+  relatedSites,
   siteSettings,
   statHighlights,
 } from "@/lib/db/schema";
-import type { ChartDataset, ContactSettings, HeroSlide, OrgMember, StatHighlight } from "@/types";
+import type {
+  ChartDataset,
+  ContactSettings,
+  HeroSlide,
+  OrgMember,
+  RelatedSite,
+  StatHighlight,
+} from "@/types";
 
 /** 관리자 관리 콘텐츠(메뉴 노출·연락처·조직도·도표·실적·메인 비주얼) 데이터 접근 계층 */
 
@@ -148,4 +156,64 @@ export async function saveHeroSlide(
 
 export async function deleteHeroSlide(id: number): Promise<void> {
   await db.delete(heroSlides).where(eq(heroSlides.id, id));
+}
+
+/** 활동 갤러리 게시글과 연동된 슬라이드 */
+export async function findHeroSlideByPostId(postId: number): Promise<HeroSlide | null> {
+  return (await db.query.heroSlides.findFirst({ where: eq(heroSlides.postId, postId) })) ?? null;
+}
+
+/** 갤러리 게시글 저장 시 연동 슬라이드 생성·갱신 (문구·순서는 관리자가 바꾼 값 유지) */
+export async function upsertHeroSlideForPost(
+  postId: number,
+  values: { imageUrl: string; imageAlt: string; title: string; linkUrl: string; isActive: boolean },
+): Promise<void> {
+  const existing = await findHeroSlideByPostId(postId);
+  if (existing) {
+    await db
+      .update(heroSlides)
+      .set({
+        imageUrl: values.imageUrl,
+        imageAlt: values.imageAlt,
+        linkUrl: values.linkUrl,
+        isActive: values.isActive,
+      })
+      .where(eq(heroSlides.id, existing.id));
+  } else {
+    await db.insert(heroSlides).values({ ...values, subtitle: "", postId, sortOrder: 0 });
+  }
+}
+
+export async function deleteHeroSlidesByPostIds(postIds: number[]): Promise<number> {
+  if (postIds.length === 0) return 0;
+  const removed = await db
+    .delete(heroSlides)
+    .where(inArray(heroSlides.postId, postIds))
+    .returning({ id: heroSlides.id });
+  return removed.length;
+}
+
+// ── 관련 기관 사이트 ─────────────────────────────────────
+export async function listRelatedSites({ visibleOnly = false } = {}): Promise<RelatedSite[]> {
+  return db
+    .select()
+    .from(relatedSites)
+    .where(visibleOnly ? eq(relatedSites.isVisible, true) : undefined)
+    .orderBy(asc(relatedSites.sortOrder), asc(relatedSites.id));
+}
+
+export async function findRelatedSite(id: number): Promise<RelatedSite | null> {
+  return (await db.query.relatedSites.findFirst({ where: eq(relatedSites.id, id) })) ?? null;
+}
+
+export async function saveRelatedSite(
+  id: number | null,
+  values: Omit<RelatedSite, "id">,
+): Promise<void> {
+  if (id) await db.update(relatedSites).set(values).where(eq(relatedSites.id, id));
+  else await db.insert(relatedSites).values(values);
+}
+
+export async function deleteRelatedSite(id: number): Promise<void> {
+  await db.delete(relatedSites).where(eq(relatedSites.id, id));
 }

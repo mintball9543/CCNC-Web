@@ -5,6 +5,7 @@ import { HeroSlideForm } from "@/components/admin/hero-slide-form";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { deleteHeroSlideAction } from "@/lib/actions/content.actions";
 import { requireAdmin } from "@/lib/auth/guard";
+import * as postRepository from "@/lib/repositories/post.repository";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 
 export const metadata = { title: "사진 수정" };
@@ -33,7 +34,7 @@ async function Content({ params }: PageProps<"/admin/hero/[id]">) {
           </form>
         }
       />
-      <HeroSlideForm slide={slide} />
+      <HeroSlideForm slide={slide} galleryPosts={await postRepository.listGalleryPicks()} />
     </>
   );
 }

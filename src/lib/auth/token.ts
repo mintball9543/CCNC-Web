@@ -15,11 +15,19 @@ export interface AdminSession {
 
 const DEV_FALLBACK_SECRET = "ccnc-dev-only-secret-do-not-use-in-production-0000";
 
+let warnedShortSecret = false;
+
 function getSecretKey(): Uint8Array {
   const secret = process.env.AUTH_SECRET;
   if (!secret || secret.length < 32) {
     if (process.env.NODE_ENV === "production") {
       throw new Error("AUTH_SECRET 환경 변수(32자 이상)가 설정되지 않았습니다.");
+    }
+    if (secret && !warnedShortSecret) {
+      warnedShortSecret = true;
+      console.warn(
+        `⚠ AUTH_SECRET 이 ${secret.length}자라서 무시되고 개발용 임시 키를 사용합니다. 32자 이상으로 설정하세요. (npm run env:check)`,
+      );
     }
     return new TextEncoder().encode(DEV_FALLBACK_SECRET);
   }

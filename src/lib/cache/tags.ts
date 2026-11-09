@@ -16,4 +16,5 @@ export const cacheTags = {
   charts: "charts",
   stats: "stats",
   heroSlides: "hero-slides",
+  relatedSites: "related-sites",
 } as const;

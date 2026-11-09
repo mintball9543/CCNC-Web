@@ -2,6 +2,7 @@
  * 마이그레이션 적용 스크립트:  npm run db:migrate
  * drizzle/ 디렉터리의 SQL 마이그레이션을 순서대로 적용한다.
  */
+import "../env/load-cli";
 import { migrate } from "drizzle-orm/libsql/migrator";
 import { createDatabase } from "./factory";
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { Fresh } from "@/components/ui/fresh";
+import { ActionForm } from "@/components/ui/action-form";
 import { useSearchParams } from "next/navigation";
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/feedback";
@@ -9,12 +11,12 @@ import { loginAction } from "@/lib/actions/auth.actions";
 import { initialActionState } from "@/types";
 
 /** 관리자 로그인 — 비밀번호만 입력 */
-export function LoginForm() {
+function LoginFormInner() {
   const [state, action] = useActionState(loginAction, initialActionState);
   const next = useSearchParams().get("next") ?? state.values?.next ?? "";
 
   return (
-    <form action={action} className="space-y-4">
+    <ActionForm action={action} className="space-y-4">
       <input type="hidden" name="next" value={next} />
       {/* 비밀번호 관리자(브라우저 저장)용 숨김 아이디 필드 */}
       <input type="text" name="username" value="admin" autoComplete="username" readOnly hidden />
@@ -32,6 +34,14 @@ export function LoginForm() {
       <SubmitButton className="w-full" size="lg" pendingText="로그인 중…">
         로그인
       </SubmitButton>
-    </form>
+    </ActionForm>
+  );
+}
+
+export function LoginForm() {
+  return (
+    <Fresh>
+      <LoginFormInner />
+    </Fresh>
   );
 }

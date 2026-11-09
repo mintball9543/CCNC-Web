@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminSuspense } from "@/components/admin/admin-suspense";
+import { BulkDeleteForm } from "@/components/admin/bulk-delete-form";
 import { InquiryTable } from "@/components/inquiry/inquiry-table";
 import { Pagination } from "@/components/ui/pagination";
+import { bulkDeleteInquiriesAction } from "@/lib/actions/inquiry-admin.actions";
 import { requireAdmin } from "@/lib/auth/guard";
 import * as inquiryRepository from "@/lib/repositories/inquiry.repository";
 import { cn } from "@/lib/utils/cn";
@@ -62,11 +64,14 @@ async function Content({ searchParams }: PageProps<"/admin/inquiries">) {
         ))}
       </div>
       <div className="rounded-xl bg-card p-4">
-        <InquiryTable
-          items={result.items}
-          startNumber={result.total - (result.page - 1) * result.pageSize}
-          hrefFor={(item) => `/admin/inquiries/${item.id}`}
-        />
+        <BulkDeleteForm action={bulkDeleteInquiriesAction} itemLabel="문의">
+          <InquiryTable
+            items={result.items}
+            startNumber={result.total - (result.page - 1) * result.pageSize}
+            hrefFor={(item) => `/admin/inquiries/${item.id}`}
+            selectable
+          />
+        </BulkDeleteForm>
         <Pagination page={result.page} totalPages={result.totalPages} hrefFor={(p) => href(p)} />
       </div>
     </>

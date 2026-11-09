@@ -13,6 +13,8 @@ export interface Inquiry {
   answeredBy: string | null;
   answeredAt: Date | null;
   notifiedAt: Date | null;
+  /** 비밀번호 설정 여부 (해시는 노출하지 않음) */
+  hasPassword: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,4 +34,6 @@ export interface PublicInquiryDetail extends InquirySummary {
   content: string | null;
   answer: string | null;
   answeredAt: Date | null;
+  /** 비밀번호가 설정된 문의 (비공개 문의 또는 이전 방식으로 작성된 공개 문의) */
+  hasPassword: boolean;
 }

@@ -28,6 +28,18 @@ export function formatDateTime(date: Date | string | number): string {
   return `${get("year")}.${get("month")}.${get("day")} ${get("hour")}:${get("minute")}`;
 }
 
+/** 한국시간 기준 연·월·일 (메인 게시글 날짜 표시용) */
+export function datePartsKst(date: Date | string | number): {
+  year: string;
+  month: string;
+  day: string;
+} {
+  const parts = dateFormatter.formatToParts(new Date(date));
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+  return { year: get("year"), month: get("month"), day: get("day") };
+}
+
 /** 작성자 이름 마스킹: 홍길동 → 홍*동, 김철 → 김* */
 export function maskName(name: string): string {
   const trimmed = name.trim();

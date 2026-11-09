@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Pin } from "lucide-react";
+import { RowCheckbox, SelectAllCheckbox } from "@/components/admin/bulk-delete-form";
 import { Badge, EmptyState } from "@/components/ui/feedback";
 import { getCategoryLabel } from "@/lib/config/boards";
 import { formatDate } from "@/lib/utils/format";
@@ -12,6 +13,7 @@ export function PostTable({
   startNumber,
   hrefFor,
   emptyText = "등록된 게시글이 없습니다.",
+  selectable = false,
 }: {
   boardKey: BoardKey;
   posts: PostSummary[];
@@ -19,6 +21,8 @@ export function PostTable({
   startNumber: number;
   hrefFor: (post: PostSummary) => string;
   emptyText?: string;
+  /** 관리자 선택 삭제용 체크박스 표시 (BulkDeleteForm 안에서 사용) */
+  selectable?: boolean;
 }) {
   if (posts.length === 0) return <EmptyState title={emptyText} />;
 
@@ -28,6 +32,11 @@ export function PostTable({
         <caption className="sr-only">게시글 목록</caption>
         <thead className="hidden border-b border-border bg-muted/60 sm:table-header-group">
           <tr>
+            {selectable && (
+              <th scope="col" className="w-10 py-3">
+                <SelectAllCheckbox />
+              </th>
+            )}
             <th scope="col" className="w-20 py-3 font-medium">
               번호
             </th>
@@ -46,7 +55,15 @@ export function PostTable({
           {posts.map((post, i) => {
             const category = getCategoryLabel(boardKey, post.category);
             return (
-              <tr key={post.id} className="flex flex-wrap border-b border-border sm:table-row">
+              <tr
+                key={post.id}
+                className="flex flex-wrap items-center border-b border-border sm:table-row"
+              >
+                {selectable && (
+                  <td className="pt-4 pr-2 pl-1 sm:py-4 sm:text-center">
+                    <RowCheckbox id={post.id} label={post.title} />
+                  </td>
+                )}
                 <td className="hidden py-4 text-center text-muted-foreground sm:table-cell">
                   {post.isPinned ? (
                     <Badge tone="primary">
@@ -57,7 +74,13 @@ export function PostTable({
                     startNumber - i
                   )}
                 </td>
-                <td className="w-full px-1 pt-4 pb-1 sm:w-auto sm:py-4">
+                <td
+                  className={
+                    selectable
+                      ? "flex-1 px-1 pt-4 pb-1 sm:w-auto sm:py-4"
+                      : "w-full px-1 pt-4 pb-1 sm:w-auto sm:py-4"
+                  }
+                >
                   <Link href={hrefFor(post)} className="group flex items-center gap-2">
                     {post.isPinned && (
                       <Badge tone="primary" className="sm:hidden">
@@ -65,7 +88,7 @@ export function PostTable({
                       </Badge>
                     )}
                     {category && <Badge>{category}</Badge>}
-                    <span className="line-clamp-1 font-medium group-hover:text-primary group-hover:underline">
+                    <span className="line-clamp-1 text-[15px] font-medium group-hover:text-primary group-hover:underline sm:text-base">
                       {post.title}
                     </span>
                   </Link>

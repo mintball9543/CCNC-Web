@@ -1,10 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { decodeSession, SESSION_COOKIE } from "@/lib/auth/token";
+import { logAdminView } from "@/lib/proxy/admin-view";
 import { isHiddenMenuPath } from "@/lib/proxy/hidden-menu";
 
 /**
  * 요청 전처리
  * 1) /admin — 관리자 세션 낙관적 확인 (실제 권한 검증은 각 페이지/Server Action 의 requireAdmin())
+ *    + 관리자 페이지 접속 IP 기록 (관리자 > 작업 기록)
  * 2) 공개 메뉴 — 관리자가 숨긴 메뉴의 페이지는 렌더링 전에 404 로 응답
  */
 export async function proxy(request: NextRequest) {
@@ -13,6 +15,7 @@ export async function proxy(request: NextRequest) {
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     const session = await decodeSession(request.cookies.get(SESSION_COOKIE)?.value);
     const isLoginPage = pathname === "/admin/login";
+    await logAdminView(request, session?.userId ?? null);
     if (!session && !isLoginPage) {
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("next", `${pathname}${search}`);

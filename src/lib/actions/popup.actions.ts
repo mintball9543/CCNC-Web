@@ -2,6 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { recordAudit } from "@/lib/audit/record";
 import { requireAdmin } from "@/lib/auth/guard";
 import { cacheTags } from "@/lib/cache/tags";
 import * as popupRepository from "@/lib/repositories/popup.repository";
@@ -19,25 +20,46 @@ export async function savePopupAction(
   const parsed = popupSchema.safeParse(raw);
   if (!parsed.success) return validationError(parsed.error, raw);
 
-  const id = raw.id ? Number(raw.id) : null;
-  if (id) {
-    await popupRepository.updatePopup(id, parsed.data);
-  } else {
-    await popupRepository.insertPopup(parsed.data);
-  }
+  const existingId = raw.id ? Number(raw.id) : null;
+  const id = existingId
+    ? (await popupRepository.updatePopup(existingId, parsed.data), existingId)
+    : await popupRepository.insertPopup(parsed.data);
+  const p = parsed.data;
+  await recordAudit({
+    action: existingId ? "popup.update" : "popup.create",
+    target: `popups:${id}`,
+    summary: `팝업 ${existingId ? "수정" : "등록"}: ${p.title} (${p.isActive ? "ON" : "OFF"}, ${
+      p.position === "center" ? "중앙" : `X${p.left}·Y${p.top}`
+    }, ${p.width}×${p.height ?? "auto"})`,
+  });
   updateTag(cacheTags.popups);
   redirect("/admin/popups");
 }
 
 export async function togglePopupAction(id: number, isActive: boolean): Promise<void> {
   await requireAdmin();
+  const popup = await popupRepository.findPopup(id);
+  if (!popup) return;
   await popupRepository.updatePopup(id, { isActive });
+  await recordAudit({
+    action: "popup.toggle",
+    target: `popups:${id}`,
+    summary: `팝업 ${isActive ? "켜기" : "끄기"}: ${popup.title}`,
+  });
   updateTag(cacheTags.popups);
 }
 
 export async function deletePopupAction(id: number): Promise<void> {
   await requireAdmin();
-  await popupRepository.deletePopup(id);
+  const popup = await popupRepository.findPopup(id);
+  if (popup) {
+    await popupRepository.deletePopup(id);
+    await recordAudit({
+      action: "popup.delete",
+      target: `popups:${id}`,
+      summary: `팝업 삭제: ${popup.title}`,
+    });
+  }
   updateTag(cacheTags.popups);
   redirect("/admin/popups");
 }

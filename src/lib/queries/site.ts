@@ -65,3 +65,11 @@ export async function getActiveHeroSlides() {
   cacheTag(cacheTags.heroSlides);
   return settingsRepository.listHeroSlides({ activeOnly: true });
 }
+
+/** 하단 관련 기관 사이트 (관리자 > 관련 사이트에서 수정) */
+export async function getRelatedSites() {
+  "use cache";
+  cacheLife("days");
+  cacheTag(cacheTags.relatedSites);
+  return settingsRepository.listRelatedSites({ visibleOnly: true });
+}

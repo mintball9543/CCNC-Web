@@ -1,5 +1,5 @@
 import "server-only";
-import { count, desc, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNotNull, isNull, type SQL } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { inquiries, type InquiryRow, type NewInquiryRow } from "@/lib/db/schema";
 import { maskName } from "@/lib/utils/format";
@@ -33,17 +33,19 @@ export async function listInquiries({
   page = 1,
   pageSize = 10,
   status,
+  ownerKeyHash,
 }: {
   page?: number;
   pageSize?: number;
   status?: "pending" | "answered";
+  /** '본인 글 보기' — 이 브라우저에서 작성한 문의만 */
+  ownerKeyHash?: string;
 } = {}): Promise<Paginated<InquirySummary>> {
-  const where =
-    status === "pending"
-      ? isNull(inquiries.answeredAt)
-      : status === "answered"
-        ? isNotNull(inquiries.answeredAt)
-        : undefined;
+  const conditions: SQL[] = [];
+  if (status === "pending") conditions.push(isNull(inquiries.answeredAt));
+  if (status === "answered") conditions.push(isNotNull(inquiries.answeredAt));
+  if (ownerKeyHash) conditions.push(eq(inquiries.ownerKeyHash, ownerKeyHash));
+  const where = conditions.length ? and(...conditions) : undefined;
 
   const [rows, [{ total }]] = await Promise.all([
     db
@@ -74,6 +76,7 @@ export async function findPublicInquiry(id: number): Promise<PublicInquiryDetail
     content: row.isPrivate ? null : row.content,
     answer: row.isPrivate ? null : row.answer,
     answeredAt: row.isPrivate ? null : row.answeredAt,
+    hasPassword: row.passwordHash !== null,
   };
 }
 
@@ -82,8 +85,8 @@ export async function findInquiry(id: number): Promise<Inquiry | null> {
   const row = await db.query.inquiries.findFirst({ where: eq(inquiries.id, id) });
   if (!row) return null;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { passwordHash, ...rest } = row;
-  return rest;
+  const { passwordHash, ownerKeyHash, ...rest } = row;
+  return { ...rest, hasPassword: passwordHash !== null };
 }
 
 export async function findInquiryPasswordHash(id: number): Promise<string | null> {
@@ -93,6 +96,57 @@ export async function findInquiryPasswordHash(id: number): Promise<string | null
     .where(eq(inquiries.id, id))
     .get();
   return row?.passwordHash ?? null;
+}
+
+/** 작성자 본인 확인에 필요한 정보 (해시 포함 — 서버 내부 전용) */
+export async function findInquiryAuth(id: number) {
+  const row = await db
+    .select({
+      id: inquiries.id,
+      title: inquiries.title,
+      isPrivate: inquiries.isPrivate,
+      passwordHash: inquiries.passwordHash,
+      ownerKeyHash: inquiries.ownerKeyHash,
+      answeredAt: inquiries.answeredAt,
+    })
+    .from(inquiries)
+    .where(eq(inquiries.id, id))
+    .get();
+  return row ?? null;
+}
+
+export async function updateInquiryByAuthor(
+  id: number,
+  values: Pick<NewInquiryRow, "title" | "content" | "phone" | "isPrivate"> & {
+    passwordHash?: string;
+  },
+): Promise<void> {
+  // 답변 전 상태일 때만 수정 (동시에 답변이 등록된 경우 대비)
+  await db
+    .update(inquiries)
+    .set(values)
+    .where(and(eq(inquiries.id, id), isNull(inquiries.answeredAt)));
+}
+
+export async function deleteInquiryByAuthor(id: number): Promise<boolean> {
+  const removed = await db
+    .delete(inquiries)
+    .where(and(eq(inquiries.id, id), isNull(inquiries.answeredAt)))
+    .returning({ id: inquiries.id });
+  return removed.length > 0;
+}
+
+export async function findInquiriesByIds(ids: number[]) {
+  if (ids.length === 0) return [];
+  return db
+    .select({ id: inquiries.id, title: inquiries.title })
+    .from(inquiries)
+    .where(inArray(inquiries.id, ids));
+}
+
+export async function deleteInquiries(ids: number[]): Promise<void> {
+  if (ids.length === 0) return;
+  await db.delete(inquiries).where(inArray(inquiries.id, ids));
 }
 
 export async function insertInquiry(values: NewInquiryRow): Promise<number> {

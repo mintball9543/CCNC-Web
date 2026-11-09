@@ -5,17 +5,32 @@ import { useRef, useState } from "react";
 import { uploadFile } from "@/lib/uploads/client";
 import { cn } from "@/lib/utils/cn";
 
-/** 이미지 1장 업로드 필드 (끌어다 놓기 지원) — 업로드된 URL 을 hidden input 으로 전송 */
+/**
+ * 이미지 1장 업로드 필드 (끌어다 놓기 지원) — 업로드된 URL 을 hidden input 으로 전송.
+ * value/onChange 를 주면 상위 컴포넌트가 값을 관리한다(예: 갤러리에서 가져오기).
+ */
 export function ImageUploadField({
   name,
   defaultValue,
+  value,
+  onChange,
   invalid,
+  aspect = "aspect-[16/7]",
 }: {
   name: string;
   defaultValue?: string;
+  value?: string;
+  onChange?: (url: string) => void;
   invalid?: boolean;
+  /** 미리보기 비율 (Tailwind aspect 클래스) */
+  aspect?: string;
 }) {
-  const [url, setUrl] = useState(defaultValue ?? "");
+  const [innerUrl, setInnerUrl] = useState(defaultValue ?? "");
+  const url = value ?? innerUrl;
+  const setUrl = (next: string) => {
+    if (value === undefined) setInnerUrl(next);
+    onChange?.(next);
+  };
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -45,7 +60,8 @@ export function ImageUploadField({
           void handle(e.dataTransfer.files[0]);
         }}
         className={cn(
-          "relative flex aspect-[16/7] w-full items-center justify-center overflow-hidden rounded-xl border-2 border-dashed bg-muted text-sm text-muted-foreground transition hover:border-primary",
+          "relative flex w-full items-center justify-center overflow-hidden rounded-xl border-2 border-dashed bg-muted text-sm text-muted-foreground transition hover:border-primary",
+          aspect,
           invalid ? "border-danger" : "border-border",
         )}
       >

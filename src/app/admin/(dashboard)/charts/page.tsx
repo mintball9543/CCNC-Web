@@ -16,7 +16,7 @@ export default function ChartsAdminPage() {
     <>
       <AdminPageHeader
         title="도표 관리"
-        description="연도별 수치를 표에 입력하면 홈페이지 도표가 자동으로 그려집니다. 매년 행(연도)만 추가해 갱신하세요."
+        description="표에 수치를 입력하면 홈페이지 도표가 자동으로 그려집니다. 새 자료는 행을 추가해 갱신하세요. (가로축은 연도·지역·부문 등 자유롭게 지정)"
         actions={
           <ButtonLink href="/admin/charts/new">
             <Plus className="size-4" aria-hidden />새 도표

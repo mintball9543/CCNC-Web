@@ -11,7 +11,13 @@ export const boards: Record<BoardKey, BoardDefinition> = {
   "center-news": {
     key: "center-news",
     title: "센터소식",
-    description: "센터의 행사·활동 소식을 사진과 함께 전해드립니다.",
+    description: "센터 운영과 사업 추진 소식을 전해드립니다.",
+    layout: "list",
+  },
+  gallery: {
+    key: "gallery",
+    title: "활동 갤러리",
+    description: "센터가 수행해 온 행사·교육·활동을 사진과 함께 소개합니다.",
     layout: "gallery",
   },
   press: {

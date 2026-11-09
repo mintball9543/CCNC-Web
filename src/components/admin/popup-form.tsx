@@ -1,5 +1,8 @@
 "use client";
 
+import { Fresh } from "@/components/ui/fresh";
+import type { ComponentProps } from "react";
+import { ActionForm } from "@/components/ui/action-form";
 import { useActionState, useState } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Alert } from "@/components/ui/feedback";
@@ -8,22 +11,10 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { savePopupAction } from "@/lib/actions/popup.actions";
 import { toDateTimeLocalValue } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
-import { initialActionState, type Popup, type PopupPosition } from "@/types";
+import { initialActionState, type Popup } from "@/types";
 import { PopupPreview, type PopupDraft } from "./popup-preview";
 
-function initialDraft(popup?: Popup, values?: Record<string, string>): PopupDraft {
-  if (values) {
-    return {
-      title: values.title ?? "",
-      content: values.content ?? "",
-      imageUrl: values.imageUrl ?? "",
-      position: (values.position as PopupPosition) ?? "center",
-      left: values.left ?? "0",
-      top: values.top ?? "0",
-      width: values.width ?? "400",
-      height: values.height ?? "",
-    };
-  }
+function initialDraft(popup?: Popup): PopupDraft {
   return {
     title: popup?.title ?? "",
     content: popup?.content ?? "",
@@ -40,16 +31,9 @@ function initialDraft(popup?: Popup, values?: Record<string, string>): PopupDraf
  * 팝업 생성/수정 폼.
  * 위치(중앙 / 좌상단 좌표)와 크기(너비 / 높이)를 입력하면 오른쪽 미리보기에 즉시 반영된다.
  */
-export function PopupForm({ popup }: { popup?: Popup }) {
+function PopupFormInner({ popup }: { popup?: Popup }) {
   const [state, action] = useActionState(savePopupAction, initialActionState);
   const [draft, setDraft] = useState<PopupDraft>(() => initialDraft(popup));
-
-  // 검증 실패로 서버가 입력값을 돌려준 경우 미리보기 상태도 동기화
-  const [syncedValues, setSyncedValues] = useState(state.values);
-  if (state.values !== syncedValues) {
-    setSyncedValues(state.values);
-    if (state.values) setDraft(initialDraft(popup, state.values));
-  }
 
   const err = (name: string) => state.fieldErrors?.[name];
   const v = state.values;
@@ -57,7 +41,7 @@ export function PopupForm({ popup }: { popup?: Popup }) {
     setDraft((d) => ({ ...d, [key]: e.target.value }));
 
   return (
-    <form action={action} className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_520px]">
+    <ActionForm action={action} className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_520px]">
       <div className="space-y-6">
         {popup && <input type="hidden" name="id" value={popup.id} />}
         {state.message && !state.ok && <Alert tone="danger">{state.message}</Alert>}
@@ -270,6 +254,14 @@ export function PopupForm({ popup }: { popup?: Popup }) {
           }
         />
       </div>
-    </form>
+    </ActionForm>
+  );
+}
+
+export function PopupForm(props: ComponentProps<typeof PopupFormInner>) {
+  return (
+    <Fresh dataKey={props.popup?.updatedAt?.getTime()}>
+      <PopupFormInner {...props} />
+    </Fresh>
   );
 }

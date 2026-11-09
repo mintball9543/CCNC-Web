@@ -5,17 +5,15 @@
  */
 import { applyMenuVisibility, isHiddenPath } from "@/lib/config/menu-visibility";
 import { mainNavigation } from "@/lib/config/navigation";
-import { createDatabase, type Database } from "@/lib/db/factory";
 import { menuSettings } from "@/lib/db/schema";
+import { getProxyDb } from "./db";
 
 const TTL_MS = 5_000;
-let db: Database | null = null;
 let cache: { at: number; settings: Record<string, boolean> } | null = null;
 
 async function loadSettings(): Promise<Record<string, boolean>> {
   if (cache && Date.now() - cache.at < TTL_MS) return cache.settings;
-  db ??= createDatabase();
-  const rows = await db.select().from(menuSettings);
+  const rows = await getProxyDb().select().from(menuSettings);
   cache = { at: Date.now(), settings: Object.fromEntries(rows.map((r) => [r.key, r.isVisible])) };
   return cache.settings;
 }

@@ -3,13 +3,13 @@ import { BrandLockup } from "@/components/brand/brand-lockup";
 import { Container } from "@/components/ui/container";
 import { footerLinks } from "@/lib/config/navigation";
 import { siteConfig } from "@/lib/config/site";
-import { relatedSites } from "@/lib/content/related-sites";
-import { getContactSettings } from "@/lib/queries/site";
+import { getContactSettings, getRelatedSites } from "@/lib/queries/site";
 import { CopyrightYear } from "./copyright-year";
+import { RelatedSites } from "./related-sites";
 
-/** 하단 — 주소·연락처는 관리자 > 기관 정보에서 수정 */
+/** 하단 — 관련 사이트·주소·연락처는 관리자 화면에서 수정 */
 export async function SiteFooter() {
-  const contact = await getContactSettings();
+  const [contact, sites] = await Promise.all([getContactSettings(), getRelatedSites()]);
   const addressLine = contact.address
     ? `${contact.postalCode ? `(${contact.postalCode}) ` : ""}${contact.address} ${contact.addressDetail}`.trim()
     : contact.addressDetail;
@@ -24,7 +24,8 @@ export async function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-border bg-footer">
       <Container className="py-10">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+        <RelatedSites sites={sites} />
+        <div className="flex flex-col gap-8 pt-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-4">
             <BrandLockup compact />
             <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium">
@@ -45,25 +46,6 @@ export async function SiteFooter() {
               {addressLine && <p>{addressLine}</p>}
               {contactLine && <p>{contactLine}</p>}
             </address>
-          </div>
-
-          <div className="lg:w-64">
-            <h2 className="mb-2 text-sm font-medium">관련 사이트</h2>
-            <ul className="space-y-1 text-sm text-muted-foreground">
-              {relatedSites.map((site) => (
-                <li key={site.href}>
-                  <a
-                    href={site.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-foreground hover:underline"
-                  >
-                    {site.title}
-                    <span className="sr-only"> (새 창)</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
 

@@ -26,6 +26,7 @@ export interface OrgMember {
   isHead: boolean;
   isVisible: boolean;
   sortOrder: number;
+  updatedAt?: Date;
 }
 
 export interface ChartRow {
@@ -52,6 +53,7 @@ export interface ChartDataset {
   isPublished: boolean;
   showOnHome: boolean;
   sortOrder: number;
+  updatedAt?: Date;
 }
 
 export interface StatHighlight {
@@ -71,8 +73,21 @@ export interface HeroSlide {
   title: string;
   subtitle: string;
   linkUrl: string | null;
+  /** 연동된 활동 갤러리 게시글 */
+  postId: number | null;
   isActive: boolean;
   sortOrder: number;
+  updatedAt?: Date;
+}
+
+export interface RelatedSite {
+  id: number;
+  name: string;
+  url: string;
+  logoUrl: string | null;
+  isVisible: boolean;
+  sortOrder: number;
+  updatedAt?: Date;
 }
 
 export interface UploadedFile {

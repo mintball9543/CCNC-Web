@@ -30,6 +30,8 @@ export const postSchema = z.object({
         .map(Number)
         .filter((n) => Number.isInteger(n) && n > 0),
     ),
+  /** 활동 갤러리: 메인 비주얼(상단 슬라이드)에도 표시 */
+  featureOnHero: checkbox,
 });
 
 export type PostInput = z.infer<typeof postSchema>;

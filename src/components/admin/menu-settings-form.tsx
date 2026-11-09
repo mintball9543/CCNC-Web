@@ -1,5 +1,8 @@
 "use client";
 
+import { Fresh } from "@/components/ui/fresh";
+import type { ComponentProps } from "react";
+import { ActionForm } from "@/components/ui/action-form";
 import { useActionState, useState } from "react";
 import { Alert } from "@/components/ui/feedback";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -9,7 +12,7 @@ import { cn } from "@/lib/utils/cn";
 import { initialActionState, type NavSection } from "@/types";
 
 /** 메뉴 표시 설정 — 대메뉴/하위 메뉴 단위로 켜고 끈다 */
-export function MenuSettingsForm({
+function MenuSettingsFormInner({
   navigation,
   settings,
 }: {
@@ -28,7 +31,7 @@ export function MenuSettingsForm({
   const toggle = (key: string) => setVisible((v) => ({ ...v, [key]: !v[key] }));
 
   return (
-    <form action={action} className="space-y-6">
+    <ActionForm action={action} className="space-y-6">
       {state.message && <Alert tone={state.ok ? "success" : "danger"}>{state.message}</Alert>}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {navigation.map((section) => {
@@ -74,7 +77,7 @@ export function MenuSettingsForm({
         있습니다.
       </p>
       <SubmitButton pendingText="저장 중…">저장</SubmitButton>
-    </form>
+    </ActionForm>
   );
 }
 
@@ -134,5 +137,13 @@ function Toggle({
       </span>
       <span className="sr-only">{checked ? "표시" : "숨김"}</span>
     </label>
+  );
+}
+
+export function MenuSettingsForm(props: ComponentProps<typeof MenuSettingsFormInner>) {
+  return (
+    <Fresh>
+      <MenuSettingsFormInner {...props} />
+    </Fresh>
   );
 }

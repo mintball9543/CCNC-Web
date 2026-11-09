@@ -6,6 +6,8 @@ import {
   BarChart3,
   Building2,
   FileText,
+  Globe,
+  History,
   Hash,
   Images,
   LayoutDashboard,
@@ -49,8 +51,13 @@ const groups = [
     items: [
       { href: "/admin/menus", label: "메뉴 표시 설정", Icon: ListTree },
       { href: "/admin/organization", label: "조직도", Icon: Users },
+      { href: "/admin/related-sites", label: "관련 사이트", Icon: Globe },
       { href: "/admin/settings", label: "기관 정보·비밀번호", Icon: Building2 },
     ],
+  },
+  {
+    title: "보안",
+    items: [{ href: "/admin/logs", label: "작업 기록(접속 IP)", Icon: History }],
   },
 ] as const;
 

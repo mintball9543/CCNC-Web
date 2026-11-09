@@ -1,5 +1,7 @@
 "use client";
 
+import { Fresh } from "@/components/ui/fresh";
+import { ActionForm } from "@/components/ui/action-form";
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/feedback";
 import { Field, Input } from "@/components/ui/form";
@@ -7,11 +9,11 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { changePasswordAction } from "@/lib/actions/settings.actions";
 import { initialActionState } from "@/types";
 
-export function PasswordForm() {
+function PasswordFormInner() {
   const [state, action] = useActionState(changePasswordAction, initialActionState);
   const err = (k: string) => state.fieldErrors?.[k];
   return (
-    <form action={action} className="max-w-sm space-y-4">
+    <ActionForm action={action} className="max-w-sm space-y-4">
       {state.message && <Alert tone={state.ok ? "success" : "danger"}>{state.message}</Alert>}
       <input type="text" name="username" value="admin" autoComplete="username" readOnly hidden />
       <Field label="현재 비밀번호" htmlFor="currentPassword" errors={err("currentPassword")}>
@@ -43,6 +45,14 @@ export function PasswordForm() {
         />
       </Field>
       <SubmitButton pendingText="변경 중…">비밀번호 변경</SubmitButton>
-    </form>
+    </ActionForm>
+  );
+}
+
+export function PasswordForm() {
+  return (
+    <Fresh>
+      <PasswordFormInner />
+    </Fresh>
   );
 }

@@ -85,8 +85,10 @@ export const inquiries = sqliteTable(
     authorName: text("author_name").notNull(),
     email: text("email").notNull(),
     phone: text("phone"),
-    /** 작성자 본인 확인용 비밀번호 해시 (bcrypt) */
-    passwordHash: text("password_hash").notNull(),
+    /** 비공개 문의 열람·수정용 비밀번호 해시 (bcrypt) — 공개 문의는 비밀번호 없음 */
+    passwordHash: text("password_hash"),
+    /** 작성한 브라우저 식별값(쿠키)의 SHA-256 — '본인 글 보기'·공개 문의 수정/삭제 권한 확인 */
+    ownerKeyHash: text("owner_key_hash"),
     isPrivate: integer("is_private", { mode: "boolean" }).notNull().default(true),
     answer: text("answer"),
     answeredBy: text("answered_by"),
@@ -95,7 +97,10 @@ export const inquiries = sqliteTable(
     notifiedAt: integer("notified_at", { mode: "timestamp" }),
     ...timestamps,
   },
-  (table) => [index("inquiries_created_idx").on(table.createdAt)],
+  (table) => [
+    index("inquiries_created_idx").on(table.createdAt),
+    index("inquiries_owner_idx").on(table.ownerKeyHash),
+  ],
 );
 
 /** 업로드 파일 (본문 이미지 · 게시글 첨부파일 · 메인 비주얼 이미지) */
@@ -202,10 +207,49 @@ export const heroSlides = sqliteTable("hero_slides", {
   title: text("title").notNull().default(""),
   subtitle: text("subtitle").notNull().default(""),
   linkUrl: text("link_url"),
+  /** 활동 갤러리 게시글과 연동된 슬라이드 (게시글 삭제 시 함께 삭제) */
+  postId: integer("post_id").references(() => posts.id, { onDelete: "cascade" }),
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
   ...timestamps,
 });
+
+/** 하단 관련 기관 사이트 (로고 배너) */
+export const relatedSites = sqliteTable("related_sites", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  /** 로고 이미지 (/related-sites/… 기본 이미지 또는 업로드한 /files/{id}) */
+  logoUrl: text("logo_url"),
+  isVisible: integer("is_visible", { mode: "boolean" }).notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  ...timestamps,
+});
+
+/** 관리자 작업 기록 — 접속 IP·페이지 열람·변경 내역 */
+export const adminAuditLogs = sqliteTable(
+  "admin_audit_logs",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    ip: text("ip").notNull(),
+    userAgent: text("user_agent"),
+    /** 로그인한 관리자 (로그인 실패 등은 null) */
+    adminId: integer("admin_id"),
+    /** 분류: view(페이지 열람) / auth(로그인·로그아웃) / change(등록·수정·삭제) */
+    category: text("category", { enum: ["view", "auth", "change"] }).notNull(),
+    /** 동작 코드 (예: post.update) */
+    action: text("action").notNull(),
+    /** 대상 (예: posts:12) */
+    target: text("target"),
+    /** 사람이 읽는 설명 */
+    summary: text("summary").notNull(),
+    path: text("path"),
+  },
+  (table) => [index("audit_created_idx").on(table.createdAt), index("audit_ip_idx").on(table.ip)],
+);
 
 export type AdminUserRow = typeof adminUsers.$inferSelect;
 export type PostRow = typeof posts.$inferSelect;
@@ -219,3 +263,5 @@ export type OrgMemberRow = typeof orgMembers.$inferSelect;
 export type ChartDatasetRow = typeof chartDatasets.$inferSelect;
 export type StatHighlightRow = typeof statHighlights.$inferSelect;
 export type HeroSlideRow = typeof heroSlides.$inferSelect;
+export type RelatedSiteRow = typeof relatedSites.$inferSelect;
+export type AdminAuditLogRow = typeof adminAuditLogs.$inferSelect;

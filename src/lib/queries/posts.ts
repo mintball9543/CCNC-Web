@@ -2,6 +2,7 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { cacheTags } from "@/lib/cache/tags";
 import { boards, GALLERY_PAGE_SIZE, POSTS_PAGE_SIZE } from "@/lib/config/boards";
+import { htmlToText } from "@/lib/content/sanitize";
 import * as fileRepository from "@/lib/repositories/file.repository";
 import * as postRepository from "@/lib/repositories/post.repository";
 import { fileUrl } from "@/lib/uploads/url";
@@ -31,11 +32,19 @@ export async function getPublishedPost(boardKey: BoardKey, id: number) {
   return postRepository.findPost(boardKey, id);
 }
 
+/** 메인 최신글 — 요약문(본문 앞부분 텍스트)·첨부파일 여부 포함 */
 export async function getLatestPosts(boardKey: BoardKey, limit = 5) {
   "use cache";
   cacheLife("hours");
   cacheTag(cacheTags.posts(boardKey));
-  return postRepository.listLatestPosts(boardKey, limit);
+  const rows = await postRepository.listLatestPostsWithExcerpt(boardKey, limit);
+  return rows.map(({ contentHead, format, ...post }) => ({
+    ...post,
+    excerpt: (format === "html" ? htmlToText(contentHead) : contentHead.replace(/\s+/g, " ")).slice(
+      0,
+      120,
+    ),
+  }));
 }
 
 /** 게시글 첨부파일 (공개 화면) */
@@ -54,11 +63,11 @@ export async function getPostAttachments(postId: number) {
   }));
 }
 
-/** 메인 '센터 활동' — 대표 사진이 있는 최신 센터소식 */
+/** 메인 '활동 갤러리' — 대표 사진이 있는 최신 활동 갤러리 게시글 (상단 고정 우선) */
 export async function getLatestActivityPhotos(limit = 6) {
   "use cache";
   cacheLife("hours");
-  cacheTag(cacheTags.posts("center-news"));
-  const result = await postRepository.listPosts({ boardKey: "center-news", page: 1, pageSize: 30 });
+  cacheTag(cacheTags.posts("gallery"));
+  const result = await postRepository.listPosts({ boardKey: "gallery", page: 1, pageSize: 30 });
   return result.items.filter((p) => p.thumbnailUrl).slice(0, limit);
 }

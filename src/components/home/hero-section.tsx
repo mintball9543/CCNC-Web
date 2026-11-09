@@ -38,7 +38,7 @@ export async function HeroSection() {
           <ButtonLink href="/business/policy" size="lg">
             주요사업 보기
           </ButtonLink>
-          <ButtonLink href="/news/center-news" size="lg" variant="secondary">
+          <ButtonLink href="/news/gallery" size="lg" variant="secondary">
             센터 활동 보기
           </ButtonLink>
         </div>

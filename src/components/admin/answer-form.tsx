@@ -1,5 +1,8 @@
 "use client";
 
+import { Fresh } from "@/components/ui/fresh";
+import type { ComponentProps } from "react";
+import { ActionForm } from "@/components/ui/action-form";
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/feedback";
 import { Checkbox, Field, Textarea } from "@/components/ui/form";
@@ -8,7 +11,7 @@ import { saveAnswerAction } from "@/lib/actions/inquiry-admin.actions";
 import { initialActionState } from "@/types";
 
 /** 문의 답변 등록/수정 + 작성자 알림 메일 */
-export function AnswerForm({
+function AnswerFormInner({
   inquiryId,
   answer,
   email,
@@ -21,7 +24,7 @@ export function AnswerForm({
 }) {
   const [state, action] = useActionState(saveAnswerAction, initialActionState);
   return (
-    <form action={action} className="space-y-3">
+    <ActionForm action={action} className="space-y-3">
       <input type="hidden" name="id" value={inquiryId} />
       {state.message && <Alert tone={state.ok ? "success" : "danger"}>{state.message}</Alert>}
       <Field
@@ -49,6 +52,14 @@ export function AnswerForm({
         </p>
       )}
       <SubmitButton pendingText="저장 중…">{answer ? "답변 수정" : "답변 등록"}</SubmitButton>
-    </form>
+    </ActionForm>
+  );
+}
+
+export function AnswerForm(props: ComponentProps<typeof AnswerFormInner>) {
+  return (
+    <Fresh>
+      <AnswerFormInner {...props} />
+    </Fresh>
   );
 }

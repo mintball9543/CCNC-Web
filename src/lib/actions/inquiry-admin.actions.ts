@@ -2,6 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { recordAudit } from "@/lib/audit/record";
 import { requireAdmin } from "@/lib/auth/guard";
 import { cacheTags } from "@/lib/cache/tags";
 import { siteConfig } from "@/lib/config/site";
@@ -28,7 +29,14 @@ export async function saveAnswerAction(
   if (!parsed.success) return validationError(parsed.error, raw);
 
   const { id, answer, notify } = parsed.data;
+  const before = await inquiryRepository.findInquiry(id);
+  if (!before) return { ok: false, message: "문의를 찾을 수 없습니다." };
   await inquiryRepository.saveInquiryAnswer(id, { text: answer, answeredBy: session.displayName });
+  await recordAudit({
+    action: before.answeredAt ? "inquiry.answer_update" : "inquiry.answer",
+    target: `inquiries:${id}`,
+    summary: `문의 답변 ${before.answeredAt ? "수정" : "등록"}: ${before.title}${notify ? " (알림 메일 요청)" : ""}`,
+  });
   invalidate(id);
 
   if (!notify) return { ok: true, message: "답변이 저장되었습니다." };
@@ -64,14 +72,57 @@ export async function saveAnswerAction(
 /** 답변 삭제 (답변대기 상태로 되돌림) */
 export async function deleteAnswerAction(id: number): Promise<void> {
   await requireAdmin();
+  const inquiry = await inquiryRepository.findInquiry(id);
+  if (!inquiry) return;
   await inquiryRepository.saveInquiryAnswer(id, null);
+  await recordAudit({
+    action: "inquiry.answer_delete",
+    target: `inquiries:${id}`,
+    summary: `문의 답변 삭제: ${inquiry.title}`,
+  });
   invalidate(id);
 }
 
 /** 문의 삭제 */
 export async function deleteInquiryAction(id: number): Promise<void> {
   await requireAdmin();
-  await inquiryRepository.deleteInquiry(id);
+  const inquiry = await inquiryRepository.findInquiry(id);
+  if (inquiry) {
+    await inquiryRepository.deleteInquiry(id);
+    await recordAudit({
+      action: "inquiry.delete",
+      target: `inquiries:${id}`,
+      summary: `문의 삭제: ${inquiry.title}`,
+    });
+  }
   invalidate(id);
+  redirect("/admin/inquiries");
+}
+
+/** 선택 삭제 — 체크한 문의(name="ids")를 한 번에 삭제 */
+export async function bulkDeleteInquiriesAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const ids = [
+    ...new Set(
+      formData
+        .getAll("ids")
+        .map(Number)
+        .filter((n) => Number.isInteger(n) && n > 0),
+    ),
+  ];
+  const targets = await inquiryRepository.findInquiriesByIds(ids);
+  if (targets.length > 0) {
+    await inquiryRepository.deleteInquiries(targets.map((t) => t.id));
+    await recordAudit({
+      action: "inquiry.bulk_delete",
+      target: targets
+        .map((t) => `inquiries:${t.id}`)
+        .join(",")
+        .slice(0, 300),
+      summary: `문의 ${targets.length}건 선택 삭제: ${targets.map((t) => t.title).join(", ")}`,
+    });
+    for (const t of targets) updateTag(cacheTags.inquiry(t.id));
+    updateTag(cacheTags.inquiries);
+  }
   redirect("/admin/inquiries");
 }

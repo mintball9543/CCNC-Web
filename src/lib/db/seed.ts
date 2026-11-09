@@ -5,8 +5,9 @@
  *
  * ⚠️ 게시글·통계 등 실제 콘텐츠는 공식 자료로만 등록한다. 샘플 게시글은 만들지 않는다.
  */
+import "../env/load-cli";
 import { eq } from "drizzle-orm";
-import { hashPassword } from "../auth/password";
+import { hashPassword, verifyPassword } from "../auth/password";
 import { createDatabase } from "./factory";
 import { CHART_SLUGS } from "../config/charts";
 import { adminUsers, chartDatasets, popups } from "./schema";
@@ -28,6 +29,12 @@ async function main() {
   });
   if (existing) {
     console.log(`• 관리자 계정 '${username}' 이(가) 이미 존재합니다. (건너뜀)`);
+    if (!(await verifyPassword(password, existing.passwordHash))) {
+      console.log(
+        "  ⚠ .env 의 ADMIN_PASSWORD 와 DB 의 관리자 비밀번호가 다릅니다. 로그인은 DB 값으로 합니다.\n" +
+          "    .env 값을 적용하려면 npm run admin:password 를 실행하세요.",
+      );
+    }
   } else {
     await db.insert(adminUsers).values({
       username,

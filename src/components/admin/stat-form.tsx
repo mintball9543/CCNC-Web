@@ -1,5 +1,8 @@
 "use client";
 
+import { Fresh } from "@/components/ui/fresh";
+import type { ComponentProps } from "react";
+import { ActionForm } from "@/components/ui/action-form";
 import { useActionState } from "react";
 import { Alert } from "@/components/ui/feedback";
 import { Checkbox, Input } from "@/components/ui/form";
@@ -8,13 +11,13 @@ import { saveStatAction } from "@/lib/actions/content.actions";
 import { initialActionState, type StatHighlight } from "@/types";
 
 /** 숫자로 보는 센터 — 한 줄 편집 폼 (stat 없으면 새 항목) */
-export function StatForm({ stat }: { stat?: StatHighlight }) {
+function StatFormInner({ stat }: { stat?: StatHighlight }) {
   const [state, action] = useActionState(saveStatAction, initialActionState);
   const v = state.values;
   const firstError = state.fieldErrors && Object.values(state.fieldErrors).flat()[0];
   const id = stat ? `stat-${stat.id}` : "stat-new";
   return (
-    <form
+    <ActionForm
       action={action}
       className="grid items-end gap-2 sm:grid-cols-[1.5fr_1fr_0.6fr_1.5fr_0.6fr_auto_auto]"
     >
@@ -71,6 +74,14 @@ export function StatForm({ stat }: { stat?: StatHighlight }) {
           </Alert>
         )}
       </div>
-    </form>
+    </ActionForm>
+  );
+}
+
+export function StatForm(props: ComponentProps<typeof StatFormInner>) {
+  return (
+    <Fresh>
+      <StatFormInner {...props} />
+    </Fresh>
   );
 }

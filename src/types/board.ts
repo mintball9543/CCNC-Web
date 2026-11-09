@@ -1,5 +1,5 @@
 /** 게시판 도메인 타입 */
-export const BOARD_KEYS = ["notice", "center-news", "press", "archive"] as const;
+export const BOARD_KEYS = ["notice", "center-news", "gallery", "press", "archive"] as const;
 export type BoardKey = (typeof BOARD_KEYS)[number];
 
 export interface BoardCategory {
