@@ -6,6 +6,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Badge, EmptyState } from "@/components/ui/feedback";
 import { requireAdmin } from "@/lib/auth/guard";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
+import { hasMultipleDepartments } from "@/lib/utils/org-departments";
 
 export const metadata = { title: "조직도" };
 
@@ -39,14 +40,17 @@ async function Content() {
         description="'구성원 추가'로 센터장·팀·운영위원회 구성원을 등록하세요."
       />
     );
+  const showDepartment = hasMultipleDepartments(members);
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-card">
       <table className="w-full min-w-[640px] text-sm">
         <thead className="border-b border-border bg-muted/60 text-left">
           <tr>
-            <th scope="col" className="px-4 py-3">
-              소속
-            </th>
+            {showDepartment && (
+              <th scope="col" className="px-4 py-3">
+                소속
+              </th>
+            )}
             <th scope="col" className="px-4 py-3">
               직위
             </th>
@@ -64,7 +68,7 @@ async function Content() {
         <tbody>
           {members.map((m) => (
             <tr key={m.id} className="border-b border-border last:border-0">
-              <td className="px-4 py-3">{m.department}</td>
+              {showDepartment && <td className="px-4 py-3">{m.department || "-"}</td>}
               <td className="px-4 py-3">{m.position}</td>
               <td className="px-4 py-3">
                 <Link

@@ -37,7 +37,7 @@ export async function saveOrgMemberAction(
   await recordAudit({
     action: id ? "org.update" : "org.create",
     target: id ? `org_members:${id}` : null,
-    summary: `조직도 구성원 ${verb(id)}: ${parsed.data.department} ${parsed.data.position} ${parsed.data.name}`,
+    summary: `조직도 구성원 ${verb(id)}: ${[parsed.data.department, parsed.data.position, parsed.data.name].filter(Boolean).join(" ")}`,
   });
   updateTag(cacheTags.org);
   redirect("/admin/organization");
@@ -51,7 +51,7 @@ export async function deleteOrgMemberAction(id: number): Promise<void> {
     await recordAudit({
       action: "org.delete",
       target: `org_members:${id}`,
-      summary: `조직도 구성원 삭제: ${member.department} ${member.position} ${member.name}`,
+      summary: `조직도 구성원 삭제: ${[member.department, member.position, member.name].filter(Boolean).join(" ")}`,
     });
   }
   updateTag(cacheTags.org);

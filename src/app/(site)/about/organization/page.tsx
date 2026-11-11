@@ -2,6 +2,7 @@ import { Mail, Phone } from "lucide-react";
 import { ContentPlaceholder } from "@/components/content/content-placeholder";
 import { getOrgMembers } from "@/lib/queries/site";
 import { navMetadata } from "@/lib/seo";
+import { hasMultipleDepartments } from "@/lib/utils/org-departments";
 import type { OrgMember } from "@/types";
 
 export const metadata = navMetadata("/about/organization");
@@ -24,14 +25,18 @@ export default async function Page() {
   }
 
   const heads = members.filter((m) => m.isHead);
-  const departments = Array.from(
-    members
-      .filter((m) => !m.isHead)
-      .reduce(
-        (map, m) => map.set(m.department, [...(map.get(m.department) ?? []), m]),
-        new Map<string, OrgMember[]>(),
-      ),
-  );
+  const others = members.filter((m) => !m.isHead);
+  // 소속이 하나뿐인 센터라면 소속 구분 없이 구성원만 나열한다
+  const showDepartment = hasMultipleDepartments(members);
+  const departments = showDepartment
+    ? Array.from(
+        others.reduce(
+          (map, m) =>
+            map.set(m.department || "기타", [...(map.get(m.department || "기타") ?? []), m]),
+          new Map<string, OrgMember[]>(),
+        ),
+      )
+    : [];
 
   return (
     <div className="space-y-12">
@@ -49,8 +54,21 @@ export default async function Page() {
               <p className="text-lg font-bold">{head.name}</p>
             </div>
           ))}
-          {heads.length > 0 && departments.length > 0 && (
+          {heads.length > 0 && others.length > 0 && (
             <div className="h-8 w-px bg-border" aria-hidden />
+          )}
+          {!showDepartment && others.length > 0 && (
+            <ul className="flex w-full flex-wrap justify-center gap-4 border-t border-border pt-8">
+              {others.map((m) => (
+                <li
+                  key={m.id}
+                  className="min-w-40 rounded-2xl border border-border bg-card px-6 py-4 text-center"
+                >
+                  <p className="text-sm text-muted-foreground">{m.position}</p>
+                  <p className="font-bold">{m.name}</p>
+                </li>
+              ))}
+            </ul>
           )}
           {departments.length > 0 && (
             <ul className="relative grid w-full gap-4 border-t border-border pt-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -81,9 +99,11 @@ export default async function Page() {
           <table className="w-full min-w-[640px] text-sm">
             <thead className="border-b border-border bg-muted/60">
               <tr>
-                <th scope="col" className="py-3">
-                  소속
-                </th>
+                {showDepartment && (
+                  <th scope="col" className="py-3">
+                    소속
+                  </th>
+                )}
                 <th scope="col" className="py-3">
                   직위
                 </th>
@@ -101,7 +121,9 @@ export default async function Page() {
             <tbody>
               {members.map((m) => (
                 <tr key={m.id} className="border-b border-border">
-                  <td className="px-2 py-3 text-center">{m.department}</td>
+                  {showDepartment && (
+                    <td className="px-2 py-3 text-center">{m.department || "-"}</td>
+                  )}
                   <td className="px-2 py-3 text-center">{m.position}</td>
                   <td className="px-2 py-3 text-center font-medium">{m.name}</td>
                   <td className="px-2 py-3 whitespace-pre-line text-muted-foreground">

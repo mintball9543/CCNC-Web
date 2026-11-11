@@ -27,7 +27,12 @@ function OrgMemberFormInner({
       {member && <input type="hidden" name="id" value={member.id} />}
       {state.message && !state.ok && <Alert tone="danger">{state.message}</Alert>}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="소속" htmlFor="department" required errors={err("department")}>
+        <Field
+          label="소속 (팀·부서)"
+          htmlFor="department"
+          errors={err("department")}
+          hint="센터 직원만 있다면 비워 두세요. 팀이 둘 이상일 때만 화면에 구분이 나옵니다."
+        >
           <Input
             id="department"
             name="department"

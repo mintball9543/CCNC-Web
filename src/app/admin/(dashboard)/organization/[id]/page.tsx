@@ -6,6 +6,7 @@ import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { deleteOrgMemberAction } from "@/lib/actions/content.actions";
 import { requireAdmin } from "@/lib/auth/guard";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
+import { departmentsOf } from "@/lib/utils/org-departments";
 
 export const metadata = { title: "구성원 수정" };
 
@@ -21,9 +22,7 @@ async function Content({ params }: PageProps<"/admin/organization/[id]">) {
   await requireAdmin();
   const member = await settingsRepository.findOrgMember(Number((await params).id));
   if (!member) notFound();
-  const departments = [
-    ...new Set((await settingsRepository.listOrgMembers()).map((m) => m.department)),
-  ];
+  const departments = departmentsOf(await settingsRepository.listOrgMembers());
   return (
     <>
       <AdminPageHeader

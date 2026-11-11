@@ -20,7 +20,7 @@ export const contactSchema = z.object({
 
 /** 조직도 구성원 */
 export const orgMemberSchema = z.object({
-  department: z.string().trim().min(1, "소속을 입력하세요.").max(50),
+  department: text(50),
   position: z.string().trim().min(1, "직위를 입력하세요.").max(50),
   name: z.string().trim().min(1, "이름을 입력하세요.").max(30),
   duties: text(500),
