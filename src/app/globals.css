@@ -115,6 +115,19 @@
       opacity: 0;
     }
   }
+
+  /* 메인 비주얼 문구: 아래에서 위로 올라오며 나타남 (문구가 바뀔 때마다 다시 재생) */
+  --animate-rise-in: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  @keyframes rise-in {
+    from {
+      transform: translateY(1.75rem);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
 }
 
 @layer base {

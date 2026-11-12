@@ -6,7 +6,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Alert } from "@/components/ui/feedback";
 import { Checkbox, Field, Input } from "@/components/ui/form";
 import { Fresh } from "@/components/ui/fresh";
-import { RelatedSiteCard } from "@/components/layout/related-sites";
+import { RelatedSiteCard } from "@/components/layout/related-site-card";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { saveRelatedSiteAction } from "@/lib/actions/content.actions";
 import { initialActionState, type RelatedSite } from "@/types";

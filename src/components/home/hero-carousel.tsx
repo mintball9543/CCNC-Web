@@ -2,21 +2,21 @@
 
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { cn } from "@/lib/utils/cn";
 import type { HeroSlide } from "@/types";
 
 const INTERVAL_MS = 6000;
 
-function subscribeReducedMotion(cb: () => void) {
-  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-  mq.addEventListener("change", cb);
-  return () => mq.removeEventListener("change", cb);
-}
+/** 문구가 아래에서 위로 올라오는 효과 — '동작 줄이기' 설정 시에는 바로 표시 */
+const RISE = "motion-safe:animate-rise-in";
+const delay = (ms: number) => ({ animationDelay: `${ms}ms` });
 
 /**
  * 메인 비주얼 — 관리자가 올린 행사·활동 사진 슬라이드.
  * 자동 넘김은 정지 버튼으로 멈출 수 있고, '동작 줄이기' 설정 시 자동 넘김을 하지 않는다.
+ * 문구는 내용을 key 로 삼아, 다음 사진에서 바뀐 줄만 다시 올라오고 같은 줄은 그대로 둔다.
  */
 export function HeroCarousel({
   slides,
@@ -29,11 +29,7 @@ export function HeroCarousel({
 }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const reducedMotion = useSyncExternalStore(
-    subscribeReducedMotion,
-    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    () => true,
-  );
+  const reducedMotion = useReducedMotion();
   const count = slides.length;
   const go = useCallback((i: number) => setIndex((i + count) % count), [count]);
 
@@ -44,6 +40,8 @@ export function HeroCarousel({
   }, [paused, reducedMotion, count]);
 
   const slide = slides[index];
+  const title = slide.title || fallbackTitle;
+  const subtitle = slide.subtitle || fallbackSubtitle;
 
   return (
     <section
@@ -67,28 +65,44 @@ export function HeroCarousel({
         />
       ))}
       <div
-        className="absolute inset-0 -z-10 bg-gradient-to-r from-black/75 via-black/45 to-black/10"
+        className="absolute inset-0 -z-10 bg-gradient-to-r from-black/60 via-black/30 to-black/5"
         aria-hidden
       />
 
       <div className="mx-auto flex min-h-[420px] w-full max-w-7xl flex-col justify-end px-4 py-14 sm:px-6 lg:min-h-[520px] lg:px-8 lg:py-20">
-        <div aria-live={paused ? "polite" : "off"} className="max-w-2xl">
-          <p className="text-sm font-semibold tracking-wider text-ci-lime">
+        <div
+          aria-live={paused ? "polite" : "off"}
+          className="max-w-2xl [text-shadow:0_1px_14px_rgb(0_0_0/0.35)]"
+        >
+          <p className={cn("text-sm font-semibold tracking-wider text-ci-lime", RISE)}>
             CHUNGNAM CARBON NEUTRALITY CENTER
           </p>
-          <h1 className="mt-3 text-3xl leading-tight font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            {slide.title || fallbackTitle}
+          <h1
+            key={title}
+            className={cn(
+              "mt-3 text-3xl leading-tight font-bold tracking-tight sm:text-4xl lg:text-5xl",
+              RISE,
+            )}
+            style={delay(100)}
+          >
+            {title}
           </h1>
-          <p className="mt-4 text-base text-white/85 lg:text-lg">
-            {slide.subtitle || fallbackSubtitle}
+          <p
+            key={subtitle}
+            className={cn("mt-4 text-base text-white/90 lg:text-lg", RISE)}
+            style={delay(220)}
+          >
+            {subtitle}
           </p>
           {slide.linkUrl && (
-            <Link
-              href={slide.linkUrl}
-              className="mt-6 inline-flex h-11 items-center rounded-lg bg-white px-5 text-sm font-semibold text-ci-navy hover:bg-white/90"
-            >
-              자세히 보기
-            </Link>
+            <div key={slide.linkUrl} className={RISE} style={delay(340)}>
+              <Link
+                href={slide.linkUrl}
+                className="mt-6 inline-flex h-11 items-center rounded-lg bg-white px-5 text-sm font-semibold text-ci-navy [text-shadow:none] hover:bg-white/90"
+              >
+                자세히 보기
+              </Link>
+            </div>
           )}
         </div>
 
