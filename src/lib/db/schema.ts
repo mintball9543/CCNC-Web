@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import type { ChartRow, ContactSettings } from "@/types";
 
 /**
@@ -249,6 +249,28 @@ export const adminAuditLogs = sqliteTable(
     path: text("path"),
   },
   (table) => [index("audit_created_idx").on(table.createdAt), index("audit_ip_idx").on(table.ip)],
+);
+
+/** 일별 방문 집계 — 날짜는 한국 시간 기준 YYYY-MM-DD */
+export const visitDaily = sqliteTable("visit_daily", {
+  day: text("day").primaryKey(),
+  /** 방문자 수 (같은 날 같은 접속자는 1번) */
+  visitors: integer("visitors").notNull().default(0),
+  /** 페이지 열람 수 */
+  pageViews: integer("page_views").notNull().default(0),
+});
+
+/**
+ * 같은 날 중복 방문 확인용 — IP·브라우저 정보를 그날의 비밀 값과 섞은 일회성 해시만 저장한다
+ * (원래 IP 로 되돌릴 수 없음). 지난 날짜의 행은 바로 지운다.
+ */
+export const visitSeen = sqliteTable(
+  "visit_seen",
+  {
+    day: text("day").notNull(),
+    hash: text("hash").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.day, table.hash] })],
 );
 
 export type AdminUserRow = typeof adminUsers.$inferSelect;

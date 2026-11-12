@@ -2,14 +2,14 @@ import { ExternalLink } from "lucide-react";
 import type { RelatedSite } from "@/types";
 
 /**
- * 하단 관련 기관 사이트 — 로고 카드 격자.
+ * 관련 기관 사이트 — 메인 화면 하단의 로고 카드 격자.
  * 로고는 관리자 > 관련 사이트에서 교체할 수 있고, 로고가 없으면 기관명을 글자로 표시한다.
  */
 export function RelatedSites({ sites }: { sites: RelatedSite[] }) {
   if (sites.length === 0) return null;
   return (
-    <section aria-labelledby="related-sites-heading" className="border-b border-border pb-10">
-      <h2 id="related-sites-heading" className="mb-5 text-lg font-bold">
+    <section aria-labelledby="related-sites-heading">
+      <h2 id="related-sites-heading" className="mb-6 text-2xl font-bold">
         관련 사이트
       </h2>
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -23,7 +23,7 @@ export function RelatedSites({ sites }: { sites: RelatedSite[] }) {
   );
 }
 
-/** 관련 사이트 카드 1개 — 홈페이지 하단과 관리자 미리보기에서 함께 사용 */
+/** 관련 사이트 카드 1개 — 메인 화면과 관리자 미리보기에서 함께 사용 */
 export function RelatedSiteCard({
   name,
   url,

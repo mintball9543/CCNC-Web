@@ -7,11 +7,17 @@ import { HeroSection } from "@/components/home/hero-section";
 import { LatestPosts } from "@/components/home/latest-posts";
 import { QuickLinks } from "@/components/home/quick-links";
 import { StatHighlights } from "@/components/home/stat-highlights";
+import { RelatedSites } from "@/components/layout/related-sites";
 import { PopupLayer } from "@/components/popup/popup-layer";
 import { Container } from "@/components/ui/container";
 import { getActivePopups } from "@/lib/queries/popups";
 import { getLatestActivityPhotos } from "@/lib/queries/posts";
-import { getHomeCharts, getVisibleNavigation, getVisibleStats } from "@/lib/queries/site";
+import {
+  getHomeCharts,
+  getRelatedSites,
+  getVisibleNavigation,
+  getVisibleStats,
+} from "@/lib/queries/site";
 import type { BoardKey, NavSection } from "@/types";
 
 const isVisible = (navigation: NavSection[], href: string) =>
@@ -19,10 +25,11 @@ const isVisible = (navigation: NavSection[], href: string) =>
 
 /** 메인 — 모든 영역은 관리자 설정(메뉴 노출·사진·실적·도표)에 따라 구성된다 */
 export default async function HomePage() {
-  const [navigation, stats, charts] = await Promise.all([
+  const [navigation, stats, charts, relatedSites] = await Promise.all([
     getVisibleNavigation(),
     getVisibleStats(),
     getHomeCharts(),
+    getRelatedSites(),
   ]);
   const showActivity = isVisible(navigation, "/news/gallery");
   const latestBoards = (["notice", "press"] as BoardKey[]).filter((key) =>
@@ -70,6 +77,12 @@ export default async function HomePage() {
             </div>
             <ArrowRight className="size-6 transition group-hover:translate-x-1" aria-hidden />
           </Link>
+        </Container>
+      )}
+
+      {relatedSites.length > 0 && (
+        <Container className="pb-16">
+          <RelatedSites sites={relatedSites} />
         </Container>
       )}
 

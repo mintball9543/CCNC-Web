@@ -5,14 +5,16 @@
  * - .env 파일이 실제로 저장되었는지 (.env.example 과 동일하면 경고)
  * - AUTH_SECRET 길이 (32자 미만이면 개발 모드에서는 무시되고 운영에서는 실행 불가)
  * - ADMIN_PASSWORD 가 DB 의 관리자 비밀번호와 같은지 (.env 를 바꿔도 DB 는 자동으로 바뀌지 않음)
- * - SMTP 서버 접속·로그인 가능 여부
+ * - SMTP 서버 접속·로그인 가능 여부, 받는 사람에게 보이는 보내는 사람
+ * - 네이버 지도 Client ID·좌표
  */
 import { loadedEnv } from "../src/lib/env/load-cli";
 import { existsSync, readFileSync } from "node:fs";
 import nodemailer from "nodemailer";
 import { verifyPassword } from "../src/lib/auth/password";
 import { createDatabase } from "../src/lib/db/factory";
-import { resolveMailMode } from "../src/lib/mail/config";
+import { resolveNaverMapConfig } from "../src/lib/config/naver-map";
+import { resolveMailMode, senderDomainMismatch, senderIsRewritten } from "../src/lib/mail/config";
 
 const EXAMPLE_SECRET = "change-me-to-a-long-random-string-at-least-32-chars";
 const EXAMPLE_PASSWORD = "change-me-now!";
@@ -97,11 +99,22 @@ async function main() {
   } else {
     const { smtp } = mail;
     ok(
-      `서버 ${smtp.host}:${smtp.port} (${smtp.secure ? "SSL" : "STARTTLS/평문"}), 보내는 사람 ${smtp.from}`,
+      `서버 ${smtp.host}:${smtp.port} (${smtp.secure ? "SSL" : "STARTTLS/평문"}), 보내는 사람 이름 「${smtp.from.name}」`,
     );
     if (smtp.port === 465 && !smtp.secure) warn("465 포트는 보통 SMTP_SECURE=true 가 필요합니다.");
     if (smtp.port === 587 && smtp.secure) warn("587 포트는 보통 SMTP_SECURE=false 입니다.");
     if (smtp.auth && !smtp.auth.pass) warn("SMTP_PASS 가 비어 있습니다.");
+    if (senderIsRewritten(smtp)) {
+      warn(
+        "Gmail 계정(SMTP_USER)으로 보내므로 받는 사람에게는 MAIL_FROM 이 아니라 Gmail 계정 주소가 보입니다.\n" +
+          "    주소를 감추려면 기관 메일 계정(예: no-reply@기관도메인)을 SMTP 로 쓰거나,\n" +
+          "    Gmail 설정 > 계정 > '다른 주소에서 메일 보내기'에 MAIL_FROM 주소를 등록하세요.",
+      );
+    } else if (senderDomainMismatch(smtp)) {
+      warn(
+        "SMTP_USER 와 MAIL_FROM 의 도메인이 다릅니다. 메일 서버가 거부하거나 스팸으로 분류할 수 있습니다.",
+      );
+    }
     try {
       const transporter = nodemailer.createTransport({
         host: smtp.host,
@@ -117,6 +130,25 @@ async function main() {
       fail(`SMTP 접속 실패: ${error instanceof Error ? error.message : String(error)}`);
       console.log("    (Gmail·네이버 등은 계정 비밀번호 대신 '앱 비밀번호'가 필요할 수 있습니다)");
     }
+  }
+
+  section("네이버 지도 (오시는 길)");
+  const map = resolveNaverMapConfig(process.env);
+  if (!map) {
+    warn(
+      "NAVER_MAP_CLIENT_ID 가 비어 있습니다. 오시는 길에 지도 대신 '네이버 지도에서 보기' 링크만 표시됩니다.",
+    );
+  } else {
+    ok(`Client ID 설정됨 (${map.clientId.length}자)`);
+    if (map.center) ok(`표시 좌표: ${map.center.lat}, ${map.center.lng}`);
+    else if (process.env.NAVER_MAP_LAT || process.env.NAVER_MAP_LNG)
+      warn(
+        "NAVER_MAP_LAT·NAVER_MAP_LNG 가 올바른 숫자가 아니어서 무시합니다. (기관 주소로 위치를 찾음)",
+      );
+    else ok("좌표 미지정 — 관리자 > 기관 정보의 주소로 위치를 찾습니다.");
+    console.log(
+      "    (네이버 클라우드 콘솔의 Maps Application 에 'Dynamic Map'·'Geocoding' 선택과 Web 서비스 URL(사이트 주소) 등록이 필요합니다)",
+    );
   }
 
   console.log(

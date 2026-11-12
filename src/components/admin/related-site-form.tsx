@@ -105,7 +105,7 @@ function RelatedSiteFormInner({ site }: { site?: RelatedSite }) {
           <Checkbox
             name="isVisible"
             defaultChecked={site?.isVisible ?? true}
-            label="홈페이지 하단에 표시"
+            label="메인 화면에 표시"
             className="h-10"
           />
         </div>
@@ -120,7 +120,7 @@ function RelatedSiteFormInner({ site }: { site?: RelatedSite }) {
 
       <aside className="xl:sticky xl:top-6 xl:self-start" aria-label="미리보기">
         <div className="rounded-xl border border-border bg-muted/40 p-5">
-          <p className="text-sm font-semibold">홈페이지 하단 미리보기</p>
+          <p className="text-sm font-semibold">메인 화면 미리보기</p>
           <p className="mt-1 text-xs text-muted-foreground">
             저장하면 홈페이지 맨 아래 &lsquo;관련 사이트&rsquo;에 이렇게 표시됩니다. 카드를 누르면
             입력한 주소가 새 창으로 열립니다.

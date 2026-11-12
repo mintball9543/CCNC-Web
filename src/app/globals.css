@@ -92,6 +92,29 @@
   --color-ci-lime: #88d23a;
   --color-ci-navy: #22313b;
   --color-ci-slate: #55626b;
+
+  /* 문의하기 떠 있는 버튼 */
+  --animate-fab-float: fab-float 3.2s ease-in-out infinite;
+  --animate-fab-ring: fab-ring 2.4s ease-out infinite;
+  @keyframes fab-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+  @keyframes fab-ring {
+    0% {
+      transform: scale(1);
+      opacity: 0.45;
+    }
+    100% {
+      transform: scale(1.6);
+      opacity: 0;
+    }
+  }
 }
 
 @layer base {

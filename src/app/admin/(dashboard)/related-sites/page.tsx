@@ -14,7 +14,7 @@ export default function RelatedSitesAdminPage() {
     <>
       <AdminPageHeader
         title="관련 사이트"
-        description="홈페이지 하단에 로고와 함께 표시되는 관련 기관 사이트입니다. 주소나 로고가 바뀌면 여기서 수정하세요."
+        description="메인 화면 하단에 로고와 함께 표시되는 관련 기관 사이트입니다. 주소나 로고가 바뀌면 여기서 수정하세요."
         actions={
           <ButtonLink href="/admin/related-sites/new">
             <Plus className="size-4" aria-hidden />

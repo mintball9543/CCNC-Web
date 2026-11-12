@@ -22,6 +22,13 @@
       "when": 1794186841292,
       "tag": "0002_audit_gallery_inquiry_owner",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1794444370597,
+      "tag": "0003_visit_stats",
+      "breakpoints": true
     }
   ]
 }

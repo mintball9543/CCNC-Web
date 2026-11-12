@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
+  ChartLine,
   Building2,
   FileText,
   Globe,
@@ -23,7 +24,10 @@ import { cn } from "@/lib/utils/cn";
 const groups = [
   {
     title: null,
-    items: [{ href: "/admin", label: "대시보드", Icon: LayoutDashboard, exact: true }],
+    items: [
+      { href: "/admin", label: "대시보드", Icon: LayoutDashboard, exact: true },
+      { href: "/admin/visitors", label: "방문자 통계", Icon: ChartLine },
+    ],
   },
   {
     title: "메인 화면",

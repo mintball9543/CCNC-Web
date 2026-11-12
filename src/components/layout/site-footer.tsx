@@ -3,13 +3,12 @@ import { BrandLockup } from "@/components/brand/brand-lockup";
 import { Container } from "@/components/ui/container";
 import { footerLinks } from "@/lib/config/navigation";
 import { siteConfig } from "@/lib/config/site";
-import { getContactSettings, getRelatedSites } from "@/lib/queries/site";
+import { getContactSettings } from "@/lib/queries/site";
 import { CopyrightYear } from "./copyright-year";
-import { RelatedSites } from "./related-sites";
 
-/** 하단 — 관련 사이트·주소·연락처는 관리자 화면에서 수정 */
+/** 하단 — 주소·연락처는 관리자 화면에서 수정 (관련 사이트는 메인 화면에만 표시) */
 export async function SiteFooter() {
-  const [contact, sites] = await Promise.all([getContactSettings(), getRelatedSites()]);
+  const contact = await getContactSettings();
   const addressLine = contact.address
     ? `${contact.postalCode ? `(${contact.postalCode}) ` : ""}${contact.address} ${contact.addressDetail}`.trim()
     : contact.addressDetail;
@@ -24,8 +23,7 @@ export async function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-border bg-footer">
       <Container className="py-10">
-        <RelatedSites sites={sites} />
-        <div className="flex flex-col gap-8 pt-8 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-4">
             <BrandLockup compact />
             <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium">
