@@ -104,7 +104,7 @@ export default function Page() {
         <h2 id="ci-meaning-heading" className="mb-5 text-xl font-bold">
           디자인 의미
         </h2>
-        <div className="flex flex-col items-center gap-6 rounded-2xl border border-border p-6 sm:flex-row sm:items-start">
+        <div className="flex flex-col items-center gap-6 rounded-2xl border border-border p-6 sm:flex-row">
           <Image
             src={logo.symbol.src}
             alt=""
@@ -116,9 +116,9 @@ export default function Page() {
             <p>일곱 개의 타일이 CCNC의 &lsquo;C&rsquo;를 그립니다.</p>
             <p>
               회색(탄소)에서 녹색(중립)으로 한 칸씩 바뀌는 색은 단계적이고 실천 가능한 전환 과정을,
-              비어 있는 마지막 자리의 원(0)은 넷제로를 뜻합니다.
+              비어 있는 마지막 자리의 원은 넷제로를 뜻합니다.
             </p>
-            <p>데이터 기반으로 지원하는 센터의 역할을 표현했습니다.</p>
+            {/* <p>데이터 기반으로 지원하는 센터의 역할을 표현했습니다.</p> */}
           </div>
         </div>
       </section>
@@ -193,7 +193,7 @@ export default function Page() {
           <div className="flex items-start gap-4">
             <FileArchive className="mt-0.5 size-10 shrink-0 text-primary" aria-hidden />
             <div className="space-y-1">
-              <p className="font-semibold">CI 파일 전체 (CCNC_CI.zip)</p>
+              <p className="font-semibold">CCNC_CI</p>
               <ul className="flex flex-wrap gap-1.5" aria-label="포함된 파일 형식">
                 {ciZip.formats.map((f) => (
                   <li key={f} className="rounded bg-muted px-2 py-0.5 text-xs font-semibold">
