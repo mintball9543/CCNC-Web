@@ -16,6 +16,7 @@ export const mainNavigation: NavSection[] = [
       { title: "인사말", href: "/about/greeting" },
       { title: "설립근거·연혁", href: "/about/history" },
       { title: "비전·목표", href: "/about/vision" },
+      { title: "CI 소개", href: "/about/ci" },
       { title: "조직·업무", href: "/about/organization" },
       { title: "오시는 길", href: "/about/location" },
     ],
