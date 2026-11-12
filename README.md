@@ -178,7 +178,7 @@ GNB·모바일 메뉴·LNB·브레드크럼·페이지 제목·sitemap.xml이 �
 - 제공된 CI 3종(가로형·세로형·심볼)을 `public/brand/`에 두고 `<Logo variant="horizontal|vertical|symbol" />`로 사용합니다.
 - 헤더·푸터·관리자 화면은 `<BrandLockup />`(심볼 이미지 + 기관명 **텍스트**)을 사용합니다. 작은 크기에서도 글자가 선명하고 테마에 따라 글자색이 자동으로 바뀝니다.
 - 다크모드에서는 워드마크(남색·회색 글자)만 밝은 색으로 치환한 변형 이미지로 **CSS(`dark:` variant) 조건부 교체**합니다. JS 없이 동작해 깜빡임이 없고, 심볼의 녹색 타일은 원본 색 그대로 유지됩니다.
-- 센터소개 > **CI 소개**(`/about/ci`): 센터 제공 CI 소개서 내용(콘셉트·디자인 의미·키워드·컬러·활용 예시)과 로고 PNG 내려받기. 흑백·단색 예시는 원본 로고에 CSS 필터를 씌워 표시합니다.
+- 센터소개 > **CI 소개**(`/about/ci`): 센터 제공 CI 소개서 내용(콘셉트·디자인 의미·키워드·컬러·활용 예시)과 CI 파일 일괄 내려받기(`public/downloads/CCNC_CI.zip` — AI·SVG·PNG, 원본이 바뀌면 같은 이름으로 교체). 흑백·단색 예시는 원본 로고에 CSS 필터를 씌워 표시합니다.
 - 문의 답변 알림 메일 하단에는 `public/brand/ccnc-logo-mail.png`(가로형 520px)를 메일에 첨부(inline, cid)해 표시합니다.
 - CI 원본이 바뀌면 `python3 scripts/make-dark-logos.py <원본 폴더> public/brand`로 다시 생성합니다.
 - 색상 토큰은 `src/app/globals.css`(`--primary` 등)와 CI 팔레트(`ci-*`)로 정의되어 있습니다. 본문 텍스트 대비를 위해 primary는 CI 녹색보다 한 단계 어둡게 설정했습니다.

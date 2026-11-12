@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Download } from "lucide-react";
+import { Download, FileArchive } from "lucide-react";
 import { navMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils/cn";
 
@@ -63,40 +63,16 @@ const usages: { label: string; marks: Mark[] }[] = [
   },
 ];
 
-const downloads = [
-  {
-    label: "가로형 로고",
-    file: logo.horizontal.src,
-    saveAs: "충청남도탄소중립지원센터_로고_가로형.png",
-    info: "PNG · 2000×715 · 투명 배경",
-  },
-  {
-    label: "가로형 로고 (어두운 배경용)",
-    file: logo.horizontalDark.src,
-    saveAs: "충청남도탄소중립지원센터_로고_가로형_역상.png",
-    info: "PNG · 2000×715 · 투명 배경",
-  },
-  {
-    label: "세로형 로고",
-    file: logo.vertical.src,
-    saveAs: "충청남도탄소중립지원센터_로고_세로형.png",
-    info: "PNG · 1552×1576 · 투명 배경",
-  },
-  {
-    label: "세로형 로고 (어두운 배경용)",
-    file: "/brand/ccnc-logo-vertical-dark.png",
-    saveAs: "충청남도탄소중립지원센터_로고_세로형_역상.png",
-    info: "PNG · 1552×1576 · 투명 배경",
-  },
-  {
-    label: "심볼",
-    file: logo.symbol.src,
-    saveAs: "충청남도탄소중립지원센터_심볼.png",
-    info: "PNG · 992×992 · 투명 배경",
-  },
-];
+/** CI 파일 묶음 — 원본이 바뀌면 public/downloads 의 같은 이름 파일만 교체 */
+const ciZip = {
+  file: "/downloads/CCNC_CI.zip",
+  saveAs: "CCNC_CI.zip",
+  formats: ["AI", "SVG", "PNG"],
+  types: "가로형 · 세로형 · 심볼 (각각 투명 배경 / 흰 배경)",
+  info: "ZIP · 18개 파일 · 423KB",
+};
 
-/** CI 소개 — 센터 제공 CI 소개서를 바탕으로 의미·키워드·컬러·활용 예시와 로고 파일 내려받기 */
+/** CI 소개 — 센터 제공 CI 소개서를 바탕으로 의미·키워드·컬러·활용 예시와 CI 파일(ZIP) 내려받기 */
 export default function Page() {
   return (
     <div className="space-y-14">
@@ -213,25 +189,31 @@ export default function Page() {
         <h2 id="ci-download-heading" className="mb-5 text-xl font-bold">
           내려받기
         </h2>
-        <ul className="divide-y divide-border rounded-2xl border border-border">
-          {downloads.map((d) => (
-            <li key={d.file} className="flex flex-wrap items-center justify-between gap-3 p-4">
-              <span>
-                <span className="block font-medium">{d.label}</span>
-                <span className="text-sm text-muted-foreground">{d.info}</span>
-              </span>
-              <a
-                href={d.file}
-                download={d.saveAs}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium transition hover:border-primary hover:text-primary"
-              >
-                <Download className="size-4" aria-hidden />
-                내려받기
-                <span className="sr-only"> — {d.label}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-col gap-4 rounded-2xl border border-border p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <FileArchive className="mt-0.5 size-10 shrink-0 text-primary" aria-hidden />
+            <div className="space-y-1">
+              <p className="font-semibold">CI 파일 전체 (CCNC_CI.zip)</p>
+              <ul className="flex flex-wrap gap-1.5" aria-label="포함된 파일 형식">
+                {ciZip.formats.map((f) => (
+                  <li key={f} className="rounded bg-muted px-2 py-0.5 text-xs font-semibold">
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-sm text-muted-foreground">{ciZip.types}</p>
+              <p className="text-sm text-muted-foreground">{ciZip.info}</p>
+            </div>
+          </div>
+          <a
+            href={ciZip.file}
+            download={ciZip.saveAs}
+            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+          >
+            <Download className="size-4" aria-hidden />
+            ZIP 내려받기
+          </a>
+        </div>
       </section>
     </div>
   );

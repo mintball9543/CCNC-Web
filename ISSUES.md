@@ -17,6 +17,12 @@
 
 ## 변경 이력
 
+### 2026-11-12 — CI 소개 내려받기를 ZIP 하나로 통합
+
+**변경**
+- CI 소개 > 내려받기: 로고 PNG 5종 개별 내려받기 → `public/downloads/CCNC_CI.zip` 하나로 통합 (AI·SVG·PNG 각 6종: 가로형·세로형·심볼 × 투명/흰 배경, 18개 파일). CI 원본이 바뀌면 같은 이름으로 교체
+- 개별 내려받기용으로 만들었던 `public/brand/ccnc-logo-horizontal.png`·`ccnc-logo-horizontal-dark.png` 는 페이지 표시용으로 계속 사용
+
 ### 2026-11-12 — v.4 요구사항 반영
 
 **추가**
