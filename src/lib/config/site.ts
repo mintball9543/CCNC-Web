@@ -26,7 +26,7 @@ export const siteConfig = {
     phone: "041-840-1276",
     fax: "041-840-1239",
     email: "hbyeo@cni.re.kr",  
-    transit: "버스 125번, 130번 충청남도인재개발원/교통연수원(산한아파트) 정류장에서 하차 후 도보 5분",
+    transit: "버스 125번, 130번 '충청남도인재개발원/교통연수원(산한아파트)' 정류장에서 하차 후 도보 5분",
     parking: "정문 앞 주차장 이용 가능, 주차 공간이 부족할 경우 운동장 이용",
   } satisfies ContactSettings,
 
