@@ -3,6 +3,7 @@ import { asc, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   chartDatasets,
+  committeeMembers,
   heroSlides,
   menuSettings,
   orgMembers,
@@ -12,6 +13,7 @@ import {
 } from "@/lib/db/schema";
 import type {
   ChartDataset,
+  CommitteeMember,
   ContactSettings,
   HeroSlide,
   OrgMember,
@@ -77,6 +79,35 @@ export async function saveOrgMember(
 
 export async function deleteOrgMember(id: number): Promise<void> {
   await db.delete(orgMembers).where(eq(orgMembers.id, id));
+}
+
+// ── 운영위원회 ──────────────────────────────────────────
+export async function listCommitteeMembers({ visibleOnly = false } = {}): Promise<
+  CommitteeMember[]
+> {
+  return db
+    .select()
+    .from(committeeMembers)
+    .where(visibleOnly ? eq(committeeMembers.isVisible, true) : undefined)
+    .orderBy(asc(committeeMembers.sortOrder), asc(committeeMembers.id));
+}
+
+export async function findCommitteeMember(id: number): Promise<CommitteeMember | null> {
+  return (
+    (await db.query.committeeMembers.findFirst({ where: eq(committeeMembers.id, id) })) ?? null
+  );
+}
+
+export async function saveCommitteeMember(
+  id: number | null,
+  values: Omit<CommitteeMember, "id">,
+): Promise<void> {
+  if (id) await db.update(committeeMembers).set(values).where(eq(committeeMembers.id, id));
+  else await db.insert(committeeMembers).values(values);
+}
+
+export async function deleteCommitteeMember(id: number): Promise<void> {
+  await db.delete(committeeMembers).where(eq(committeeMembers.id, id));
 }
 
 // ── 도표 ────────────────────────────────────────────────

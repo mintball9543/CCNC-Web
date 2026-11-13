@@ -6,7 +6,7 @@ import { ActionForm } from "@/components/ui/action-form";
 import { useActionState } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Alert } from "@/components/ui/feedback";
-import { Checkbox, Field, Input, Textarea } from "@/components/ui/form";
+import { Checkbox, Field, Input, Select, Textarea } from "@/components/ui/form";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { saveOrgMemberAction } from "@/lib/actions/content.actions";
 import { initialActionState, type OrgMember } from "@/types";
@@ -26,19 +26,29 @@ function OrgMemberFormInner({
     <ActionForm action={action} className="max-w-2xl space-y-4">
       {member && <input type="hidden" name="id" value={member.id} />}
       {state.message && !state.ok && <Alert tone="danger">{state.message}</Alert>}
+      <Field
+        label="조직도 구분"
+        htmlFor="kind"
+        errors={err("kind")}
+        hint="'공동 연구(지원)'은 센터 직원이 아닌 연구원 겸직 인력으로, 조직도 왼쪽 상자에 이름만 표시됩니다."
+      >
+        <Select id="kind" name="kind" defaultValue={v?.kind ?? member?.kind ?? "staff"}>
+          <option value="staff">센터 직원 (센터장·직속·팀)</option>
+          <option value="support">공동 연구(지원) — 연구원 겸직</option>
+        </Select>
+      </Field>
       <div className="grid gap-4 sm:grid-cols-3">
         <Field
           label="소속 (팀·부서)"
           htmlFor="department"
           errors={err("department")}
-          hint="센터 직원만 있다면 비워 두세요. 팀이 둘 이상일 때만 화면에 구분이 나옵니다."
+          hint="정책연구·정보관리처럼 조직도의 팀 이름입니다. 센터장 바로 아래 직속(예: 사무국장)이면 비워 두세요."
         >
           <Input
             id="department"
             name="department"
             list="department-list"
             defaultValue={v?.department ?? member?.department}
-            required
           />
           <datalist id="department-list">
             {departments.map((d) => (

@@ -15,7 +15,7 @@ export default function OrganizationAdminPage() {
     <>
       <AdminPageHeader
         title="조직도"
-        description="센터소개 > 조직·업무 페이지의 조직도와 담당 업무·연락처를 관리합니다."
+        description="센터소개 > 조직·업무 페이지의 조직도와 담당 업무·연락처를 관리합니다. 운영위원 명단은 '운영위원회' 메뉴에서 관리합니다."
         actions={
           <ButtonLink href="/admin/organization/new">
             <Plus className="size-4" aria-hidden />
@@ -83,6 +83,7 @@ async function Content() {
               </td>
               <td className="space-x-1 px-4 py-3">
                 {m.isHead && <Badge tone="primary">최상단</Badge>}
+                {m.kind === "support" && <Badge>공동 연구(지원)</Badge>}
                 {!m.isVisible && <Badge>숨김</Badge>}
               </td>
             </tr>

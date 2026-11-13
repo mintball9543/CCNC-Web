@@ -36,6 +36,13 @@ export async function getOrgMembers() {
   return settingsRepository.listOrgMembers({ visibleOnly: true });
 }
 
+export async function getCommitteeMembers() {
+  "use cache";
+  cacheLife("days");
+  cacheTag(cacheTags.org);
+  return settingsRepository.listCommitteeMembers({ visibleOnly: true });
+}
+
 export async function getPublishedChart(slug: string) {
   "use cache";
   cacheLife("days");

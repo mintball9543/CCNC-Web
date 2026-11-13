@@ -10,6 +10,7 @@ import {
   type PlanFieldKey,
   type PlanProject,
 } from "@/lib/content/center-plan";
+import type { CommitteeMember } from "@/types";
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -169,7 +170,7 @@ export function BusinessPlanPage({ field }: { field: PlanFieldKey }) {
 }
 
 /** 조직·업무 — 분야별 담당 업무와 운영위원회 */
-export function CenterWorkAreas() {
+export function CenterWorkAreas({ committee }: { committee: CommitteeMember[] }) {
   return (
     <div className="space-y-12">
       <section aria-labelledby="work-areas-heading">
@@ -212,39 +213,41 @@ export function CenterWorkAreas() {
             </li>
           ))}
         </ol>
-        <div className="mt-6 overflow-x-auto border-t-2 border-foreground">
-          <table className="w-full min-w-[640px] text-sm">
-            <caption className="sr-only">운영위원 명단</caption>
-            <thead className="border-b border-border bg-muted/60">
-              <tr>
-                <th scope="col" className="py-3">
-                  성명
-                </th>
-                <th scope="col" className="py-3">
-                  소속
-                </th>
-                <th scope="col" className="py-3">
-                  직위
-                </th>
-                <th scope="col" className="py-3">
-                  비고
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {COMMITTEE.members.map((m) => (
-                <tr key={m.name} className="border-b border-border">
-                  <th scope="row" className="px-2 py-3 text-center font-medium">
-                    {m.name}
+        {committee.length > 0 && (
+          <div className="mt-6 overflow-x-auto border-t-2 border-foreground">
+            <table className="w-full min-w-[640px] text-sm">
+              <caption className="sr-only">운영위원 명단</caption>
+              <thead className="border-b border-border bg-muted/60">
+                <tr>
+                  <th scope="col" className="py-3">
+                    성명
                   </th>
-                  <td className="px-2 py-3 text-center">{m.org}</td>
-                  <td className="px-2 py-3 text-center">{m.position}</td>
-                  <td className="px-2 py-3 text-muted-foreground">{m.note}</td>
+                  <th scope="col" className="py-3">
+                    소속
+                  </th>
+                  <th scope="col" className="py-3">
+                    직위
+                  </th>
+                  <th scope="col" className="py-3">
+                    비고
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {committee.map((m) => (
+                  <tr key={m.id} className="border-b border-border">
+                    <th scope="row" className="px-2 py-3 text-center font-medium">
+                      {m.name}
+                    </th>
+                    <td className="px-2 py-3 text-center">{m.organization}</td>
+                    <td className="px-2 py-3 text-center">{m.position}</td>
+                    <td className="px-2 py-3 text-muted-foreground">{m.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );

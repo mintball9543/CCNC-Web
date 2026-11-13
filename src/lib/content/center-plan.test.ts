@@ -45,9 +45,9 @@ describe("2026년 사업", () => {
     for (const f of PLAN_FIELDS) expect(FIELD_DUTIES[f.key].length).toBeGreaterThan(0);
   });
 
-  it("연혁 7건·운영위원 9명", () => {
+  it("연혁 7건, 운영위원회 역할 3개", () => {
     expect(CENTER_HISTORY).toHaveLength(7);
-    expect(COMMITTEE.members).toHaveLength(9);
+    expect(COMMITTEE.roles).toHaveLength(3);
   });
 
   it("사업 상세 주소", () => {

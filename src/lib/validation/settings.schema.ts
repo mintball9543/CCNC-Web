@@ -34,7 +34,18 @@ export const orgMemberSchema = z.object({
       (v) => v === null || z.email().safeParse(v).success,
       "올바른 이메일 주소를 입력하세요.",
     ),
+  kind: z.enum(["staff", "support"]).default("staff"),
   isHead: checkbox,
+  isVisible: checkbox,
+  sortOrder: order,
+});
+
+/** 운영위원회 위원 */
+export const committeeMemberSchema = z.object({
+  name: z.string().trim().min(1, "이름을 입력하세요.").max(30),
+  organization: z.string().trim().min(1, "소속을 입력하세요.").max(80),
+  position: text(50),
+  note: text(200),
   isVisible: checkbox,
   sortOrder: order,
 });

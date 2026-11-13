@@ -154,8 +154,29 @@ export const orgMembers = sqliteTable("org_members", {
   duties: text("duties").notNull().default(""),
   phone: text("phone"),
   email: text("email"),
+  /**
+   * 조직도 구분: staff = 센터 직원(센터장·직속·팀),
+   * support = 공동 연구(지원) — 연구원 겸직 인력 (조직도 왼쪽 상자)
+   */
+  kind: text("kind", { enum: ["staff", "support"] })
+    .notNull()
+    .default("staff"),
   /** 조직도 최상단(센터장 등)에 표시 */
   isHead: integer("is_head", { mode: "boolean" }).notNull().default(false),
+  isVisible: integer("is_visible", { mode: "boolean" }).notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  ...timestamps,
+});
+
+/** 운영위원회 위원 */
+export const committeeMembers = sqliteTable("committee_members", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  /** 소속 기관 */
+  organization: text("organization").notNull(),
+  position: text("position").notNull().default(""),
+  /** 비고 (겸직·직책 등) */
+  note: text("note").notNull().default(""),
   isVisible: integer("is_visible", { mode: "boolean" }).notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
   ...timestamps,
@@ -282,6 +303,7 @@ export type InquiryRow = typeof inquiries.$inferSelect;
 export type NewInquiryRow = typeof inquiries.$inferInsert;
 export type FileRow = typeof files.$inferSelect;
 export type OrgMemberRow = typeof orgMembers.$inferSelect;
+export type CommitteeMemberRow = typeof committeeMembers.$inferSelect;
 export type ChartDatasetRow = typeof chartDatasets.$inferSelect;
 export type StatHighlightRow = typeof statHighlights.$inferSelect;
 export type HeroSlideRow = typeof heroSlides.$inferSelect;

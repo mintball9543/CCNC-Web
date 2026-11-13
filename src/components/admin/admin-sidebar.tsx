@@ -16,6 +16,7 @@ import {
   MessageCircleQuestion,
   PanelTop,
   Settings,
+  UserCheck,
   Users,
 } from "lucide-react";
 import { boardList } from "@/lib/config/boards";
@@ -55,6 +56,7 @@ const groups = [
     items: [
       { href: "/admin/menus", label: "메뉴 표시 설정", Icon: ListTree },
       { href: "/admin/organization", label: "조직도", Icon: Users },
+      { href: "/admin/committee", label: "운영위원회", Icon: UserCheck },
       { href: "/admin/related-sites", label: "관련 사이트", Icon: Globe },
       { href: "/admin/settings", label: "기관 정보·비밀번호", Icon: Building2 },
     ],

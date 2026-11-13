@@ -12,6 +12,7 @@ import { formDataToObject, validationError } from "@/lib/validation/common";
 import {
   chartSchema,
   heroSlideSchema,
+  committeeMemberSchema,
   orgMemberSchema,
   relatedSiteSchema,
   statSchema,
@@ -41,6 +42,40 @@ export async function saveOrgMemberAction(
   });
   updateTag(cacheTags.org);
   redirect("/admin/organization");
+}
+
+export async function saveCommitteeMemberAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+  const raw = formDataToObject(formData);
+  const parsed = committeeMemberSchema.safeParse(raw);
+  if (!parsed.success) return validationError(parsed.error, raw);
+  const id = idOf(raw);
+  await settingsRepository.saveCommitteeMember(id, parsed.data);
+  await recordAudit({
+    action: id ? "committee.update" : "committee.create",
+    target: id ? `committee_members:${id}` : null,
+    summary: `운영위원 ${verb(id)}: ${parsed.data.organization} ${parsed.data.name}`,
+  });
+  updateTag(cacheTags.org);
+  redirect("/admin/committee");
+}
+
+export async function deleteCommitteeMemberAction(id: number): Promise<void> {
+  await requireAdmin();
+  const member = await settingsRepository.findCommitteeMember(id);
+  if (member) {
+    await settingsRepository.deleteCommitteeMember(id);
+    await recordAudit({
+      action: "committee.delete",
+      target: `committee_members:${id}`,
+      summary: `운영위원 삭제: ${member.organization} ${member.name}`,
+    });
+  }
+  updateTag(cacheTags.org);
+  redirect("/admin/committee");
 }
 
 export async function deleteOrgMemberAction(id: number): Promise<void> {

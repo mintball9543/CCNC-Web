@@ -23,7 +23,20 @@ export interface OrgMember {
   duties: string;
   phone: string | null;
   email: string | null;
+  /** staff = 센터 직원, support = 공동 연구(지원) 겸직 인력 */
+  kind: "staff" | "support";
   isHead: boolean;
+  isVisible: boolean;
+  sortOrder: number;
+  updatedAt?: Date;
+}
+
+export interface CommitteeMember {
+  id: number;
+  name: string;
+  organization: string;
+  position: string;
+  note: string;
   isVisible: boolean;
   sortOrder: number;
   updatedAt?: Date;
