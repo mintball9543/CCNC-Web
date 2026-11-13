@@ -13,11 +13,11 @@ describe("applyMenuVisibility", () => {
     expect(isHiddenPath("/participation/upsyu", nav, mainNavigation)).toBe(true);
   });
 
-  it("하위 메뉴 숨김 (주요사업 > 교육·홍보)", () => {
-    const nav = applyMenuVisibility(mainNavigation, { "/business/education": false });
+  it("하위 메뉴 숨김 (주요사업 > 소통·협력)", () => {
+    const nav = applyMenuVisibility(mainNavigation, { "/business/communication": false });
     const business = nav.find((s) => s.key === "business");
-    expect(business?.items.map((i) => i.href)).not.toContain("/business/education");
-    expect(isHiddenPath("/business/education", nav, mainNavigation)).toBe(true);
+    expect(business?.items.map((i) => i.href)).not.toContain("/business/communication");
+    expect(isHiddenPath("/business/communication", nav, mainNavigation)).toBe(true);
     expect(isHiddenPath("/business/policy", nav, mainNavigation)).toBe(false);
   });
 

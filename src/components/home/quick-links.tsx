@@ -15,10 +15,10 @@ import { Container } from "@/components/ui/container";
 import type { NavSection } from "@/types";
 
 const icons: Record<string, { Icon: LucideIcon; desc?: string }> = {
-  "/business/policy": { Icon: Landmark, desc: "지역 탄소중립 정책 수립·이행 지원" },
-  "/business/research": { Icon: FileSearch, desc: "온실가스 현황 및 감축 연구" },
-  "/business/education": { Icon: Megaphone, desc: "도민 대상 탄소중립 교육·홍보" },
-  "/business/network": { Icon: Network, desc: "민·관·산·학 협력체계 운영" },
+  "/business/policy": { Icon: Landmark, desc: "법정계획 이행점검·정책 관리시스템" },
+  "/business/information": { Icon: FileSearch, desc: "온실가스 인벤토리·감축인지예산" },
+  "/business/communication": { Icon: Network, desc: "기후시민회의·서포터즈·작은연구" },
+  "/business/operation": { Icon: Megaphone, desc: "운영위원회·센터 협력·홍보" },
   "/participation/practice-group": { Icon: Users },
   "/participation/upsyu": { Icon: HandHeart },
   "/participation/footprint": { Icon: Calculator },

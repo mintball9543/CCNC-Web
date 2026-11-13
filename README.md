@@ -68,7 +68,7 @@ npm run dev                   # http://localhost:3000
    ├─ app/                     # 라우팅 (화면 조립만 담당)
    │  ├─ (site)/               # 공개 사이트 — 헤더/푸터 공통 레이아웃
    │  │  ├─ about/             # 센터소개: 인사말·설립근거·연혁·비전·목표·조직·업무·오시는 길
-   │  │  ├─ business/          # 주요사업: 정책지원·조사연구·교육·홍보·네트워크·거버넌스
+   │  │  ├─ business/          # 주요사업: 정책연구·정보관리·소통·협력·센터운영 (운영 전략 4개)
    │  │  ├─ participation/     # 참여·실천: 생활실천단·탄소업슈·탄소발자국 계산기·교육 강사단
    │  │  ├─ carbon-neutral/    # 충남 탄소중립: 탄소중립 이해·2045 비전·배출현황·부문별 감축목표
    │  │  ├─ news/              # 알림마당: [board] 게시판(공지·소식·보도·자료실) + inquiry 문의
@@ -88,7 +88,7 @@ npm run dev                   # http://localhost:3000
    ├─ hooks/                   # use-drag-resize (팝업 끌기·크기 조절), use-reduced-motion ('동작 줄이기' 감지)
    ├─ lib/
    │  ├─ config/               # 사이트 정보·메뉴·게시판 정의 (단일 출처)
-   │  ├─ content/              # 정적 데이터 (배출 통계, 관련 사이트) — 공식 자료만
+   │  ├─ content/              # 정적 콘텐츠 — center-plan.ts(연혁·비전·2026년 사업·운영위원회), 게시글 살균
    │  ├─ db/                   # Drizzle 스키마·클라이언트·마이그레이션·시드
    │  ├─ repositories/         # 데이터 접근 계층 (순수 DB 로직)
    │  ├─ queries/              # 공개 화면 조회 ('use cache' + cacheTag)

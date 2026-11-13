@@ -147,7 +147,9 @@ async function main() {
       );
     else ok("좌표 미지정 — 관리자 > 기관 정보의 주소로 위치를 찾습니다.");
     console.log(
-      "    (네이버 클라우드 콘솔의 Maps Application 에 'Dynamic Map'·'Geocoding' 선택과 Web 서비스 URL(사이트 주소) 등록이 필요합니다)",
+      "    (네이버 클라우드 콘솔의 Maps Application 에 'Dynamic Map' 선택과 Web 서비스 URL(사이트 주소) 등록이 필요합니다.\n" +
+        "     좌표를 지정하지 않으면 주소 검색용 'Geocoding' 도 선택해야 하며, 선택하지 않으면 주소 검색이 403 으로 거부됩니다.\n" +
+        "     지도 표시는 Client ID 만 씁니다 — Client Secret 은 서버 전용 API 용이라 설정하지 않습니다)",
     );
   }
 

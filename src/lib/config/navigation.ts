@@ -27,10 +27,10 @@ export const mainNavigation: NavSection[] = [
     description: "지역 탄소중립 정책 이행을 위한 센터의 주요 사업입니다.",
     href: "/business/policy",
     items: [
-      { title: "정책지원", href: "/business/policy" },
-      { title: "조사연구", href: "/business/research" },
-      { title: "교육·홍보", href: "/business/education" },
-      { title: "네트워크·거버넌스", href: "/business/network" },
+      { title: "정책연구", href: "/business/policy" },
+      { title: "정보관리", href: "/business/information" },
+      { title: "소통·협력", href: "/business/communication" },
+      { title: "센터운영", href: "/business/operation" },
     ],
   },
   {

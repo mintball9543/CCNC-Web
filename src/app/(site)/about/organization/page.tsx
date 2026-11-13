@@ -1,5 +1,6 @@
 import { Mail, Phone } from "lucide-react";
 import { ContentPlaceholder } from "@/components/content/content-placeholder";
+import { CenterWorkAreas } from "@/components/content/plan-project";
 import { getOrgMembers } from "@/lib/queries/site";
 import { navMetadata } from "@/lib/seo";
 import { hasMultipleDepartments } from "@/lib/utils/org-departments";
@@ -7,20 +8,22 @@ import type { OrgMember } from "@/types";
 
 export const metadata = navMetadata("/about/organization");
 
-/** 조직·업무 — 관리자 > 조직도에서 구성원·업무·연락처를 수정 */
+/**
+ * 조직·업무 — 구성원·업무·연락처는 관리자 > 조직도에서 수정.
+ * 아래의 분야별 업무·운영위원회는 2026년 사업계획서 기준 (src/lib/content/center-plan.ts)
+ */
 export default async function Page() {
   const members = await getOrgMembers();
   if (members.length === 0) {
     return (
-      <ContentPlaceholder
-        issue="CONTENT-006"
-        sections={[
-          "조직도 (운영위원회 포함)",
-          "부서·담당별 업무",
-          "연락처 (기관 도메인 이메일로 통일)",
-        ]}
-        note="관리자 > 조직도 메뉴에서 구성원을 등록하면 이 페이지에 표시됩니다."
-      />
+      <div className="space-y-12">
+        <ContentPlaceholder
+          issue="CONTENT-006"
+          sections={["조직도", "담당자별 업무", "연락처 (기관 도메인 이메일로 통일)"]}
+          note="관리자 > 조직도 메뉴에서 구성원을 등록하면 이 페이지에 표시됩니다."
+        />
+        <CenterWorkAreas />
+      </div>
     );
   }
 
@@ -155,6 +158,8 @@ export default async function Page() {
           </table>
         </div>
       </section>
+
+      <CenterWorkAreas />
     </div>
   );
 }
