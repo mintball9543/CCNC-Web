@@ -84,33 +84,35 @@ export function OrgChartView({
 
   return (
     <div className="space-y-0">
-      {/* 1단: 센터장 + 양옆 상자 */}
-      <div className="flex flex-col items-stretch gap-4 lg:flex-row lg:items-center lg:gap-0">
-        <div className="order-2 lg:order-none lg:flex lg:w-[25%] lg:items-center">
+      {/* 1단: 센터장 + 양옆 상자 — 가운데 칸 폭을 꽉 채워 점선이 카드에 닿는다 */}
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[1fr_minmax(0,2fr)_1fr] lg:items-start lg:gap-x-5 lg:gap-y-0">
+        <div className="order-2 lg:order-none">
           {support.length > 0 && (
-            <>
-              <div className="min-w-0 flex-1">
-                <SideBox title="공동 연구(지원)">
-                  <p>연구원 겸직 인력</p>
-                  <p className="mt-2 font-semibold text-foreground">
-                    {support.map((s) => s.name).join(" · ")}
-                  </p>
-                </SideBox>
-              </div>
-              <div
-                className="hidden h-0 w-5 shrink-0 border-t-2 border-dashed border-primary/50 lg:block"
-                aria-hidden
-              />
-            </>
+            <SideBox title="공동 연구(지원)">
+              <p>연구원 겸직 인력</p>
+              <p className="mt-2 font-semibold text-foreground">
+                {support.map((s) => s.name).join(" · ")}
+              </p>
+            </SideBox>
           )}
         </div>
 
-        <div className="order-1 flex flex-1 flex-col items-center gap-3 lg:order-none">
+        <div className="order-1 flex flex-col gap-3 lg:order-none lg:self-stretch">
           {heads.map((head) => (
             <div
               key={head.id}
-              className="w-full max-w-md rounded-2xl bg-ci-navy px-6 py-5 text-center text-white shadow-md"
+              className="relative rounded-2xl bg-ci-navy px-6 py-5 text-center text-white shadow-md"
             >
+              {support.length > 0 && (
+                <span
+                  className="absolute top-1/2 -left-5 hidden h-0 w-5 border-t-2 border-dashed border-primary/70 lg:block"
+                  aria-hidden
+                />
+              )}
+              <span
+                className="absolute top-1/2 -right-5 hidden h-0 w-5 border-t-2 border-dashed border-primary/70 lg:block"
+                aria-hidden
+              />
               <p className="inline-block rounded-full bg-white/20 px-3 py-0.5 text-sm font-semibold">
                 {head.position}
               </p>
@@ -122,30 +124,31 @@ export function OrgChartView({
               )}
             </div>
           ))}
+          {/* 센터장 카드 아래에서 바로 이어지는 세로선 — 오른쪽 상자가 더 길어도 끊기지 않게 남는 높이를 채운다 */}
+          {(direct.length > 0 || teams.length > 0) && (
+            <div
+              className="hidden min-h-7 w-0.5 flex-1 self-center bg-primary/60 lg:-mt-3 lg:block"
+              aria-hidden
+            />
+          )}
         </div>
 
-        <div className="order-3 lg:order-none lg:flex lg:w-[25%] lg:items-center">
-          <div
-            className="hidden h-0 w-5 shrink-0 border-t-2 border-dashed border-primary/50 lg:block"
-            aria-hidden
-          />
-          <div className="min-w-0 flex-1 space-y-3">
-            {committeeLabel && (
-              <SideBox title="운영위원회">
-                <p className="font-semibold text-foreground">{committeeLabel}</p>
-              </SideBox>
-            )}
-            <SideBox title="협력 연구기관">
-              <p>{COLLABORATING_INSTITUTIONS}</p>
+        <div className="order-3 space-y-3 lg:order-none">
+          {committeeLabel && (
+            <SideBox title="운영위원회">
+              <p className="font-semibold text-foreground">{committeeLabel}</p>
             </SideBox>
-          </div>
+          )}
+          <SideBox title="협력 연구기관">
+            <p>{COLLABORATING_INSTITUTIONS}</p>
+          </SideBox>
         </div>
       </div>
 
       {/* 2단: 직속 */}
       {direct.length > 0 && (
         <div className="flex flex-col items-center">
-          {heads.length > 0 && <div className="h-7 w-0.5 bg-primary/40" aria-hidden />}
+          {heads.length > 0 && <div className="h-7 w-0.5 bg-primary/60 lg:hidden" aria-hidden />}
           <div className="flex flex-wrap justify-center gap-3">
             {direct.map((d) => (
               <div
@@ -168,12 +171,15 @@ export function OrgChartView({
       {teams.length > 0 && (
         <div className="flex flex-col items-center">
           {(direct.length > 0 || heads.length > 0) && (
-            <div className="h-7 w-0.5 bg-primary/40" aria-hidden />
+            <div
+              className={`h-7 w-0.5 bg-primary/60 ${direct.length > 0 ? "" : "lg:hidden"}`}
+              aria-hidden
+            />
           )}
           <div className="relative w-full" style={{ "--cols": columns } as CSSProperties}>
             {connected && (
               <div
-                className="absolute top-0 hidden h-0.5 bg-primary/40 lg:block"
+                className="absolute top-0 hidden h-0.5 bg-primary/60 lg:block"
                 style={{
                   left: `${50 / columns}%`,
                   right: `${50 / columns}%`,
@@ -186,7 +192,7 @@ export function OrgChartView({
                 <li key={team.name} className="relative">
                   {connected && (
                     <span
-                      className="absolute -top-7 left-1/2 hidden h-7 w-0.5 -translate-x-1/2 bg-primary/40 lg:block"
+                      className="absolute -top-7 left-1/2 hidden h-7 w-0.5 -translate-x-1/2 bg-primary/60 lg:block"
                       aria-hidden
                     />
                   )}
