@@ -31,6 +31,9 @@ export const siteConfig = {
     parking: "정문 앞 주차장 이용 가능, 주차 공간이 부족할 경우 운동장 이용",
   } satisfies ContactSettings,
 
+  /** 네이버 지도 장소 링크 — '오시는 길'의 '네이버 지도에서 보기' 버튼 (주소가 바뀌면 함께 교체) */
+  naverPlaceUrl: "https://naver.me/G8foXWfO",
+
   copyrightHolder: "충청남도 탄소중립지원센터",
 } as const;
 

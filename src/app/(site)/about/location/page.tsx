@@ -44,7 +44,7 @@ export default async function Page() {
           <LocationMap address={contact.address} />
         </Suspense>
         <a
-          href={naverMapSearchUrl(contact.address || siteConfig.name)}
+          href={siteConfig.naverPlaceUrl || naverMapSearchUrl(contact.address || siteConfig.name)}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
