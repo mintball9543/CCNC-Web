@@ -20,14 +20,14 @@ export const siteConfig = {
    * 운영 주체는 센터이므로 개인 메일·타 기관 주소를 쓰지 않는다. (ISSUES.md CONTENT-002)
    */
   contactDefaults: {
-    address: "",
-    addressDetail: "충남연구원 2층",
-    postalCode: "",
-    phone: "",
-    fax: "",
-    email: "",
-    transit: "",
-    parking: "",
+    address: "충청남도 공주시 연수원길 73-26",
+    addressDetail: "충남연구원 2층 기후환경연구실",
+    postalCode: "32589",
+    phone: "041-840-1276",
+    fax: "041-840-1239",
+    email: "hbyeo@cni.re.kr",  
+    transit: "버스 125번, 130번 충청남도인재개발원/교통연수원(산한아파트) 정류장에서 하차 후 도보 5분",
+    parking: "정문 앞 주차장 이용 가능, 주차 공간이 부족할 경우 운동장 이용",
   } satisfies ContactSettings,
 
   copyrightHolder: "충청남도 탄소중립지원센터",
