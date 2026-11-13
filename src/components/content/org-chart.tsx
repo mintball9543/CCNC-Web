@@ -78,9 +78,11 @@ export function OrgChartView({
 }) {
   const { heads, direct, teams, support } = buildOrgChart(members);
   const committeeLabel = committeeSizeLabel(committeeCount);
-  // 팀이 4개 이하일 때만 한 줄로 이어 그린다
-  const columns = Math.min(Math.max(teams.length, 1), 4);
-  const connected = teams.length >= 1 && teams.length <= 4;
+  // 팀이 5개 이하일 때만 한 줄로 이어 그린다 (그 이상은 4칸씩 줄바꿈하고 연결선 생략)
+  const connected = teams.length >= 1 && teams.length <= 5;
+  const columns = connected ? teams.length : 4;
+  // 칸 사이 간격(gap-5 = 1.25rem)을 빼고 계산해야 가운데 선이 첫·마지막 카드 중앙에 닿는다
+  const centerOffset = `calc((100% - ${columns - 1} * 1.25rem) / ${columns * 2})`;
 
   return (
     <div className="space-y-0">
@@ -181,8 +183,8 @@ export function OrgChartView({
               <div
                 className="absolute top-0 hidden h-0.5 bg-primary/60 lg:block"
                 style={{
-                  left: `${50 / columns}%`,
-                  right: `${50 / columns}%`,
+                  left: centerOffset,
+                  right: centerOffset,
                 }}
                 aria-hidden
               />
