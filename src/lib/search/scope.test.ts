@@ -3,7 +3,7 @@ import { applyMenuVisibility } from "@/lib/config/menu-visibility";
 import { mainNavigation } from "@/lib/config/navigation";
 import { searchMenus, visibleBoardKeys } from "./scope";
 
-/** 게시판 숨김 규칙 검사용 — 실제 메뉴에서는 알림마당이 고정(locked)이라 숨길 수 없다 */
+/** 고정(locked) 대메뉴가 있어도 숨김 규칙만 검사하도록 모두 해제한 메뉴 */
 const unlocked = mainNavigation.map((s) => ({ ...s, locked: false }));
 
 describe("visibleBoardKeys", () => {
