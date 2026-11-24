@@ -22,8 +22,9 @@ export async function saveMenuSettingsAction(
   const visible = new Set(formData.getAll("visible").map(String));
   const entries: Record<string, boolean> = {};
   for (const section of mainNavigation) {
-    entries[sectionKey(section.key)] = visible.has(sectionKey(section.key));
-    for (const item of section.items) entries[item.href] = visible.has(item.href);
+    // 고정 대메뉴는 항상 표시로 저장
+    entries[sectionKey(section.key)] = section.locked || visible.has(sectionKey(section.key));
+    for (const item of section.items) entries[item.href] = section.locked || visible.has(item.href);
   }
   await settingsRepository.saveMenuSettings(entries);
   const hidden = mainNavigation.flatMap((section) =>

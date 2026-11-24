@@ -8,10 +8,13 @@ import { buildBreadcrumb, findNavItem } from "@/lib/config/navigation";
 /**
  * 위치표시(브레드크럼) + 페이지 제목.
  * 두 값 모두 navigation 설정에서 파생되므로 메뉴명·제목·위치표시가 항상 일치한다.
+ * sectionHref: 메뉴 숨김을 적용한 대메뉴 링크(첫 번째로 보이는 하위 메뉴) — 숨긴 페이지로 가지 않도록.
  */
-export function PageHeading() {
+export function PageHeading({ sectionHref }: { sectionHref?: string }) {
   const pathname = usePathname();
-  const crumbs = buildBreadcrumb(pathname);
+  const crumbs = buildBreadcrumb(pathname).map((crumb, i) =>
+    i === 1 && sectionHref ? { ...crumb, href: sectionHref } : crumb,
+  );
   const title = findNavItem(pathname)?.title;
 
   return (

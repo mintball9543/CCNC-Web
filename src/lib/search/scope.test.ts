@@ -3,6 +3,9 @@ import { applyMenuVisibility } from "@/lib/config/menu-visibility";
 import { mainNavigation } from "@/lib/config/navigation";
 import { searchMenus, visibleBoardKeys } from "./scope";
 
+/** 게시판 숨김 규칙 검사용 — 실제 메뉴에서는 알림마당이 고정(locked)이라 숨길 수 없다 */
+const unlocked = mainNavigation.map((s) => ({ ...s, locked: false }));
+
 describe("visibleBoardKeys", () => {
   it("모든 메뉴가 보이면 게시판 전체", () => {
     expect(visibleBoardKeys(mainNavigation)).toEqual([
@@ -15,13 +18,13 @@ describe("visibleBoardKeys", () => {
   });
 
   it("숨긴 게시판은 검색 범위에서 빠진다", () => {
-    const nav = applyMenuVisibility(mainNavigation, { "/news/press": false });
+    const nav = applyMenuVisibility(unlocked, { "/news/press": false });
     expect(visibleBoardKeys(nav)).not.toContain("press");
     expect(visibleBoardKeys(nav)).toContain("notice");
   });
 
   it("알림마당 전체를 숨기면 게시판 없음", () => {
-    const nav = applyMenuVisibility(mainNavigation, { "section:news": false });
+    const nav = applyMenuVisibility(unlocked, { "section:news": false });
     expect(visibleBoardKeys(nav)).toEqual([]);
   });
 });
@@ -40,8 +43,8 @@ describe("searchMenus", () => {
   });
 
   it("숨긴 메뉴·빈 검색어는 결과 없음", () => {
-    const nav = applyMenuVisibility(mainNavigation, { "/about/location": false });
-    expect(searchMenus(nav, ["오시는"])).toEqual([]);
+    const nav = applyMenuVisibility(mainNavigation, { "/business/policy": false });
+    expect(searchMenus(nav, ["정책연구"])).toEqual([]);
     expect(searchMenus(mainNavigation, [])).toEqual([]);
   });
 });

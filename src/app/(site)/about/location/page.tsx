@@ -44,7 +44,7 @@ export default async function Page() {
           <LocationMap address={contact.address} />
         </Suspense>
         <a
-          href={siteConfig.naverPlaceUrl || naverMapSearchUrl(contact.address || siteConfig.name)}
+          href={naverMapLink(contact.address)}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
@@ -70,6 +70,16 @@ export default async function Page() {
       </p>
     </div>
   );
+}
+
+/**
+ * '네이버 지도에서 보기' 주소 — 고정 장소 링크(naverPlaceUrl)는 기본 주소일 때만 쓰고,
+ * 관리자 > 기관 정보에서 주소를 바꾸면 바뀐 주소로 검색한다.
+ */
+function naverMapLink(address: string) {
+  if (siteConfig.naverPlaceUrl && (!address || address === siteConfig.contactDefaults.address))
+    return siteConfig.naverPlaceUrl;
+  return naverMapSearchUrl(address || siteConfig.name);
 }
 
 /** 지도 API 키는 서버 재시작만으로 바뀌도록 요청 시점에 읽는다 (빌드 결과에 고정하지 않음) */

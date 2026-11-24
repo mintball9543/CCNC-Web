@@ -12,6 +12,7 @@ export const mainNavigation: NavSection[] = [
     title: "센터소개",
     description: "충청남도 탄소중립지원센터를 소개합니다.",
     href: "/about/greeting",
+    locked: true,
     items: [
       { title: "인사말", href: "/about/greeting" },
       { title: "설립근거·연혁", href: "/about/history" },
@@ -62,6 +63,7 @@ export const mainNavigation: NavSection[] = [
     title: "알림마당",
     description: "센터의 새로운 소식과 자료를 전해드립니다.",
     href: "/news/notice",
+    locked: true,
     items: [
       { title: "공지사항", href: "/news/notice" },
       { title: "센터소식", href: "/news/center-news" },

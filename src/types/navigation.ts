@@ -15,6 +15,8 @@ export interface NavSection {
   description: string;
   href: string;
   items: NavItem[];
+  /** 항상 표시 — 관리자 '메뉴 표시 설정'에서 대메뉴·하위 메뉴를 숨길 수 없다 */
+  locked?: boolean;
 }
 
 export interface BreadcrumbItem {
