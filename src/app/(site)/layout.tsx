@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { BackToTop } from "@/components/layout/back-to-top";
 import { InquiryFab } from "@/components/layout/inquiry-fab";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
@@ -13,11 +14,12 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
     <>
       <SkipLink />
       <SiteHeader navigation={navigation} />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
         {children}
       </main>
       <SiteFooter />
       {showInquiry && <InquiryFab />}
+      <BackToTop aboveFab={showInquiry} />
       <Suspense>
         <VisitTracker />
       </Suspense>

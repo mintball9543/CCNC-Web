@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, List, X } from "lucide-react";
+import { List, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { cn } from "@/lib/utils/cn";
@@ -29,12 +29,10 @@ function currentSection(items: readonly TocItem[]) {
  * - 본문 위에 가로형 목차를 보여 주고, 스크롤로 가려지면 따라다니는 세로형 목차를 띄운다.
  *   - 데스크톱(lg 이상): 왼쪽 메뉴 자리에 세로형 목차 (현재 구역 강조)
  *   - 모바일·태블릿: 본문을 가리지 않도록 왼쪽 아래 '목차' 버튼 → 눌렀을 때만 목록 표시
- * - 일정 이상 내려가면 '맨 위로' 버튼 (오른쪽 아래, 문의하기 버튼 위)
  */
 export function PageToc({ items }: { items: readonly TocItem[] }) {
   const inlineRef = useRef<HTMLElement>(null);
   const [inlineHidden, setInlineHidden] = useState(false);
-  const [showTop, setShowTop] = useState(false);
   const [active, setActive] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const reduced = useReducedMotion();
@@ -47,7 +45,6 @@ export function PageToc({ items }: { items: readonly TocItem[] }) {
       frame = 0;
       const nav = inlineRef.current;
       setInlineHidden(nav ? nav.getBoundingClientRect().bottom < 96 : false);
-      setShowTop(window.scrollY > 600);
       setActive(currentSection(items));
     };
     const onScroll = () => {
@@ -202,22 +199,6 @@ export function PageToc({ items }: { items: readonly TocItem[] }) {
           )}
         </button>
       </div>
-
-      {/* 맨 위로 — 문의하기 버튼(오른쪽 아래) 바로 위 */}
-      <button
-        type="button"
-        onClick={() => window.scrollTo({ top: 0, behavior })}
-        aria-label="맨 위로"
-        tabIndex={showTop ? 0 : -1}
-        aria-hidden={!showTop}
-        className={cn(
-          "fixed right-6 bottom-24 z-40 flex size-12 flex-col items-center justify-center rounded-full border border-border bg-card text-foreground shadow-lg transition duration-200 hover:text-primary sm:right-8 sm:bottom-28 print:hidden",
-          showTop ? "opacity-100" : "pointer-events-none translate-y-2 opacity-0",
-        )}
-      >
-        <ArrowUp className="size-5" aria-hidden />
-        <span className="text-[10px] leading-none font-semibold">TOP</span>
-      </button>
     </>
   );
 }
