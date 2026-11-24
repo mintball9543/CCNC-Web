@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Fragment, Suspense, type ReactNode } from "react";
 import { ChartCard } from "@/components/charts/chart-card";
 import { CarbonDataSection } from "@/components/home/carbon-data-section";
 import { ActivityGallery } from "@/components/home/activity-gallery";
@@ -9,10 +9,12 @@ import { StatHighlights } from "@/components/home/stat-highlights";
 import { RelatedSites } from "@/components/layout/related-sites";
 import { PopupLayer } from "@/components/popup/popup-layer";
 import { Container } from "@/components/ui/container";
+import type { HomeSectionKey } from "@/lib/config/home-sections";
 import { getActivePopups } from "@/lib/queries/popups";
 import { getLatestActivityPhotos } from "@/lib/queries/posts";
 import {
   getHomeCharts,
+  getHomeSectionOrder,
   getRelatedSites,
   getVisibleNavigation,
   getVisibleStats,
@@ -29,13 +31,17 @@ const CARBON_LINKS = [
   { href: "/carbon-neutral/sector-targets", label: "부문별 감축목표" },
 ];
 
-/** 메인 — 모든 영역은 관리자 설정(메뉴 노출·사진·실적·도표)에 따라 구성된다 */
+/**
+ * 메인 — 모든 영역은 관리자 설정(메뉴 노출·사진·실적·도표)에 따라 구성되고,
+ * 메인 비주얼 아래 영역의 순서는 관리자 > 메인 화면 순서에서 정한다.
+ */
 export default async function HomePage() {
-  const [navigation, stats, charts, relatedSites] = await Promise.all([
+  const [navigation, stats, charts, relatedSites, order] = await Promise.all([
     getVisibleNavigation(),
     getVisibleStats(),
     getHomeCharts(),
     getRelatedSites(),
+    getHomeSectionOrder(),
   ]);
   const showActivity = isVisible(navigation, "/news/gallery");
   const latestBoards = (["notice", "press"] as BoardKey[]).filter((key) =>
@@ -43,40 +49,45 @@ export default async function HomePage() {
   );
   const photos = showActivity ? await getLatestActivityPhotos(5) : [];
 
+  const sections: Record<HomeSectionKey, ReactNode> = {
+    latestPosts: latestBoards.length > 0 && (
+      <div className="border-y border-border bg-muted/50">
+        <Container className="grid gap-6 py-16 lg:grid-cols-2">
+          {latestBoards.map((key) => (
+            <LatestPosts key={key} boardKey={key} />
+          ))}
+        </Container>
+      </div>
+    ),
+    activityGallery: <ActivityGallery posts={photos} />,
+    quickLinks: <QuickLinks navigation={navigation} />,
+    stats: <StatHighlights stats={stats} />,
+    carbonData: (
+      <CarbonDataSection links={CARBON_LINKS.filter((link) => isVisible(navigation, link.href))} />
+    ),
+    charts: charts.length > 0 && (
+      <Container className="py-16">
+        <h2 className="text-2xl font-bold">우리가 이뤄낸 탄소중립의 기록</h2>
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          {charts.map((chart) => (
+            <ChartCard key={chart.id} dataset={chart} />
+          ))}
+        </div>
+      </Container>
+    ),
+    relatedSites: relatedSites.length > 0 && (
+      <Container className="py-12">
+        <RelatedSites sites={relatedSites} />
+      </Container>
+    ),
+  };
+
   return (
     <>
       <HeroSection navigation={navigation} />
-      <QuickLinks navigation={navigation} />
-      <StatHighlights stats={stats} />
-      <CarbonDataSection links={CARBON_LINKS.filter((link) => isVisible(navigation, link.href))} />
-      <ActivityGallery posts={photos} />
-
-      {latestBoards.length > 0 && (
-        <div className="border-y border-border bg-muted/50">
-          <Container className="grid gap-6 py-16 lg:grid-cols-2">
-            {latestBoards.map((key) => (
-              <LatestPosts key={key} boardKey={key} />
-            ))}
-          </Container>
-        </div>
-      )}
-
-      {charts.length > 0 && (
-        <Container className="py-16">
-          <h2 className="text-2xl font-bold">우리가 이뤄낸 탄소중립의 기록</h2>
-          <div className="mt-8 grid gap-6 lg:grid-cols-2">
-            {charts.map((chart) => (
-              <ChartCard key={chart.id} dataset={chart} />
-            ))}
-          </div>
-        </Container>
-      )}
-
-      {relatedSites.length > 0 && (
-        <Container className="pb-16">
-          <RelatedSites sites={relatedSites} />
-        </Container>
-      )}
+      {order.map((key) => (
+        <Fragment key={key}>{sections[key]}</Fragment>
+      ))}
 
       <Suspense>
         <HomePopups />

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ArrowUpDown,
   BarChart3,
   ChartLine,
   Building2,
@@ -34,6 +35,7 @@ const groups = [
     title: "메인 화면",
     items: [
       { href: "/admin/hero", label: "메인 상단 대표 사진", Icon: Images },
+      { href: "/admin/home-sections", label: "메인 화면 순서", Icon: ArrowUpDown },
       { href: "/admin/popups", label: "팝업 관리", Icon: PanelTop },
       { href: "/admin/stats", label: "수치 관리", Icon: Hash },
       { href: "/admin/charts", label: "도표 관리", Icon: BarChart3 },
