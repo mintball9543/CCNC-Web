@@ -45,6 +45,8 @@ export const posts = sqliteTable(
     thumbnailUrl: text("thumbnail_url"),
     isPinned: integer("is_pinned", { mode: "boolean" }).notNull().default(false),
     isPublished: integer("is_published", { mode: "boolean" }).notNull().default(true),
+    /** 조회수 — 같은 접속자는 하루 한 번만 센다 (post_view_seen) */
+    viewCount: integer("view_count").notNull().default(0),
     publishedAt: integer("published_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
@@ -309,3 +311,19 @@ export type StatHighlightRow = typeof statHighlights.$inferSelect;
 export type HeroSlideRow = typeof heroSlides.$inferSelect;
 export type RelatedSiteRow = typeof relatedSites.$inferSelect;
 export type AdminAuditLogRow = typeof adminAuditLogs.$inferSelect;
+
+/**
+ * 게시글 조회 중복 판별 — 그날 이미 센 (게시글, 접속자 해시) 조합.
+ * 해시는 IP·브라우저 정보를 그날의 비밀 값과 섞은 값으로, IP 자체는 저장하지 않는다. 지난 날짜는 지운다.
+ */
+export const postViewSeen = sqliteTable(
+  "post_view_seen",
+  {
+    day: text("day").notNull(),
+    postId: integer("post_id")
+      .notNull()
+      .references(() => posts.id, { onDelete: "cascade" }),
+    hash: text("hash").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.day, table.postId, table.hash] })],
+);

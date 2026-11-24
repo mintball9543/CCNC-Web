@@ -1,10 +1,11 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { cacheTags } from "@/lib/cache/tags";
-import { boards, GALLERY_PAGE_SIZE, POSTS_PAGE_SIZE } from "@/lib/config/boards";
+import { boardList, boards, GALLERY_PAGE_SIZE, POSTS_PAGE_SIZE } from "@/lib/config/boards";
 import { htmlToText } from "@/lib/content/sanitize";
 import * as fileRepository from "@/lib/repositories/file.repository";
 import * as postRepository from "@/lib/repositories/post.repository";
+import { makeExcerpt, splitSearchTerms } from "@/lib/search/terms";
 import { fileUrl } from "@/lib/uploads/url";
 import type { BoardKey } from "@/types";
 
@@ -70,4 +71,41 @@ export async function getLatestActivityPhotos(limit = 6) {
   cacheTag(cacheTags.posts("gallery"));
   const result = await postRepository.listPosts({ boardKey: "gallery", page: 1, pageSize: 30 });
   return result.items.filter((p) => p.thumbnailUrl).slice(0, limit);
+}
+
+export const SEARCH_PAGE_SIZE = 10;
+
+/**
+ * 통합 검색 — 공개 메뉴에 보이는 게시판(boardKeys)의 게시 글을 찾는다.
+ * 결과마다 검색어 주변 본문 요약문(excerpt)을 붙인다.
+ */
+export async function searchPosts({
+  keyword,
+  boardKeys,
+  boardKey = null,
+  page = 1,
+}: {
+  keyword: string;
+  boardKeys: BoardKey[];
+  boardKey?: BoardKey | null;
+  page?: number;
+}) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(...boardList.map((b) => cacheTags.posts(b.key)));
+  const result = await postRepository.searchPublishedPosts({
+    keyword,
+    boardKeys,
+    boardKey,
+    page,
+    pageSize: SEARCH_PAGE_SIZE,
+  });
+  const terms = splitSearchTerms(keyword);
+  return {
+    ...result,
+    items: result.items.map(({ content, format, ...post }) => ({
+      ...post,
+      excerpt: makeExcerpt(format === "html" ? htmlToText(content) : content, terms),
+    })),
+  };
 }

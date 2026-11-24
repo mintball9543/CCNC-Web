@@ -1,7 +1,6 @@
-import { createHash } from "node:crypto";
-import { ipFromHeaders } from "@/lib/audit/ip";
 import { recordVisit } from "@/lib/repositories/visit.repository";
 import { isBotUserAgent, kstDay } from "@/lib/visits/stats";
+import { isCrossSiteRequest, visitorHash } from "@/lib/visits/visitor";
 
 const noContent = () => new Response(null, { status: 204 });
 
@@ -11,20 +10,12 @@ const noContent = () => new Response(null, { status: 204 });
  * - 접속자 구분은 IP·브라우저 정보를 그날의 비밀 값과 섞은 해시로만 하고, IP 자체는 저장하지 않는다
  */
 export async function POST(request: Request) {
-  const site = request.headers.get("sec-fetch-site");
-  if (site && site !== "same-origin") return noContent();
-  const userAgent = request.headers.get("user-agent") ?? "";
-  if (isBotUserAgent(userAgent)) return noContent();
+  if (isCrossSiteRequest(request.headers)) return noContent();
+  if (isBotUserAgent(request.headers.get("user-agent") ?? "")) return noContent();
 
   const day = kstDay(new Date());
-  const hash = createHash("sha256")
-    .update(
-      `${process.env.AUTH_SECRET ?? ""}|${day}|${ipFromHeaders(request.headers)}|${userAgent}`,
-    )
-    .digest("base64url")
-    .slice(0, 32);
   try {
-    await recordVisit(day, hash);
+    await recordVisit(day, visitorHash(request.headers, day));
   } catch (error) {
     console.error("방문 집계 실패", error);
   }

@@ -8,6 +8,7 @@ import { PostTable } from "@/components/board/post-table";
 import { Pagination } from "@/components/ui/pagination";
 import { boardList, getBoard } from "@/lib/config/boards";
 import { getPublishedPosts } from "@/lib/queries/posts";
+import { normalizeKeyword } from "@/lib/search/terms";
 
 export function generateStaticParams() {
   return boardList.map((board) => ({ board: board.key }));
@@ -36,7 +37,7 @@ async function BoardList({ params, searchParams }: PageProps<"/news/[board]">) {
     typeof sp.category === "string" && board.categories?.some((c) => c.key === sp.category)
       ? sp.category
       : null;
-  const keyword = typeof sp.q === "string" ? sp.q.slice(0, 50) : null;
+  const keyword = normalizeKeyword(sp.q);
 
   const result = await getPublishedPosts(board.key, { page, category, keyword });
   const basePath = `/news/${board.key}`;
