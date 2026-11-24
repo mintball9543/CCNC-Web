@@ -39,7 +39,7 @@ export function InfoTable({
       {table.unit && (
         <p className="text-right text-xs text-muted-foreground">(단위: {table.unit})</p>
       )}
-      <div className="overflow-x-auto border-t-2 border-foreground">
+      <div className="relative overflow-x-auto border-t-2 border-foreground">
         <table className={cn("w-full text-sm", table.minWidth ?? "min-w-[560px]")}>
           <caption className="sr-only">
             {table.caption}

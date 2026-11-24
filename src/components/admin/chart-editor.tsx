@@ -131,7 +131,7 @@ function ChartEditorInner({
   };
 
   return (
-    <ActionForm action={action} className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <ActionForm action={action} className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="space-y-5">
         {chart && <input type="hidden" name="id" value={chart.id} />}
         <input type="hidden" name="series" value={JSON.stringify(series)} />
@@ -253,7 +253,7 @@ function ChartEditorInner({
             <table className="w-full text-sm">
               <thead className="bg-muted/60">
                 <tr>
-                  <th scope="col" className="w-28 px-2 py-2 text-left font-medium">
+                  <th scope="col" className="w-28 min-w-24 px-2 py-2 text-left font-medium">
                     {categoryLabel}
                   </th>
                   {series.map((name, i) => (
