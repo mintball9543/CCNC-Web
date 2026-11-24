@@ -1,5 +1,4 @@
 import { Fragment, Suspense, type ReactNode } from "react";
-import { ChartCard } from "@/components/charts/chart-card";
 import { CarbonDataSection } from "@/components/home/carbon-data-section";
 import { ActivityGallery } from "@/components/home/activity-gallery";
 import { HeroSection } from "@/components/home/hero-section";
@@ -10,11 +9,11 @@ import { RelatedSites } from "@/components/layout/related-sites";
 import { PopupLayer } from "@/components/popup/popup-layer";
 import { Container } from "@/components/ui/container";
 import type { HomeSectionKey } from "@/lib/config/home-sections";
+import { carbonPlan } from "@/lib/content/home-carbon";
 import { getActivePopups } from "@/lib/queries/popups";
 import { getLatestActivityPhotos } from "@/lib/queries/posts";
 import { SYSTEM_CHART_SLUGS } from "@/lib/config/charts";
 import {
-  getHomeCharts,
   getHomeSectionOrder,
   getRelatedSites,
   getSystemChart,
@@ -38,13 +37,13 @@ const CARBON_LINKS = [
  * 메인 비주얼 아래 영역의 순서는 관리자 > 메인 화면 순서에서 정한다.
  */
 export default async function HomePage() {
-  const [navigation, stats, charts, relatedSites, order, carbonData] = await Promise.all([
+  const [navigation, stats, relatedSites, order, carbonData, targets] = await Promise.all([
     getVisibleNavigation(),
     getVisibleStats(),
-    getHomeCharts(),
     getRelatedSites(),
     getHomeSectionOrder(),
     getSystemChart(SYSTEM_CHART_SLUGS.chungnamTotal),
+    getSystemChart(SYSTEM_CHART_SLUGS.chungnamTargets),
   ]);
   const showActivity = isVisible(navigation, "/news/gallery");
   const latestBoards = (["notice", "press"] as BoardKey[]).filter((key) =>
@@ -68,18 +67,9 @@ export default async function HomePage() {
     carbonData: (
       <CarbonDataSection
         data={carbonData}
+        plan={carbonPlan(targets)}
         links={CARBON_LINKS.filter((link) => isVisible(navigation, link.href))}
       />
-    ),
-    charts: charts.length > 0 && (
-      <Container className="py-16">
-        <h2 className="text-2xl font-bold">우리가 이뤄낸 탄소중립의 기록</h2>
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
-          {charts.map((chart) => (
-            <ChartCard key={chart.id} dataset={chart} />
-          ))}
-        </div>
-      </Container>
     ),
     relatedSites: relatedSites.length > 0 && (
       <Container className="py-12">

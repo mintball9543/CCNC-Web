@@ -113,3 +113,24 @@ export interface UploadedFile {
   size: number;
   kind: "image" | "attachment";
 }
+
+/** 홈페이지에 들어간 글자 표 (관리자 > 도표 관리 > 표) */
+export interface ContentTableRow {
+  cells: string[];
+  /** "" 보통 · header 첫 칸(항목명)만 강조 · row 행 전체 강조 */
+  style: "" | "header" | "row";
+}
+
+export interface ContentTable {
+  /** 표 위 소제목 */
+  title: string;
+  /** 표 위 설명 문장 */
+  description: string;
+  caption: string;
+  unit: string;
+  head: string[];
+  rows: ContentTableRow[];
+  /** 표 아래 주석 (줄마다 한 문단) */
+  notes: string;
+  source: string;
+}

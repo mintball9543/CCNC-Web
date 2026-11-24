@@ -1,6 +1,4 @@
 import { z } from "zod";
-import { MAX_SERIES } from "@/lib/charts/limits";
-import { chartPlacementOf } from "@/lib/config/charts";
 import { checkbox, optionalLink, optionalText } from "./common";
 
 const text = (max: number) => z.string().trim().max(max, `${max}자 이내로 입력하세요.`).default("");
@@ -71,7 +69,7 @@ const chartRows = z
   )
   .max(100);
 
-/** 도표 공통 항목 (직접 만든 도표·홈페이지에 고정된 도표 모두) */
+/** 도표 항목 */
 const chartFields = {
   title: z.string().trim().min(1, "제목을 입력하세요.").max(100),
   description: text(300),
@@ -90,31 +88,6 @@ const rowsMatchSeriesError = {
   path: ["rows"],
 };
 
-/** 관리자 입력 도표 */
-export const chartSchema = z
-  .object({
-    ...chartFields,
-    /** 표시할 페이지(메뉴) — 빈 값이면 어느 페이지에도 넣지 않음 (내부 키는 서버에서 정함) */
-    placement: z
-      .string()
-      .trim()
-      .default("")
-      .refine((v) => v === "" || chartPlacementOf(v) !== null, "표시 위치를 다시 선택하세요."),
-    series: jsonField(
-      z.array(z.string().trim().min(1).max(30)).min(1).max(MAX_SERIES),
-      `계열 이름을 1~${MAX_SERIES}개 입력하세요.`,
-    ),
-    rows: jsonField(chartRows, "표 데이터 형식이 올바르지 않습니다."),
-    isPublished: checkbox,
-    showOnHome: checkbox,
-    sortOrder: order,
-  })
-  .refine(rowsMatchSeries, rowsMatchSeriesError)
-  .refine((v) => !v.isPublished || v.source.length > 0, {
-    message: "공개하려면 출처를 입력하세요. (공식 자료만 게시)",
-    path: ["source"],
-  });
-
 /**
  * 홈페이지에 고정된 도표·자료 (페이지 코드가 직접 사용).
  * 표시 위치·공개 여부는 바꿀 수 없고, 계열 고정 자료는 서버에서 계열을 다시 확인한다.
@@ -132,6 +105,37 @@ export const systemChartSchema = z
     ),
   })
   .refine(rowsMatchSeries, rowsMatchSeriesError);
+
+/** 홈페이지 글자 표 (관리자 > 도표 관리 > 표) */
+export const contentTableSchema = z
+  .object({
+    title: z.string().trim().min(1, "소제목을 입력하세요.").max(100),
+    description: text(300),
+    caption: z.string().trim().min(1, "표 제목을 입력하세요.").max(150),
+    unit: text(30),
+    head: jsonField(
+      z.array(z.string().trim().max(30)).min(2).max(12),
+      "머리글은 2~12칸이어야 합니다.",
+    ),
+    rows: jsonField(
+      z
+        .array(
+          z.object({
+            cells: z.array(z.string().trim().max(100)),
+            style: z.enum(["", "header", "row"]),
+          }),
+        )
+        .min(1, "1행 이상 입력하세요.")
+        .max(60),
+      "표 데이터 형식이 올바르지 않습니다.",
+    ),
+    notes: text(1000),
+    source: text(200),
+  })
+  .refine((v) => v.rows.every((r) => r.cells.length === v.head.length), {
+    message: "각 행의 칸 수가 머리글 칸 수와 같아야 합니다.",
+    path: ["rows"],
+  });
 
 /** 숫자로 보는 센터 */
 export const statSchema = z.object({

@@ -1,11 +1,12 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { cacheTags } from "@/lib/cache/tags";
-import type { SystemChartSlug } from "@/lib/config/charts";
+import type { ContentTableSlug, SystemChartSlug } from "@/lib/config/charts";
 import { normalizeHomeSectionOrder } from "@/lib/config/home-sections";
 import { applyMenuVisibility } from "@/lib/config/menu-visibility";
 import { mainNavigation } from "@/lib/config/navigation";
 import { siteConfig } from "@/lib/config/site";
+import { contentTableDefault } from "@/lib/content/content-tables";
 import { systemChartDefault } from "@/lib/content/system-charts";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 import type { ContactSettings } from "@/types";
@@ -54,14 +55,6 @@ export async function getCommitteeMembers() {
   return settingsRepository.listCommitteeMembers({ visibleOnly: true });
 }
 
-export async function getPublishedChart(slug: string) {
-  "use cache";
-  cacheLife("days");
-  cacheTag(cacheTags.charts);
-  const chart = await settingsRepository.findChartBySlug(slug);
-  return chart?.isPublished ? chart : null;
-}
-
 /**
  * 페이지 코드가 직접 쓰는 도표·자료 (관리자 > 도표 관리 '홈페이지에 고정된 도표·자료').
  * 아직 DB 에 없으면 처음 값(기존 화면과 같은 값)을 쓴다.
@@ -73,12 +66,12 @@ export async function getSystemChart(slug: SystemChartSlug) {
   return (await settingsRepository.findChartBySlug(slug)) ?? systemChartDefault(slug);
 }
 
-export async function getHomeCharts() {
+/** 홈페이지에 들어간 글자 표 (관리자 > 도표 관리 > 표). 저장한 적이 없으면 처음 값 */
+export async function getContentTable(slug: ContentTableSlug) {
   "use cache";
   cacheLife("days");
   cacheTag(cacheTags.charts);
-  const charts = await settingsRepository.listCharts({ publishedOnly: true });
-  return charts.filter((c) => c.showOnHome && c.rows.length > 0);
+  return (await settingsRepository.findContentTable(slug))?.value ?? contentTableDefault(slug);
 }
 
 export async function getVisibleStats() {

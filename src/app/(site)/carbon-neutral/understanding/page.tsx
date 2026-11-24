@@ -13,14 +13,13 @@ import {
   GHG_SOURCES_TABLE,
   GHG_TERMS,
   HUMAN_CAUSES,
-  KOREA_SECTOR_EMISSIONS_TABLE,
   NATIONAL_SCENARIO_TABLE,
   NATIONAL_STRATEGY,
   NATURAL_CAUSES,
-  WORLD_RANKING,
 } from "@/lib/content/carbon-info";
-import { SYSTEM_CHART_SLUGS } from "@/lib/config/charts";
-import { getSystemChart } from "@/lib/queries/site";
+import { CONTENT_TABLE_SLUGS, SYSTEM_CHART_SLUGS } from "@/lib/config/charts";
+import { contentTableMinWidth, toInfoTable } from "@/lib/content/content-tables";
+import { getContentTable, getSystemChart } from "@/lib/queries/site";
 import { navMetadata } from "@/lib/seo";
 
 export const metadata = navMetadata("/carbon-neutral/understanding");
@@ -107,9 +106,11 @@ function NetZeroDiagram() {
 /** 탄소중립 이해 — 기존 기초정보 4개 페이지(탄소중립이란·기후변화·온실가스·국가 2050)를 통합 */
 export default async function Page() {
   // 도표 수치는 관리자 > 도표 관리 '홈페이지에 고정된 도표·자료'에서 수정한다
-  const [koreaSector, nationalTarget] = await Promise.all([
+  const [koreaSector, nationalTarget, koreaTable, worldTable] = await Promise.all([
     getSystemChart(SYSTEM_CHART_SLUGS.koreaSectorEmissions),
     getSystemChart(SYSTEM_CHART_SLUGS.nationalTarget),
+    getContentTable(CONTENT_TABLE_SLUGS.koreaSectorEmissions),
+    getContentTable(CONTENT_TABLE_SLUGS.worldRanking),
   ]);
   return (
     <div className="space-y-16">
@@ -269,14 +270,25 @@ export default async function Page() {
           </div>
         </div>
         <div className="space-y-5">
-          <SubHeading>국내 분야별 온실가스 배출량 (IPCC 기준)</SubHeading>
-          <InfoTable table={KOREA_SECTOR_EMISSIONS_TABLE} />
+          <SubHeading>{koreaTable.title}</SubHeading>
+          {koreaTable.description && <p className="leading-relaxed">{koreaTable.description}</p>}
+          <InfoTable
+            table={toInfoTable(
+              koreaTable,
+              contentTableMinWidth(CONTENT_TABLE_SLUGS.koreaSectorEmissions),
+            )}
+          />
           <StaticChartCard chart={koreaSector} headingLevel={4} />
         </div>
         <div>
-          <SubHeading>우리나라 온실가스 배출량 순위 (2018년 기준)</SubHeading>
-          <p className="mb-4 leading-relaxed">{WORLD_RANKING.summary}</p>
-          <InfoTable table={WORLD_RANKING.table} className="max-w-xl" />
+          <SubHeading>{worldTable.title}</SubHeading>
+          {worldTable.description && (
+            <p className="mb-4 leading-relaxed">{worldTable.description}</p>
+          )}
+          <InfoTable
+            table={toInfoTable(worldTable, contentTableMinWidth(CONTENT_TABLE_SLUGS.worldRanking))}
+            className="max-w-xl"
+          />
         </div>
       </Section>
 

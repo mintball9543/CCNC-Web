@@ -1,4 +1,3 @@
-import { ChartCard } from "@/components/charts/chart-card";
 import { StaticChartCard } from "@/components/charts/static-chart-card";
 import { InfoTable } from "@/components/content/info-table";
 import { MenuLink } from "@/components/layout/menu-link";
@@ -14,16 +13,15 @@ import {
   chungnamTotalTable,
   localOutlookTable,
 } from "@/lib/content/emission-views";
-import { CHART_SLUGS, SYSTEM_CHART_SLUGS } from "@/lib/config/charts";
-import { getPublishedChart, getSystemChart } from "@/lib/queries/site";
+import { SYSTEM_CHART_SLUGS } from "@/lib/config/charts";
+import { getSystemChart } from "@/lib/queries/site";
 import { navMetadata } from "@/lib/seo";
 
 export const metadata = navMetadata("/carbon-neutral/emissions");
 
 export default async function Page() {
   // 표·도표 수치는 관리자 > 도표 관리 '홈페이지에 고정된 도표·자료'에서 수정한다
-  const [chart, total, directIndirect, outlook] = await Promise.all([
-    getPublishedChart(CHART_SLUGS.emissions),
+  const [total, directIndirect, outlook] = await Promise.all([
     getSystemChart(SYSTEM_CHART_SLUGS.chungnamTotal),
     getSystemChart(SYSTEM_CHART_SLUGS.chungnamDirectIndirect),
     getSystemChart(SYSTEM_CHART_SLUGS.chungnamLocalOutlook),
@@ -56,16 +54,6 @@ export default async function Page() {
           설계 방향을 검토하고 있습니다.
         </p>
       </section>
-      {/* 관리자 > 도표 관리에서 '배출현황'으로 지정해 공개한 최신 도표 (ISSUES.md CONTENT-004) */}
-      {chart && chart.rows.length > 0 && (
-        <section aria-labelledby="yearly-heading" className="space-y-4">
-          <h2 id="yearly-heading" className="text-xl font-bold">
-            연도별 배출량
-          </h2>
-          <ChartCard dataset={chart} headingLevel={3} />
-        </section>
-      )}
-
       <section aria-labelledby="status-heading" className="space-y-5">
         <h2 id="status-heading" className="text-xl font-bold">
           충청남도 온실가스 배출 현황

@@ -1,21 +1,15 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { recordAudit } from "@/lib/audit/record";
 import { requireAdmin } from "@/lib/auth/guard";
 import { cacheTags } from "@/lib/cache/tags";
-import {
-  chartPlacementOf,
-  systemChartOf,
-  unplacedChartSlug,
-  type SystemChart,
-} from "@/lib/config/charts";
+import { contentTableOf, systemChartOf, type SystemChart } from "@/lib/config/charts";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 import { formDataToObject, validationError } from "@/lib/validation/common";
 import {
-  chartSchema,
+  contentTableSchema,
   systemChartSchema,
   heroSlideSchema,
   committeeMemberSchema,
@@ -100,6 +94,7 @@ export async function deleteOrgMemberAction(id: number): Promise<void> {
 }
 
 // ── 도표 ────────────────────────────────────────────────
+/** 도표·자료 저장 — 홈페이지에 고정된 도표·자료만 있다 (새 도표 만들기·삭제 없음) */
 export async function saveChartAction(
   _prev: ActionState,
   formData: FormData,
@@ -107,45 +102,10 @@ export async function saveChartAction(
   await requireAdmin();
   const raw = formDataToObject(formData);
   const id = idOf(raw);
-  if (id) {
-    const existing = await settingsRepository.findChart(id);
-    const system = existing ? systemChartOf(existing.slug) : null;
-    if (existing && system) return saveSystemChart(existing, system, raw);
-  }
-  const parsed = chartSchema.safeParse(raw);
-  if (!parsed.success) return validationError(parsed.error, raw);
-
-  const { placement, ...data } = parsed.data;
-  const current = id ? await settingsRepository.findChart(id) : null;
-  if (id && !current) return { ok: false, message: "도표를 찾을 수 없습니다.", values: raw };
-
-  // 내부 키(slug)는 관리자에게 보이지 않는다 — 표시 위치(페이지)에 따라 서버가 정한다.
-  let slug: string;
-  let displaced: { id: number; slug: string; title: string } | null = null;
-  if (placement) {
-    // 한 페이지에는 도표 1개 — 이미 다른 도표가 있으면 그 도표는 '표시 안 함'으로 옮긴다
-    const holder = await settingsRepository.findChartBySlug(placement);
-    if (holder && holder.id !== id) {
-      displaced = { id: holder.id, slug: unplacedChartSlug(holder.id), title: holder.title };
-    }
-    slug = placement;
-  } else if (current && !chartPlacementOf(current.slug)) {
-    slug = current.slug;
-  } else {
-    slug = id ? unplacedChartSlug(id) : unplacedChartSlug(randomUUID().slice(0, 8));
-  }
-
-  const savedId = await settingsRepository.saveChart(id, { ...data, slug }, displaced);
-  const where = chartPlacementOf(slug)?.label ?? "페이지 표시 안 함";
-  await recordAudit({
-    action: id ? "chart.update" : "chart.create",
-    target: `chart_datasets:${savedId}`,
-    summary: `도표 ${verb(id)}: ${data.title} (${data.rows.length}행, ${
-      data.isPublished ? "공개" : "비공개"
-    }, 표시 위치: ${where}${displaced ? `, 기존 도표 '${displaced.title}' 는 표시 해제` : ""})`,
-  });
-  updateTag(cacheTags.charts);
-  redirect("/admin/charts");
+  const existing = id ? await settingsRepository.findChart(id) : null;
+  const system = existing ? systemChartOf(existing.slug) : null;
+  if (!existing || !system) return { ok: false, message: "도표를 찾을 수 없습니다.", values: raw };
+  return saveSystemChart(existing, system, raw);
 }
 
 /** 홈페이지에 고정된 도표·자료 저장 — 내부 키·공개 여부는 그대로, 계열 고정 자료는 계열을 바꿀 수 없다 */
@@ -186,18 +146,24 @@ async function saveSystemChart(
   redirect("/admin/charts");
 }
 
-export async function deleteChartAction(id: number): Promise<void> {
+/** 홈페이지 글자 표 저장 — 저장하면 해당 페이지에 바로 반영 */
+export async function saveContentTableAction(
+  slug: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   await requireAdmin();
-  const chart = await settingsRepository.findChart(id);
-  // 홈페이지에 고정된 도표·자료는 페이지 코드가 쓰므로 지우지 않는다
-  if (chart && !systemChartOf(chart.slug)) {
-    await settingsRepository.deleteChart(id);
-    await recordAudit({
-      action: "chart.delete",
-      target: `chart_datasets:${id}`,
-      summary: `도표 삭제: ${chart.title}`,
-    });
-  }
+  const config = contentTableOf(slug);
+  const raw = formDataToObject(formData);
+  if (!config) return { ok: false, message: "표를 찾을 수 없습니다.", values: raw };
+  const parsed = contentTableSchema.safeParse(raw);
+  if (!parsed.success) return validationError(parsed.error, raw);
+  await settingsRepository.saveContentTable(config.slug, parsed.data);
+  await recordAudit({
+    action: "table.update",
+    target: `site_settings:table:${config.slug}`,
+    summary: `표 수정: ${config.label} (${parsed.data.rows.length}행 × ${parsed.data.head.length}열)`,
+  });
   updateTag(cacheTags.charts);
   redirect("/admin/charts");
 }
