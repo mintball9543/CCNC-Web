@@ -31,19 +31,19 @@ describe("applyMenuVisibility", () => {
     expect(isHiddenPath("/carbon-neutral/emissions/x", nav, mainNavigation)).toBe(true);
   });
 
-  it("센터소개·알림마당은 저장된 설정과 관계없이 항상 표시", () => {
+  it("센터소개는 저장된 설정과 관계없이 항상 표시", () => {
     const nav = applyMenuVisibility(mainNavigation, {
       [sectionKey("about")]: false,
       "/about/greeting": false,
-      "/news/press": false,
-      "/news/inquiry": false,
     });
-    for (const key of ["about", "news"]) {
-      const all = mainNavigation.find((s) => s.key === key)!;
-      expect(nav.find((s) => s.key === key)?.items).toEqual(all.items);
-    }
-    expect(isHiddenPath("/news/press/12", nav, mainNavigation)).toBe(false);
+    const all = mainNavigation.find((s) => s.key === "about")!;
+    expect(nav.find((s) => s.key === "about")?.items).toEqual(all.items);
     expect(nav.find((s) => s.key === "about")?.href).toBe("/about/greeting");
+  });
+
+  it("알림마당 게시판은 숨길 수 있다 (게시글 상세 포함)", () => {
+    const nav = applyMenuVisibility(mainNavigation, { "/news/press": false });
+    expect(isHiddenPath("/news/press/12", nav, mainNavigation)).toBe(true);
   });
 });
 

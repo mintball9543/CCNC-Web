@@ -1,5 +1,7 @@
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
+import { isVisibleHref } from "@/lib/config/menu-visibility";
+import { mainNavigation } from "@/lib/config/navigation";
 import { siteConfig } from "@/lib/config/site";
 import { getActiveHeroSlides } from "@/lib/queries/site";
 import type { NavSection } from "@/types";
@@ -9,10 +11,18 @@ const TITLE = "도민과 함께 만드는 충남의 탄소중립";
 
 /** 메인 비주얼 — 관리자 > 메인 비주얼에 사진이 있으면 슬라이드, 없으면 CI 패턴 */
 export async function HeroSection({ navigation }: { navigation: NavSection[] }) {
-  const slides = await getActiveHeroSlides();
+  const showGallery = navigation.some((s) => s.items.some((i) => i.href === "/news/gallery"));
+  // 활동 갤러리를 숨기면 갤러리 글과 연동된 사진은 빼고,
+  // 그 밖의 사진은 '자세히 보기'가 숨긴 메뉴로 가면 링크만 뺀다
+  const slides = (await getActiveHeroSlides())
+    .filter((slide) => showGallery || slide.postId === null)
+    .map((slide) =>
+      slide.linkUrl && !isVisibleHref(slide.linkUrl, navigation, mainNavigation)
+        ? { ...slide, linkUrl: null }
+        : slide,
+    );
   // 기본 화면 버튼도 메뉴 표시 설정을 따른다 (숨긴 메뉴로 가는 버튼은 빼거나 보이는 첫 메뉴로)
   const businessHref = navigation.find((s) => s.key === "business")?.href;
-  const showGallery = navigation.some((s) => s.items.some((i) => i.href === "/news/gallery"));
   if (slides.length > 0) {
     return (
       <HeroCarousel
