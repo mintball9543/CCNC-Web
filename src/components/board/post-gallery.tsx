@@ -40,7 +40,11 @@ export function PostGallery({
             </div>
             <div className="p-4">
               <p className="line-clamp-2 font-semibold group-hover:text-primary">{post.title}</p>
-              <p className="mt-2 text-xs text-muted-foreground">{formatDate(post.publishedAt)}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {formatDate(post.publishedAt)}
+                <span className="mx-1">·</span>
+                조회 {post.viewCount.toLocaleString()}
+              </p>
             </div>
           </Link>
         </li>

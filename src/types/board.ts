@@ -28,6 +28,8 @@ export interface Post {
   author: string;
   isPinned: boolean;
   isPublished: boolean;
+  /** 조회수 (같은 접속자는 하루 한 번) */
+  viewCount: number;
   publishedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -35,7 +37,15 @@ export interface Post {
 
 export type PostSummary = Pick<
   Post,
-  "id" | "boardKey" | "category" | "title" | "author" | "isPinned" | "publishedAt" | "thumbnailUrl"
+  | "id"
+  | "boardKey"
+  | "category"
+  | "title"
+  | "author"
+  | "isPinned"
+  | "publishedAt"
+  | "thumbnailUrl"
+  | "viewCount"
 >;
 
 export interface Paginated<T> {

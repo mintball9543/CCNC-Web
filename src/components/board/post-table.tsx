@@ -51,6 +51,9 @@ export function PostTable({
             <th scope="col" className="w-28 py-3 font-medium">
               등록일
             </th>
+            <th scope="col" className="w-20 py-3 font-medium">
+              조회
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -104,6 +107,10 @@ export function PostTable({
                 <td className="px-1 pb-4 text-xs text-muted-foreground sm:py-4 sm:text-center sm:text-sm">
                   <span className="mx-1 sm:hidden">·</span>
                   {formatDate(post.publishedAt)}
+                </td>
+                <td className="px-1 pb-4 text-xs text-muted-foreground tabular-nums sm:py-4 sm:text-center sm:text-sm">
+                  <span className="mx-1 sm:hidden">· 조회</span>
+                  {post.viewCount.toLocaleString()}
                 </td>
               </tr>
             );

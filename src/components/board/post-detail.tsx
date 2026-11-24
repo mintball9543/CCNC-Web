@@ -5,6 +5,7 @@ import { formatDate } from "@/lib/utils/format";
 import type { Post, UploadedFile } from "@/types";
 import { AttachmentList } from "./attachment-list";
 import { PostContent } from "./post-content";
+import { PostViewCount } from "./post-view-count";
 
 export function PostDetail({
   post,
@@ -23,7 +24,7 @@ export function PostDetail({
           {category && <Badge>{category}</Badge>}
           <h2 className="text-xl font-bold">{post.title}</h2>
         </div>
-        <dl className="mt-3 flex gap-4 text-sm text-muted-foreground">
+        <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
           <div className="flex gap-1">
             <dt>작성자</dt>
             <dd className="text-foreground">{post.author}</dd>
@@ -31,6 +32,12 @@ export function PostDetail({
           <div className="flex gap-1">
             <dt>등록일</dt>
             <dd className="text-foreground">{formatDate(post.publishedAt)}</dd>
+          </div>
+          <div className="flex gap-1">
+            <dt>조회수</dt>
+            <dd className="text-foreground tabular-nums">
+              <PostViewCount postId={post.id} initial={post.viewCount} />
+            </dd>
           </div>
         </dl>
       </header>
