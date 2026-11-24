@@ -1,5 +1,16 @@
 import { ChartCard } from "@/components/charts/chart-card";
-import { ContentPlaceholder } from "@/components/content/content-placeholder";
+import { StaticChartCard } from "@/components/charts/static-chart-card";
+import { InfoTable } from "@/components/content/info-table";
+import {
+  CHUNGNAM_DIRECT_INDIRECT_CHART,
+  CHUNGNAM_EMISSION_DEFINITIONS,
+  CHUNGNAM_LOCAL_CHART,
+  CHUNGNAM_LOCAL_OUTLOOK,
+  CHUNGNAM_TOTAL_CHART,
+  CHUNGNAM_TOTAL_FOOTNOTES,
+  CHUNGNAM_TOTAL_NOTES,
+  CHUNGNAM_TOTAL_TABLE,
+} from "@/lib/content/carbon-info";
 import { CHUNGNAM_EMISSION_PROFILE, projectHref } from "@/lib/content/center-plan";
 import { CHART_SLUGS } from "@/lib/config/charts";
 import { getPublishedChart } from "@/lib/queries/site";
@@ -37,24 +48,69 @@ export default async function Page() {
           설계 방향을 검토하고 있습니다.
         </p>
       </section>
-      <section aria-labelledby="yearly-heading" className="space-y-6">
-        <h2 id="yearly-heading" className="text-xl font-bold">
-          연도별 배출량
-        </h2>
-        <p className="text-muted-foreground">
-          충청남도의 연도별 온실가스 배출량입니다. 수치는 공식 통계 공표 시 관리자 화면에서
-          갱신됩니다.
-        </p>
-        {chart && chart.rows.length > 0 ? (
+      {/* 관리자 > 도표 관리에서 '배출현황'으로 지정해 공개한 최신 도표 (ISSUES.md CONTENT-004) */}
+      {chart && chart.rows.length > 0 && (
+        <section aria-labelledby="yearly-heading" className="space-y-4">
+          <h2 id="yearly-heading" className="text-xl font-bold">
+            연도별 배출량
+          </h2>
           <ChartCard dataset={chart} headingLevel={3} />
-        ) : (
-          <ContentPlaceholder
-            issue="CONTENT-004"
-            sections={["연도별 총배출량 도표", "부문별 배출량"]}
-            note="관리자 > 도표 관리에서 '표시할 메뉴'를 배출현황으로 지정한 도표를 공개하면 표시됩니다."
-          />
-        )}
-      </section>{" "}
+        </section>
+      )}
+
+      <section aria-labelledby="status-heading" className="space-y-5">
+        <h2 id="status-heading" className="text-xl font-bold">
+          충청남도 온실가스 배출 현황
+        </h2>
+        <dl className="grid gap-3 sm:grid-cols-2">
+          {CHUNGNAM_EMISSION_DEFINITIONS.map((d) => (
+            <div key={d.term} className="rounded-2xl border border-border p-5">
+              <dt className="font-bold text-primary">{d.term}</dt>
+              <dd className="mt-1 text-muted-foreground">{d.description}</dd>
+            </div>
+          ))}
+        </dl>
+        <StaticChartCard chart={CHUNGNAM_DIRECT_INDIRECT_CHART} />
+      </section>
+
+      <section aria-labelledby="total-heading" className="space-y-5">
+        <h2 id="total-heading" className="text-xl font-bold">
+          충청남도 온실가스 총배출량 현황
+        </h2>
+        <ul className="space-y-2">
+          {CHUNGNAM_TOTAL_NOTES.map((n) => (
+            <li key={n} className="relative pl-4 leading-relaxed">
+              <span
+                className="absolute top-[0.7em] left-0 size-1.5 rounded-full bg-primary/60"
+                aria-hidden
+              />
+              {n}
+            </li>
+          ))}
+        </ul>
+        <div className="space-y-1 rounded-xl bg-muted/60 p-4 text-sm leading-relaxed text-muted-foreground">
+          {CHUNGNAM_TOTAL_FOOTNOTES.map((n) => (
+            <p key={n}>{n}</p>
+          ))}
+        </div>
+        <InfoTable table={CHUNGNAM_TOTAL_TABLE} />
+        <StaticChartCard chart={CHUNGNAM_TOTAL_CHART} />
+      </section>
+
+      <section aria-labelledby="local-heading" className="space-y-5">
+        <h2 id="local-heading" className="text-xl font-bold">
+          지자체 관리권한 부문별 배출량
+        </h2>
+        <StaticChartCard chart={CHUNGNAM_LOCAL_CHART} />
+      </section>
+
+      <section aria-labelledby="outlook-heading" className="space-y-5">
+        <h2 id="outlook-heading" className="text-xl font-bold">
+          지자체 관리권한 부문별 배출량 전망
+        </h2>
+        <p className="text-lg font-semibold">{CHUNGNAM_LOCAL_OUTLOOK.summary}</p>
+        <InfoTable table={CHUNGNAM_LOCAL_OUTLOOK.table} />
+      </section>
     </div>
   );
 }
