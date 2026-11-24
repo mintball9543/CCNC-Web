@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminSuspense } from "@/components/admin/admin-suspense";
 import { ContentTableEditor } from "@/components/admin/content-table-editor";
-import { saveContentTableAction } from "@/lib/actions/content.actions";
 import { requireAdmin } from "@/lib/auth/guard";
 import { contentTableOf } from "@/lib/config/charts";
 import { contentTableDefault } from "@/lib/content/content-tables";
@@ -29,7 +28,6 @@ async function Content({ params }: PageProps<"/admin/charts/tables/[slug]">) {
       <ContentTableEditor
         table={saved?.value ?? contentTableDefault(config.slug)}
         config={config}
-        action={saveContentTableAction.bind(null, config.slug)}
         updatedAt={saved?.updatedAt.getTime()}
       />
     </>

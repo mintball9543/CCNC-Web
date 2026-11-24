@@ -84,9 +84,8 @@ describe("홈페이지에 고정된 도표·자료", () => {
 
 describe("글자 표 (관리자 > 도표 관리 > 표)", () => {
   it("처음 값을 화면 표로 바꾸면 기존 표와 똑같다", async () => {
-    const { toInfoTable, contentTableDefault, contentTableMinWidth } = await import(
-      "./content-tables"
-    );
+    const { toInfoTable, contentTableDefault, contentTableMinWidth } =
+      await import("./content-tables");
     const { KOREA_SECTOR_EMISSIONS_TABLE, WORLD_RANKING } = await import("./carbon-info");
     const { CONTENT_TABLE_SLUGS: S } = await import("@/lib/config/charts");
     expect(

@@ -117,7 +117,10 @@ function ChartEditorInner({
   };
 
   return (
-    <ActionForm action={action} className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <ActionForm
+      action={action}
+      className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+    >
       <div className="space-y-5">
         <input type="hidden" name="id" value={chart.id} />
         <input type="hidden" name="series" value={JSON.stringify(series)} />
