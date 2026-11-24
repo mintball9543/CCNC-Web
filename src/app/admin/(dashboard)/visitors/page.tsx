@@ -8,10 +8,14 @@ import * as visitRepository from "@/lib/repositories/visit.repository";
 import { cn } from "@/lib/utils/cn";
 import {
   addDays,
+  addMonths,
   fillBuckets,
+  heatLevel,
   kstDay,
   lastDays,
   lastMonths,
+  monthCalendar,
+  parseMonth,
   yearRange,
   type VisitBucket,
 } from "@/lib/visits/stats";
@@ -40,6 +44,15 @@ export default function VisitorsPage(props: PageProps<"/admin/visitors">) {
 }
 
 const number = (n: number) => n.toLocaleString("ko-KR");
+
+/** 달력의 월 이동 링크는 이동 후에도 달력이 보이도록 #달력 으로 */
+function visitorsHref(view: View, month?: string, toCalendar = false): string {
+  const params = new URLSearchParams();
+  if (view !== "day") params.set("view", view);
+  if (month) params.set("month", month);
+  const query = params.toString();
+  return `/admin/visitors${query ? `?${query}` : ""}${toCalendar ? "#visit-calendar-heading" : ""}`;
+}
 
 /** 2026-11-12 → 11.12(목) · 2026-11 → 2026년 11월 · 2026 → 2026년 */
 function formatKey(key: string, short = false): string {
@@ -78,10 +91,9 @@ async function Content({ searchParams }: PageProps<"/admin/visitors">) {
     const keys = yearRange(firstYear, today);
     buckets = fillBuckets(await visitRepository.groupVisits(4, `${keys[0]}-01-01`), keys);
   }
-  const periodTotal = buckets.reduce(
-    (acc, b) => ({ visitors: acc.visitors + b.visitors, pageViews: acc.pageViews + b.pageViews }),
-    { visitors: 0, pageViews: 0 },
-  );
+  const month = parseMonth(sp.month, today);
+  const monthEnd = addDays(`${addMonths(month, 1)}-01`, -1);
+  const calendarDays = await visitRepository.groupVisits(10, `${month}-01`, monthEnd);
 
   const summary = [
     { label: "오늘", value: todayCount },
@@ -91,6 +103,8 @@ async function Content({ searchParams }: PageProps<"/admin/visitors">) {
     { label: "전체", value: total },
   ];
   const { label, range, column } = VIEWS[view];
+  const viewHref = (key: View) =>
+    visitorsHref(key, month === today.slice(0, 7) ? undefined : month);
 
   return (
     <div className="space-y-8">
@@ -121,7 +135,7 @@ async function Content({ searchParams }: PageProps<"/admin/visitors">) {
             {(Object.keys(VIEWS) as View[]).map((key) => (
               <Link
                 key={key}
-                href={key === "day" ? "/admin/visitors" : `/admin/visitors?view=${key}`}
+                href={viewHref(key)}
                 aria-current={key === view ? "page" : undefined}
                 className={cn(
                   "rounded-md px-4 py-1.5 text-sm transition",
@@ -148,54 +162,9 @@ async function Content({ searchParams }: PageProps<"/admin/visitors">) {
             }}
           />
         </Card>
-
-        <div className="overflow-x-auto rounded-xl border border-border bg-card">
-          <table className="w-full min-w-[420px] text-sm">
-            <caption className="sr-only">
-              {label} 방문자 수와 페이지 열람 수 ({range}, 최근 순)
-            </caption>
-            <thead className="border-b border-border bg-muted/60">
-              <tr>
-                <th scope="col" className="px-4 py-3 text-left">
-                  {column}
-                </th>
-                <th scope="col" className="px-4 py-3 text-right">
-                  방문자
-                </th>
-                <th scope="col" className="px-4 py-3 text-right">
-                  페이지 열람
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...buckets].reverse().map((b) => (
-                <tr key={b.key} className="border-b border-border last:border-0">
-                  <th scope="row" className="px-4 py-2.5 text-left font-normal">
-                    {formatKey(b.key)}
-                  </th>
-                  <td className="px-4 py-2.5 text-right tabular-nums">{number(b.visitors)}</td>
-                  <td className="px-4 py-2.5 text-right text-muted-foreground tabular-nums">
-                    {number(b.pageViews)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot className="border-t-2 border-border font-semibold">
-              <tr>
-                <th scope="row" className="px-4 py-3 text-left">
-                  합계
-                </th>
-                <td className="px-4 py-3 text-right tabular-nums">
-                  {number(periodTotal.visitors)}
-                </td>
-                <td className="px-4 py-3 text-right tabular-nums">
-                  {number(periodTotal.pageViews)}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
       </section>
+
+      <VisitCalendar month={month} today={today} days={calendarDays} view={view} />
 
       <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
         <li>방문자: 같은 날 같은 기기·브라우저로 여러 페이지를 보더라도 1명으로 셉니다.</li>
@@ -207,5 +176,196 @@ async function Content({ searchParams }: PageProps<"/admin/visitors">) {
         <li>방문자를 구분하는 정보는 하루가 지나면 지우며, 접속 IP는 저장하지 않습니다.</li>
       </ul>
     </div>
+  );
+}
+
+const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+const HEAT = [
+  "bg-card",
+  "bg-primary/10",
+  "bg-primary/25",
+  "bg-primary/45",
+  "bg-primary text-primary-foreground",
+] as const;
+
+/** 월별 달력 — 날짜 칸에 방문자 수, 많을수록 진한 색 */
+function VisitCalendar({
+  month,
+  today,
+  days,
+  view,
+}: {
+  month: string;
+  today: string;
+  days: VisitBucket[];
+  view: View;
+}) {
+  const byDay = new Map(days.map((d) => [d.key, d]));
+  const max = Math.max(0, ...days.map((d) => d.visitors));
+  const total = days.reduce(
+    (acc, d) => ({ visitors: acc.visitors + d.visitors, pageViews: acc.pageViews + d.pageViews }),
+    { visitors: 0, pageViews: 0 },
+  );
+  const currentMonth = today.slice(0, 7);
+  const isCurrent = month === currentMonth;
+  // 평균은 지난 날짜(이번 달은 오늘까지)로 나눈다
+  const elapsed = isCurrent
+    ? Number(today.slice(8))
+    : Number(addDays(`${addMonths(month, 1)}-01`, -1).slice(8));
+  const title = `${month.slice(0, 4)}년 ${Number(month.slice(5))}월`;
+  const prev = addMonths(month, -1);
+  const next = addMonths(month, 1);
+  const navClass =
+    "inline-flex h-9 items-center rounded-md border border-border px-3 text-sm transition hover:bg-muted";
+
+  return (
+    <section aria-labelledby="visit-calendar-heading" className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="visit-calendar-heading" className="scroll-mt-24 text-lg font-bold">
+          {title} 방문자 달력
+        </h2>
+        <nav aria-label="달력 월 이동" className="flex items-center gap-2">
+          <Link href={visitorsHref(view, prev, true)} className={navClass}>
+            <span aria-hidden>‹</span>
+            <span className="ml-1">이전 달</span>
+          </Link>
+          {!isCurrent && (
+            <Link href={visitorsHref(view, undefined, true)} className={navClass}>
+              이번 달
+            </Link>
+          )}
+          {isCurrent ? (
+            <span
+              className={cn(navClass, "cursor-not-allowed opacity-40 hover:bg-transparent")}
+              aria-disabled
+            >
+              <span className="mr-1">다음 달</span>
+              <span aria-hidden>›</span>
+            </span>
+          ) : (
+            <Link
+              href={visitorsHref(view, next === currentMonth ? undefined : next, true)}
+              className={navClass}
+            >
+              <span className="mr-1">다음 달</span>
+              <span aria-hidden>›</span>
+            </Link>
+          )}
+        </nav>
+      </div>
+
+      <Card className="p-3 sm:p-6">
+        <dl className="mb-4 flex flex-wrap gap-x-6 gap-y-1 text-sm">
+          <div className="flex gap-1.5">
+            <dt className="text-muted-foreground">합계</dt>
+            <dd className="font-semibold tabular-nums">{number(total.visitors)}명</dd>
+          </div>
+          <div className="flex gap-1.5">
+            <dt className="text-muted-foreground">하루 평균</dt>
+            <dd className="font-semibold tabular-nums">
+              {number(Math.round(total.visitors / elapsed))}명
+            </dd>
+          </div>
+          <div className="flex gap-1.5">
+            <dt className="text-muted-foreground">가장 많은 날</dt>
+            <dd className="font-semibold tabular-nums">{max ? `${number(max)}명` : "-"}</dd>
+          </div>
+          <div className="flex gap-1.5">
+            <dt className="text-muted-foreground">페이지 열람</dt>
+            <dd className="font-semibold tabular-nums">{number(total.pageViews)}회</dd>
+          </div>
+        </dl>
+
+        <table className="w-full table-fixed border-separate border-spacing-1 text-sm sm:border-spacing-1.5">
+          <caption className="sr-only">
+            {title} 날짜별 방문자 수 (색이 진할수록 방문자가 많음)
+          </caption>
+          <thead>
+            <tr>
+              {WEEKDAYS.map((w, i) => (
+                <th
+                  key={w}
+                  scope="col"
+                  className={cn(
+                    "pb-1 text-xs font-medium",
+                    i === 0 ? "text-red-600" : i === 6 ? "text-blue-600" : "text-muted-foreground",
+                  )}
+                >
+                  {w}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {monthCalendar(month).map((week) => (
+              <tr key={week.find(Boolean)}>
+                {week.map((day, i) => {
+                  if (!day) return <td key={`empty-${i}`} aria-hidden />;
+                  const future = day > today;
+                  const count = byDay.get(day) ?? { visitors: 0, pageViews: 0 };
+                  const level = future ? 0 : heatLevel(count.visitors, max);
+                  const date = `${Number(day.slice(5, 7))}월 ${Number(day.slice(8))}일(${WEEKDAYS[i]})`;
+                  return (
+                    <td
+                      key={day}
+                      title={
+                        future
+                          ? undefined
+                          : `${date} 방문자 ${number(count.visitors)}명 · 페이지 열람 ${number(count.pageViews)}회`
+                      }
+                      className={cn(
+                        "h-14 rounded-md border border-border/70 p-1 align-top sm:h-20 sm:p-2",
+                        HEAT[level],
+                        future && "bg-muted/40 text-muted-foreground/60",
+                        day === today && "ring-2 ring-foreground ring-offset-1",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "block text-[11px] leading-none sm:text-xs",
+                          level < 4 && !future && "text-muted-foreground",
+                        )}
+                      >
+                        {Number(day.slice(8))}
+                        {day === today && <span className="sr-only"> (오늘)</span>}
+                      </span>
+                      {future ? null : (
+                        <>
+                          <span className="mt-1.5 block text-right text-sm font-bold tabular-nums sm:mt-2 sm:text-lg">
+                            <span className="sr-only">방문자 </span>
+                            {number(count.visitors)}
+                            <span className="sr-only">명</span>
+                          </span>
+                          <span
+                            className={cn(
+                              "hidden text-right text-[11px] tabular-nums sm:block",
+                              level < 4 && "text-muted-foreground",
+                            )}
+                          >
+                            <span className="sr-only">페이지 열람 </span>
+                            {number(count.pageViews)}회
+                          </span>
+                        </>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div
+          className="mt-3 flex items-center justify-end gap-1.5 text-xs text-muted-foreground"
+          aria-hidden
+        >
+          <span>적음</span>
+          {HEAT.map((cls) => (
+            <span key={cls} className={cn("size-3.5 rounded-sm border border-border/70", cls)} />
+          ))}
+          <span>많음</span>
+        </div>
+      </Card>
+    </section>
   );
 }

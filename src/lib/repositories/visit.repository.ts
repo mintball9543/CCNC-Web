@@ -44,13 +44,17 @@ export async function sumVisits(from?: string, to?: string): Promise<VisitCount>
   return row ?? { visitors: 0, pageViews: 0 };
 }
 
-/** 일(10)·월(7)·연(4) 단위 묶음 — 키 길이만큼 날짜 앞부분으로 묶는다 */
-export async function groupVisits(keyLength: 4 | 7 | 10, from: string): Promise<VisitBucket[]> {
+/** 일(10)·월(7)·연(4) 단위 묶음 — 키 길이만큼 날짜 앞부분으로 묶는다 (to 는 생략 가능, 양 끝 포함) */
+export async function groupVisits(
+  keyLength: 4 | 7 | 10,
+  from: string,
+  to?: string,
+): Promise<VisitBucket[]> {
   const key = sql<string>`substr(${visitDaily.day}, 1, ${keyLength})`;
   return db
     .select({ key, ...totals })
     .from(visitDaily)
-    .where(gte(visitDaily.day, from))
+    .where(to ? and(gte(visitDaily.day, from), lte(visitDaily.day, to)) : gte(visitDaily.day, from))
     .groupBy(key)
     .orderBy(key);
 }

@@ -3,10 +3,13 @@ import {
   addDays,
   addMonths,
   fillBuckets,
+  heatLevel,
   isBotUserAgent,
   kstDay,
   lastDays,
   lastMonths,
+  monthCalendar,
+  parseMonth,
   yearRange,
 } from "./stats";
 
@@ -54,4 +57,40 @@ it("fillBuckets 는 빈 칸을 0 으로 채운다", () => {
     { key: "a", visitors: 0, pageViews: 0 },
     { key: "b", visitors: 2, pageViews: 5 },
   ]);
+});
+
+describe("parseMonth", () => {
+  it("올바른 지난 달은 그대로, 잘못된 값·미래 달은 이번 달", () => {
+    expect(parseMonth("2026-10", "2026-11-24")).toBe("2026-10");
+    expect(parseMonth("2026-11", "2026-11-24")).toBe("2026-11");
+    expect(parseMonth("2026-12", "2026-11-24")).toBe("2026-11");
+    expect(parseMonth("2026-13", "2026-11-24")).toBe("2026-11");
+    expect(parseMonth(["2026-10"], "2026-11-24")).toBe("2026-11");
+    expect(parseMonth(undefined, "2026-11-24")).toBe("2026-11");
+  });
+});
+
+describe("monthCalendar", () => {
+  it("일요일부터 주 단위로 나누고 빈 칸은 null", () => {
+    const weeks = monthCalendar("2026-11"); // 2026-11-01 은 일요일
+    expect(weeks[0]?.[0]).toBe("2026-11-01");
+    expect(weeks.flat().filter(Boolean)).toHaveLength(30);
+    expect(weeks.every((w) => w.length === 7)).toBe(true);
+    expect(weeks.at(-1)).toEqual(["2026-11-29", "2026-11-30", null, null, null, null, null]);
+  });
+  it("윤년 2월과 앞쪽 빈 칸", () => {
+    const weeks = monthCalendar("2028-02"); // 2028-02-01 은 화요일
+    expect(weeks[0]?.slice(0, 3)).toEqual([null, null, "2028-02-01"]);
+    expect(weeks.flat().filter(Boolean).at(-1)).toBe("2028-02-29");
+  });
+});
+
+describe("heatLevel", () => {
+  it("방문 없음은 0, 나머지는 최댓값 대비 1~4", () => {
+    expect(heatLevel(0, 10)).toBe(0);
+    expect(heatLevel(1, 100)).toBe(1);
+    expect(heatLevel(50, 100)).toBe(2);
+    expect(heatLevel(51, 100)).toBe(3);
+    expect(heatLevel(100, 100)).toBe(4);
+  });
 });

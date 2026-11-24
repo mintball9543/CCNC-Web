@@ -65,3 +65,29 @@ export function yearRange(firstYear: string | null, today: string): string[] {
   const start = firstYear ? Math.min(Number(firstYear), end) : end;
   return Array.from({ length: end - start + 1 }, (_, i) => String(start + i));
 }
+
+/** ?month= 값 검사 — YYYY-MM 이고 오늘이 속한 달 이후가 아니면 그대로, 아니면 이번 달 */
+export function parseMonth(value: unknown, today: string): string {
+  const current = today.slice(0, 7);
+  if (typeof value !== "string" || !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) return current;
+  return value > current ? current : value;
+}
+
+/** 달력 칸 — 일요일부터 한 주 7칸, 그 달이 아닌 칸은 null */
+export function monthCalendar(month: string): (string | null)[][] {
+  const first = `${month}-01`;
+  const lead = toUtc(first).getUTCDay();
+  const days = Number(addDays(`${addMonths(month, 1)}-01`, -1).slice(8));
+  const cells: (string | null)[] = [
+    ...Array<null>(lead).fill(null),
+    ...Array.from({ length: days }, (_, i) => addDays(first, i)),
+  ];
+  while (cells.length % 7) cells.push(null);
+  return Array.from({ length: cells.length / 7 }, (_, w) => cells.slice(w * 7, w * 7 + 7));
+}
+
+/** 달력 칸 색 진하기 (0: 방문 없음, 1~4: 그 달 최댓값 대비) */
+export function heatLevel(value: number, max: number): 0 | 1 | 2 | 3 | 4 {
+  if (value <= 0 || max <= 0) return 0;
+  return Math.min(4, Math.max(1, Math.ceil((value / max) * 4))) as 1 | 2 | 3 | 4;
+}
