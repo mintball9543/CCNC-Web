@@ -5,6 +5,11 @@ import { recordAudit } from "@/lib/audit/record";
 import { requireAdmin } from "@/lib/auth/guard";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { cacheTags } from "@/lib/cache/tags";
+import {
+  homeSectionLabel,
+  isHomeSectionKey,
+  normalizeHomeSectionOrder,
+} from "@/lib/config/home-sections";
 import { sectionKey } from "@/lib/config/menu-visibility";
 import { mainNavigation } from "@/lib/config/navigation";
 import { findAdminById, updateAdminPassword } from "@/lib/repositories/admin-user.repository";
@@ -41,6 +46,27 @@ export async function saveMenuSettingsAction(
   });
   updateTag(cacheTags.menu);
   return { ok: true, message: "메뉴 표시 설정을 저장했습니다." };
+}
+
+/** 메인 화면 영역 순서 저장 — 폼의 order 값 순서대로 */
+export async function saveHomeSectionOrderAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+  const submitted = formData.getAll("order").map(String);
+  if (submitted.length === 0 || !submitted.every(isHomeSectionKey)) {
+    return { ok: false, message: "영역 순서를 확인할 수 없습니다. 새로고침 후 다시 시도하세요." };
+  }
+  const order = normalizeHomeSectionOrder(submitted);
+  await settingsRepository.saveHomeSectionOrder(order);
+  await recordAudit({
+    action: "home-sections.update",
+    target: "site_settings:homeSections",
+    summary: `메인 화면 영역 순서 변경 — ${order.map(homeSectionLabel).join(" → ")}`,
+  });
+  updateTag(cacheTags.homeSections);
+  return { ok: true, message: "메인 화면 영역 순서를 저장했습니다." };
 }
 
 /** 기관 연락처 저장 (푸터·오시는 길) */

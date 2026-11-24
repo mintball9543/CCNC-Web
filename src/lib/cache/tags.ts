@@ -12,6 +12,7 @@ export const cacheTags = {
   file: (id: number) => `file:${id}`,
   menu: "menu",
   settings: "settings",
+  homeSections: "home-sections",
   org: "org",
   charts: "charts",
   stats: "stats",

@@ -1,6 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { cacheTags } from "@/lib/cache/tags";
+import { normalizeHomeSectionOrder } from "@/lib/config/home-sections";
 import { applyMenuVisibility } from "@/lib/config/menu-visibility";
 import { mainNavigation } from "@/lib/config/navigation";
 import { siteConfig } from "@/lib/config/site";
@@ -27,6 +28,14 @@ export async function getContactSettings(): Promise<ContactSettings> {
   cacheTag(cacheTags.settings);
   const saved = await settingsRepository.findContactSettings();
   return { ...siteConfig.contactDefaults, ...saved };
+}
+
+/** 메인 화면 영역 순서 (메인 비주얼 아래) */
+export async function getHomeSectionOrder() {
+  "use cache";
+  cacheLife("days");
+  cacheTag(cacheTags.homeSections);
+  return normalizeHomeSectionOrder(await settingsRepository.findHomeSectionOrder());
 }
 
 export async function getOrgMembers() {
