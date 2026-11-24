@@ -9,6 +9,7 @@ import { Fresh } from "@/components/ui/fresh";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { createInquiryAction } from "@/lib/actions/inquiry.actions";
 import { initialActionState } from "@/types";
+import { inquiryConsent } from "@/lib/config/privacy";
 
 function InquiryFormInner() {
   const [state, action] = useActionState(createInquiryAction, initialActionState);
@@ -99,9 +100,13 @@ function InquiryFormInner() {
       <fieldset className="space-y-2 rounded-xl border border-border p-4 text-sm">
         <legend className="px-1 font-medium">개인정보 수집·이용 동의 (필수)</legend>
         <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
-          <li>수집 항목: 이름, 이메일, 연락처(선택)</li>
-          <li>수집 목적: 문의 접수 및 답변 안내</li>
-          <li>보유 기간: 개인정보처리방침에 따름 (확정 후 게시)</li>
+          <li>수집 항목: {inquiryConsent.items}</li>
+          <li>수집 목적: {inquiryConsent.purpose}</li>
+          <li>보유 기간: {inquiryConsent.retention ?? "개인정보처리방침에 따름 (확정 후 게시)"}</li>
+          <li>
+            동의를 거부할 수 있으며, 거부하면 문의를 등록할 수 없습니다. 전화·전자우편으로도 문의할
+            수 있습니다.
+          </li>
         </ul>
         <p className="text-muted-foreground">
           자세한 내용은{" "}
