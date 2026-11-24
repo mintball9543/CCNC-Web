@@ -3,24 +3,31 @@ import { StaticChartCard } from "@/components/charts/static-chart-card";
 import { InfoTable } from "@/components/content/info-table";
 import { MenuLink } from "@/components/layout/menu-link";
 import {
-  CHUNGNAM_DIRECT_INDIRECT_CHART,
   CHUNGNAM_EMISSION_DEFINITIONS,
-  CHUNGNAM_LOCAL_CHART,
-  CHUNGNAM_LOCAL_OUTLOOK,
-  CHUNGNAM_TOTAL_CHART,
   CHUNGNAM_TOTAL_FOOTNOTES,
   CHUNGNAM_TOTAL_NOTES,
-  CHUNGNAM_TOTAL_TABLE,
 } from "@/lib/content/carbon-info";
 import { CHUNGNAM_EMISSION_PROFILE, projectHref } from "@/lib/content/center-plan";
-import { CHART_SLUGS } from "@/lib/config/charts";
-import { getPublishedChart } from "@/lib/queries/site";
+import {
+  chungnamLocalChart,
+  chungnamTotalChart,
+  chungnamTotalTable,
+  localOutlookTable,
+} from "@/lib/content/emission-views";
+import { CHART_SLUGS, SYSTEM_CHART_SLUGS } from "@/lib/config/charts";
+import { getPublishedChart, getSystemChart } from "@/lib/queries/site";
 import { navMetadata } from "@/lib/seo";
 
 export const metadata = navMetadata("/carbon-neutral/emissions");
 
 export default async function Page() {
-  const chart = await getPublishedChart(CHART_SLUGS.emissions);
+  // 표·도표 수치는 관리자 > 도표 관리 '홈페이지에 고정된 도표·자료'에서 수정한다
+  const [chart, total, directIndirect, outlook] = await Promise.all([
+    getPublishedChart(CHART_SLUGS.emissions),
+    getSystemChart(SYSTEM_CHART_SLUGS.chungnamTotal),
+    getSystemChart(SYSTEM_CHART_SLUGS.chungnamDirectIndirect),
+    getSystemChart(SYSTEM_CHART_SLUGS.chungnamLocalOutlook),
+  ]);
   return (
     <div className="space-y-10">
       <section aria-labelledby="profile-heading">
@@ -71,7 +78,7 @@ export default async function Page() {
             </div>
           ))}
         </dl>
-        <StaticChartCard chart={CHUNGNAM_DIRECT_INDIRECT_CHART} />
+        <StaticChartCard chart={directIndirect} />
       </section>
 
       <section aria-labelledby="total-heading" className="space-y-5">
@@ -94,23 +101,23 @@ export default async function Page() {
             <p key={n}>{n}</p>
           ))}
         </div>
-        <InfoTable table={CHUNGNAM_TOTAL_TABLE} />
-        <StaticChartCard chart={CHUNGNAM_TOTAL_CHART} />
+        <InfoTable table={chungnamTotalTable(total)} />
+        <StaticChartCard chart={chungnamTotalChart(total)} />
       </section>
 
       <section aria-labelledby="local-heading" className="space-y-5">
         <h2 id="local-heading" className="text-xl font-bold">
           지자체 관리권한 부문별 배출량
         </h2>
-        <StaticChartCard chart={CHUNGNAM_LOCAL_CHART} />
+        <StaticChartCard chart={chungnamLocalChart(total)} />
       </section>
 
       <section aria-labelledby="outlook-heading" className="space-y-5">
         <h2 id="outlook-heading" className="text-xl font-bold">
           지자체 관리권한 부문별 배출량 전망
         </h2>
-        <p className="text-lg font-semibold">{CHUNGNAM_LOCAL_OUTLOOK.summary}</p>
-        <InfoTable table={CHUNGNAM_LOCAL_OUTLOOK.table} />
+        {outlook.description && <p className="text-lg font-semibold">{outlook.description}</p>}
+        <InfoTable table={localOutlookTable(outlook)} />
       </section>
     </div>
   );

@@ -13,14 +13,14 @@ import {
   GHG_SOURCES_TABLE,
   GHG_TERMS,
   HUMAN_CAUSES,
-  KOREA_SECTOR_EMISSIONS_CHART,
   KOREA_SECTOR_EMISSIONS_TABLE,
   NATIONAL_SCENARIO_TABLE,
   NATIONAL_STRATEGY,
-  NATIONAL_TARGET_CHART,
   NATURAL_CAUSES,
   WORLD_RANKING,
 } from "@/lib/content/carbon-info";
+import { SYSTEM_CHART_SLUGS } from "@/lib/config/charts";
+import { getSystemChart } from "@/lib/queries/site";
 import { navMetadata } from "@/lib/seo";
 
 export const metadata = navMetadata("/carbon-neutral/understanding");
@@ -105,7 +105,12 @@ function NetZeroDiagram() {
 }
 
 /** 탄소중립 이해 — 기존 기초정보 4개 페이지(탄소중립이란·기후변화·온실가스·국가 2050)를 통합 */
-export default function Page() {
+export default async function Page() {
+  // 도표 수치는 관리자 > 도표 관리 '홈페이지에 고정된 도표·자료'에서 수정한다
+  const [koreaSector, nationalTarget] = await Promise.all([
+    getSystemChart(SYSTEM_CHART_SLUGS.koreaSectorEmissions),
+    getSystemChart(SYSTEM_CHART_SLUGS.nationalTarget),
+  ]);
   return (
     <div className="space-y-16">
       <PageToc items={SECTIONS} />
@@ -266,7 +271,7 @@ export default function Page() {
         <div className="space-y-5">
           <SubHeading>국내 분야별 온실가스 배출량 (IPCC 기준)</SubHeading>
           <InfoTable table={KOREA_SECTOR_EMISSIONS_TABLE} />
-          <StaticChartCard chart={KOREA_SECTOR_EMISSIONS_CHART} headingLevel={4} />
+          <StaticChartCard chart={koreaSector} headingLevel={4} />
         </div>
         <div>
           <SubHeading>우리나라 온실가스 배출량 순위 (2018년 기준)</SubHeading>
@@ -342,7 +347,7 @@ export default function Page() {
         </div>
         <div>
           <SubHeading>정부 탄소중립 목표</SubHeading>
-          <StaticChartCard chart={NATIONAL_TARGET_CHART} headingLevel={4} />
+          <StaticChartCard chart={nationalTarget} headingLevel={4} />
         </div>
         <div>
           <SubHeading>정부 2050 탄소중립 시나리오</SubHeading>

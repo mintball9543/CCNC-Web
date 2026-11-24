@@ -191,6 +191,8 @@ export const chartDatasets = sqliteTable("chart_datasets", {
   slug: text("slug").notNull().unique(),
   title: text("title").notNull(),
   description: text("description").notNull().default(""),
+  /** 도표 아래 주석 (줄마다 한 문단) */
+  notes: text("notes").notNull().default(""),
   unit: text("unit").notNull().default(""),
   chartType: text("chart_type", { enum: ["bar", "line", "stacked"] })
     .notNull()

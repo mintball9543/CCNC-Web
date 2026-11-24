@@ -43,6 +43,13 @@
       "when": 1795477825194,
       "tag": "0005_post_views",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1795483817604,
+      "tag": "0006_chart_notes",
+      "breakpoints": true
     }
   ]
 }

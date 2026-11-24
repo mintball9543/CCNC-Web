@@ -12,10 +12,12 @@ import { Container } from "@/components/ui/container";
 import type { HomeSectionKey } from "@/lib/config/home-sections";
 import { getActivePopups } from "@/lib/queries/popups";
 import { getLatestActivityPhotos } from "@/lib/queries/posts";
+import { SYSTEM_CHART_SLUGS } from "@/lib/config/charts";
 import {
   getHomeCharts,
   getHomeSectionOrder,
   getRelatedSites,
+  getSystemChart,
   getVisibleNavigation,
   getVisibleStats,
 } from "@/lib/queries/site";
@@ -36,12 +38,13 @@ const CARBON_LINKS = [
  * 메인 비주얼 아래 영역의 순서는 관리자 > 메인 화면 순서에서 정한다.
  */
 export default async function HomePage() {
-  const [navigation, stats, charts, relatedSites, order] = await Promise.all([
+  const [navigation, stats, charts, relatedSites, order, carbonData] = await Promise.all([
     getVisibleNavigation(),
     getVisibleStats(),
     getHomeCharts(),
     getRelatedSites(),
     getHomeSectionOrder(),
+    getSystemChart(SYSTEM_CHART_SLUGS.chungnamTotal),
   ]);
   const showActivity = isVisible(navigation, "/news/gallery");
   const latestBoards = (["notice", "press"] as BoardKey[]).filter((key) =>
@@ -63,7 +66,10 @@ export default async function HomePage() {
     quickLinks: <QuickLinks navigation={navigation} />,
     stats: <StatHighlights stats={stats} />,
     carbonData: (
-      <CarbonDataSection links={CARBON_LINKS.filter((link) => isVisible(navigation, link.href))} />
+      <CarbonDataSection
+        data={carbonData}
+        links={CARBON_LINKS.filter((link) => isVisible(navigation, link.href))}
+      />
     ),
     charts: charts.length > 0 && (
       <Container className="py-16">

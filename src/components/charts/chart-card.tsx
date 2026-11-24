@@ -1,3 +1,4 @@
+import { splitNotes } from "@/lib/content/emission-views";
 import type { ChartDataset } from "@/types";
 import { DataChart } from "./data-chart";
 
@@ -17,6 +18,11 @@ export function ChartCard({
         <p className="mt-1 text-sm text-muted-foreground">{dataset.description}</p>
       )}
       <DataChart data={dataset} className="mt-4" />
+      {splitNotes(dataset.notes).map((n) => (
+        <p key={n} className="mt-3 text-xs leading-relaxed text-muted-foreground">
+          {n}
+        </p>
+      ))}
       {dataset.source && (
         <p className="mt-3 text-xs text-muted-foreground">
           출처:{" "}

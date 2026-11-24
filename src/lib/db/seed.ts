@@ -10,6 +10,7 @@ import { eq } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "../auth/password";
 import { createDatabase } from "./factory";
 import { CHART_SLUGS } from "../config/charts";
+import { allSystemChartDefaults } from "../content/system-charts";
 import { adminUsers, chartDatasets, popups } from "./schema";
 
 async function main() {
@@ -75,6 +76,14 @@ async function main() {
     });
     console.log("✔ 배출현황 도표 자리 생성 (비공개, 데이터 없음 — 관리자 > 도표 관리에서 입력)");
   }
+
+  // 홈페이지에 고정된 도표·자료 — 기존 화면 값(carbon-info.ts)으로 넣고, 이미 있으면 그대로 둔다
+  const inserted = await db
+    .insert(chartDatasets)
+    .values(allSystemChartDefaults())
+    .onConflictDoNothing({ target: chartDatasets.slug })
+    .returning({ id: chartDatasets.id });
+  if (inserted.length > 0) console.log(`✔ 홈페이지 고정 도표·자료 ${inserted.length}건 생성`);
 }
 
 main()

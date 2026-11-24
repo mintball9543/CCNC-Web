@@ -1,0 +1,1 @@
+ALTER TABLE `chart_datasets` ADD `notes` text DEFAULT '' NOT NULL;

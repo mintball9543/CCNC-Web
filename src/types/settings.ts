@@ -56,6 +56,8 @@ export interface ChartDataset {
   slug: string;
   title: string;
   description: string;
+  /** 도표 아래 주석 (줄마다 한 문단) */
+  notes: string;
   unit: string;
   chartType: ChartType;
   categoryLabel: string;

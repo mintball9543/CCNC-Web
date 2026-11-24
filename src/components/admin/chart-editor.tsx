@@ -12,7 +12,7 @@ import { Checkbox, Field, Input, Select, Textarea } from "@/components/ui/form";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { saveChartAction } from "@/lib/actions/content.actions";
 import { MAX_SERIES } from "@/lib/charts/limits";
-import { CHART_PLACEMENTS, chartPlacementOf } from "@/lib/config/charts";
+import { CHART_PLACEMENTS, chartPlacementOf, type SystemChart } from "@/lib/config/charts";
 import { parseClipboardTable, parseNumber } from "@/lib/charts/scale";
 import { initialActionState, type ChartDataset, type ChartRow, type ChartType } from "@/types";
 
@@ -39,10 +39,14 @@ export type ChartPlacementHolders = Record<string, { id: number; title: string }
 function ChartEditorInner({
   chart,
   holders = {},
+  system,
 }: {
   chart?: ChartDataset;
   holders?: ChartPlacementHolders;
+  /** 홈페이지에 고정된 도표·자료 — 표시 위치·공개 설정이 없고, 계열이 고정될 수 있다 */
+  system?: SystemChart;
 }) {
+  const fixedSeries = !!system?.fixedSeries;
   const [state, action] = useActionState(saveChartAction, initialActionState);
   const v = state.values;
   const [placement, setPlacement] = useState(
@@ -91,6 +95,18 @@ function ChartEditorInner({
   const applyPaste = () => {
     const table = parseClipboardTable(pasteText);
     if (table.length < 2 || table[0].length < 2) return;
+    if (fixedSeries) {
+      // 계열 고정 자료: 첫 행(제목 행)은 건너뛰고 값만 계열 순서대로 채운다
+      setRows(
+        table.slice(1).map((line) => ({
+          label: line[0] ?? "",
+          cells: series.map((_, i) => line[i + 1] ?? ""),
+        })),
+      );
+      setPasteOpen(false);
+      setPasteText("");
+      return;
+    }
     const header = table[0].slice(1, MAX_SERIES + 1);
     setCategoryLabel(table[0][0] || categoryLabel);
     setSeries(header);
@@ -104,6 +120,15 @@ function ChartEditorInner({
   };
 
   const dataRows = fromGrid(rows);
+  const previewCount = system?.previewSeries ?? series.length;
+  const preview = {
+    title,
+    unit,
+    chartType,
+    categoryLabel,
+    series: series.slice(0, previewCount),
+    rows: dataRows.map((r) => ({ ...r, values: r.values.slice(0, previewCount) })),
+  };
 
   return (
     <ActionForm action={action} className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -113,6 +138,13 @@ function ChartEditorInner({
         <input type="hidden" name="rows" value={JSON.stringify(dataRows)} />
         <input type="hidden" name="chartType" value={chartType} />
         {state.message && !state.ok && <Alert tone="danger">{state.message}</Alert>}
+        {system && (
+          <Alert tone="info">
+            <p className="font-semibold">홈페이지에 고정된 자료입니다.</p>
+            <p className="mt-1">쓰이는 곳: {system.usedIn.join(" / ")}</p>
+            <p className="mt-1">{system.guide}</p>
+          </Alert>
+        )}
 
         <Field label="제목" htmlFor="title" required errors={err("title")}>
           <Input
@@ -130,18 +162,33 @@ function ChartEditorInner({
             defaultValue={v?.description ?? chart?.description}
           />
         </Field>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Field label="도표 종류" htmlFor="chartTypeSelect">
-            <Select
-              id="chartTypeSelect"
-              value={chartType}
-              onChange={(e) => setChartType(e.target.value as ChartType)}
-            >
-              <option value="bar">막대</option>
-              <option value="stacked">누적 막대</option>
-              <option value="line">선</option>
-            </Select>
-          </Field>
+        <Field
+          label="주석"
+          htmlFor="notes"
+          errors={err("notes")}
+          hint="도표 아래 작은 글씨로 나옵니다. 줄마다 한 문단입니다."
+        >
+          <Textarea
+            id="notes"
+            name="notes"
+            rows={2}
+            defaultValue={v?.notes ?? chart?.notes ?? ""}
+          />
+        </Field>
+        <div className={fixedSeries ? "grid gap-4 sm:grid-cols-2" : "grid gap-4 sm:grid-cols-3"}>
+          {!fixedSeries && (
+            <Field label="도표 종류" htmlFor="chartTypeSelect">
+              <Select
+                id="chartTypeSelect"
+                value={chartType}
+                onChange={(e) => setChartType(e.target.value as ChartType)}
+              >
+                <option value="bar">막대</option>
+                <option value="stacked">누적 막대</option>
+                <option value="line">선</option>
+              </Select>
+            </Field>
+          )}
           <Field label="단위" htmlFor="unit" errors={err("unit")}>
             <Input
               id="unit"
@@ -161,7 +208,7 @@ function ChartEditorInner({
           </Field>
         </div>
 
-        <fieldset className="space-y-2">
+        <fieldset className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <legend className="text-sm font-medium">데이터</legend>
             <div className="flex gap-2">
@@ -169,15 +216,17 @@ function ChartEditorInner({
                 <ClipboardPaste className="size-4" aria-hidden />
                 엑셀에서 붙여넣기
               </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={addSeries}
-                disabled={series.length >= MAX_SERIES}
-              >
-                <Plus className="size-4" aria-hidden />
-                계열 추가
-              </Button>
+              {!fixedSeries && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={addSeries}
+                  disabled={series.length >= MAX_SERIES}
+                >
+                  <Plus className="size-4" aria-hidden />
+                  계열 추가
+                </Button>
+              )}
             </div>
           </div>
           {pasteOpen && (
@@ -185,6 +234,8 @@ function ChartEditorInner({
               <p className="text-xs text-muted-foreground">
                 엑셀에서 첫 행(제목 행)을 포함해 표를 복사한 뒤 붙여넣으세요. 첫 열은 가로축(연도
                 등), 나머지 열은 계열입니다.
+                {fixedSeries &&
+                  " 이 자료는 계열이 고정되어 있어 값만 위 표의 열 순서대로 채웁니다."}
               </p>
               <Textarea
                 value={pasteText}
@@ -213,15 +264,21 @@ function ChartEditorInner({
                           style={{ background: `var(--series-${i + 1})` }}
                           aria-hidden
                         />
-                        <Input
-                          value={name}
-                          onChange={(e) =>
-                            setSeries((s) => s.map((x, j) => (j === i ? e.target.value : x)))
-                          }
-                          aria-label={`${i + 1}번째 계열 이름`}
-                          className="h-8 min-w-24"
-                        />
-                        {series.length > 1 && (
+                        {fixedSeries ? (
+                          <span className="min-w-16 px-1 py-1.5 text-left text-xs font-medium">
+                            {name}
+                          </span>
+                        ) : (
+                          <Input
+                            value={name}
+                            onChange={(e) =>
+                              setSeries((s) => s.map((x, j) => (j === i ? e.target.value : x)))
+                            }
+                            aria-label={`${i + 1}번째 계열 이름`}
+                            className="h-8 min-w-24"
+                          />
+                        )}
+                        {!fixedSeries && series.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeSeries(i)}
@@ -249,7 +306,7 @@ function ChartEditorInner({
                           )
                         }
                         aria-label={`${r + 1}행 ${categoryLabel}`}
-                        className="h-8"
+                        className="h-8 min-w-20"
                       />
                     </td>
                     {row.cells.map((cell, c) => (
@@ -259,7 +316,7 @@ function ChartEditorInner({
                           inputMode="decimal"
                           onChange={(e) => setCell(r, c, e.target.value)}
                           aria-label={`${row.label || r + 1} ${series[c]}`}
-                          className="h-8 text-right tabular-nums"
+                          className="h-8 min-w-16 text-right tabular-nums"
                         />
                       </td>
                     ))}
@@ -313,63 +370,67 @@ function ChartEditorInner({
               defaultValue={v?.sourceUrl ?? chart?.sourceUrl ?? ""}
             />
           </Field>
-          <Field label="순서" htmlFor="sortOrder" hint="메인 화면에서 작을수록 앞">
-            <Input
-              id="sortOrder"
-              name="sortOrder"
-              type="number"
-              min={0}
-              defaultValue={v?.sortOrder ?? chart?.sortOrder ?? 0}
-            />
-          </Field>
-        </div>
-        <fieldset className="space-y-4 rounded-lg border border-border p-4">
-          <legend className="px-1 text-sm font-medium">홈페이지 어디에 보일까요?</legend>
-          <Field
-            label="표시할 메뉴"
-            htmlFor="placement"
-            errors={err("placement")}
-            hint="선택한 메뉴 화면에 이 도표가 나옵니다. 메뉴 하나에는 도표 하나만 넣을 수 있습니다."
-          >
-            <Select
-              id="placement"
-              name="placement"
-              value={placement}
-              onChange={(e) => setPlacement(e.target.value)}
-            >
-              <option value="">메뉴에 넣지 않음 (메인 화면에만 두거나 보관)</option>
-              {CHART_PLACEMENTS.map((p) => {
-                const holder = holders[p.slug];
-                const note = holder && holder.id !== chart?.id ? ` — 지금: ${holder.title}` : "";
-                return (
-                  <option key={p.slug} value={p.slug}>
-                    {p.label}
-                    {note}
-                  </option>
-                );
-              })}
-            </Select>
-          </Field>
-          {replacing && (
-            <Alert tone="info">
-              지금 이 메뉴에는 &lsquo;{replacing.title}&rsquo; 도표가 나오고 있습니다. 저장하면 이
-              도표로 바뀌고, 기존 도표는 &lsquo;메뉴에 넣지 않음&rsquo;으로 옮겨집니다(삭제되지
-              않음).
-            </Alert>
+          {!system && (
+            <Field label="순서" htmlFor="sortOrder" hint="메인 화면에서 작을수록 앞">
+              <Input
+                id="sortOrder"
+                name="sortOrder"
+                type="number"
+                min={0}
+                defaultValue={v?.sortOrder ?? chart?.sortOrder ?? 0}
+              />
+            </Field>
           )}
-          <div className="flex flex-wrap gap-6">
-            <Checkbox
-              name="showOnHome"
-              defaultChecked={checked("showOnHome", chart?.showOnHome ?? false)}
-              label="메인 화면에도 표시"
-            />
-            <Checkbox
-              name="isPublished"
-              defaultChecked={checked("isPublished", chart?.isPublished ?? false)}
-              label="공개 (체크하지 않으면 어디에도 보이지 않음)"
-            />
-          </div>
-        </fieldset>
+        </div>
+        {!system && (
+          <fieldset className="space-y-4 rounded-lg border border-border p-4">
+            <legend className="px-1 text-sm font-medium">홈페이지 어디에 보일까요?</legend>
+            <Field
+              label="표시할 메뉴"
+              htmlFor="placement"
+              errors={err("placement")}
+              hint="선택한 메뉴 화면에 이 도표가 나옵니다. 메뉴 하나에는 도표 하나만 넣을 수 있습니다."
+            >
+              <Select
+                id="placement"
+                name="placement"
+                value={placement}
+                onChange={(e) => setPlacement(e.target.value)}
+              >
+                <option value="">메뉴에 넣지 않음 (메인 화면에만 두거나 보관)</option>
+                {CHART_PLACEMENTS.map((p) => {
+                  const holder = holders[p.slug];
+                  const note = holder && holder.id !== chart?.id ? ` — 지금: ${holder.title}` : "";
+                  return (
+                    <option key={p.slug} value={p.slug}>
+                      {p.label}
+                      {note}
+                    </option>
+                  );
+                })}
+              </Select>
+            </Field>
+            {replacing && (
+              <Alert tone="info">
+                지금 이 메뉴에는 &lsquo;{replacing.title}&rsquo; 도표가 나오고 있습니다. 저장하면 이
+                도표로 바뀌고, 기존 도표는 &lsquo;메뉴에 넣지 않음&rsquo;으로 옮겨집니다(삭제되지
+                않음).
+              </Alert>
+            )}
+            <div className="flex flex-wrap gap-6">
+              <Checkbox
+                name="showOnHome"
+                defaultChecked={checked("showOnHome", chart?.showOnHome ?? false)}
+                label="메인 화면에도 표시"
+              />
+              <Checkbox
+                name="isPublished"
+                defaultChecked={checked("isPublished", chart?.isPublished ?? false)}
+                label="공개 (체크하지 않으면 어디에도 보이지 않음)"
+              />
+            </div>
+          </fieldset>
+        )}
         <div className="flex gap-2 border-t border-border pt-5">
           <SubmitButton pendingText="저장 중…">{chart ? "수정" : "등록"}</SubmitButton>
           <ButtonLink href="/admin/charts" variant="secondary">
@@ -382,11 +443,13 @@ function ChartEditorInner({
         <div className="rounded-xl border border-border bg-card p-5">
           <p className="mb-1 text-sm font-semibold text-muted-foreground">미리보기</p>
           <p className="text-lg font-bold">{title || "제목"}</p>
+          {system && previewCount < series.length && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {series.slice(0, previewCount).join("·")} 부문만 그린 미리보기입니다.
+            </p>
+          )}
           {dataRows.length > 0 ? (
-            <DataChart
-              data={{ title, unit, chartType, categoryLabel, series, rows: dataRows }}
-              className="mt-4"
-            />
+            <DataChart data={preview} className="mt-4" />
           ) : (
             <p className="py-16 text-center text-sm text-muted-foreground">
               데이터를 입력하면 도표가 표시됩니다.
