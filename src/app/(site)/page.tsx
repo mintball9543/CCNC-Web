@@ -11,9 +11,11 @@ import { PopupLayer } from "@/components/popup/popup-layer";
 import { Container } from "@/components/ui/container";
 import { getActivePopups } from "@/lib/queries/popups";
 import { getLatestActivityPhotos } from "@/lib/queries/posts";
+import { SYSTEM_CHART_SLUGS } from "@/lib/config/charts";
 import {
   getHomeCharts,
   getRelatedSites,
+  getSystemChart,
   getVisibleNavigation,
   getVisibleStats,
 } from "@/lib/queries/site";
@@ -31,11 +33,12 @@ const CARBON_LINKS = [
 
 /** 메인 — 모든 영역은 관리자 설정(메뉴 노출·사진·실적·도표)에 따라 구성된다 */
 export default async function HomePage() {
-  const [navigation, stats, charts, relatedSites] = await Promise.all([
+  const [navigation, stats, charts, relatedSites, carbonData] = await Promise.all([
     getVisibleNavigation(),
     getVisibleStats(),
     getHomeCharts(),
     getRelatedSites(),
+    getSystemChart(SYSTEM_CHART_SLUGS.chungnamTotal),
   ]);
   const showActivity = isVisible(navigation, "/news/gallery");
   const latestBoards = (["notice", "press"] as BoardKey[]).filter((key) =>
@@ -48,7 +51,10 @@ export default async function HomePage() {
       <HeroSection navigation={navigation} />
       <QuickLinks navigation={navigation} />
       <StatHighlights stats={stats} />
-      <CarbonDataSection links={CARBON_LINKS.filter((link) => isVisible(navigation, link.href))} />
+      <CarbonDataSection
+        data={carbonData}
+        links={CARBON_LINKS.filter((link) => isVisible(navigation, link.href))}
+      />
       <ActivityGallery posts={photos} />
 
       {latestBoards.length > 0 && (

@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { ArrowRight, Leaf } from "lucide-react";
 import { Container } from "@/components/ui/container";
+import type { StaticChart } from "@/lib/content/carbon-info";
 import {
   CHUNGNAM_2030_REDUCTION_RATE,
   CHUNGNAM_BASE_YEAR,
   CHUNGNAM_PLAN_SOURCE,
-  CHUNGNAM_TOTAL_SOURCE,
-  CHUNGNAM_UNIT,
   chungnamPathway,
   chungnamSectorShares,
 } from "@/lib/content/home-carbon";
@@ -17,16 +16,22 @@ const fmt = (v: number) =>
 
 /**
  * 메인 '데이터로 보는 충남 탄소중립' — 배출 실적·2030 감축 목표·부문별 비중.
- * 수치는 충남 탄소중립 메뉴(carbon-info.ts)와 같은 자료에서 계산한다.
+ * 수치는 배출현황 메뉴와 같은 자료(관리자 > 도표 관리 '충청남도 부문별 총배출량')에서 계산한다.
  */
 export function CarbonDataSection({
+  data,
   links,
 }: {
+  /** 충청남도 부문별 총배출량 (연도별 행, 마지막 행이 최신) */
+  data: StaticChart;
   /** 관리자가 숨기지 않은 충남 탄소중립 메뉴 링크 */
   links: { href: string; label: string }[];
 }) {
-  const pathway = chungnamPathway();
-  const { year, total, sectors } = chungnamSectorShares();
+  if (data.rows.length === 0) return null;
+  const unit = data.unit;
+  const source = data.source ?? "";
+  const pathway = chungnamPathway(data);
+  const { year, total, sectors } = chungnamSectorShares(data);
   const ratePct = Math.round(CHUNGNAM_2030_REDUCTION_RATE * 100);
   const localShare =
     Math.round(sectors.filter((s) => s.local).reduce((a, s) => a + s.share, 0) * 10) / 10;
@@ -44,7 +49,7 @@ export function CarbonDataSection({
         </p>
 
         <dl className="mt-8 grid gap-4 sm:grid-cols-3">
-          <KeyFigure label={`${year}년 총배출량`} value={fmt(total)} unit={CHUNGNAM_UNIT} />
+          <KeyFigure label={`${year}년 총배출량`} value={fmt(total)} unit={unit} />
           <KeyFigure
             label={`2030년 감축 목표 (${CHUNGNAM_BASE_YEAR}년 대비)`}
             value={`${ratePct}`}
@@ -55,8 +60,14 @@ export function CarbonDataSection({
         </dl>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-5">
-          <PathwayCard pathway={pathway} ratePct={ratePct} />
-          <SectorCard year={year} sectors={sectors} localShare={localShare} />
+          <PathwayCard pathway={pathway} ratePct={ratePct} unit={unit} source={source} />
+          <SectorCard
+            year={year}
+            sectors={sectors}
+            localShare={localShare}
+            unit={unit}
+            source={source}
+          />
         </div>
 
         {links.length > 0 && (
@@ -116,9 +127,13 @@ const BAR_AREA = "h-48 sm:h-56";
 function PathwayCard({
   pathway,
   ratePct,
+  unit,
+  source,
 }: {
   pathway: ReturnType<typeof chungnamPathway>;
   ratePct: number;
+  unit: string;
+  source: string;
 }) {
   const max = Math.max(...pathway.map((p) => p.value));
   const firstPlanIdx = pathway.findIndex((p) => p.kind !== "actual");
@@ -128,7 +143,7 @@ function PathwayCard({
       <figcaption>
         <h3 className="text-lg font-bold">2045 탄소중립까지의 감축 경로</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          총배출량 실적(흡수원 제외)과 기본계획 목표 · 단위: {CHUNGNAM_UNIT}
+          총배출량 실적(흡수원 제외)과 기본계획 목표 · 단위: {unit}
         </p>
       </figcaption>
 
@@ -148,9 +163,9 @@ function PathwayCard({
           const isBase = p.year === CHUNGNAM_BASE_YEAR;
           const label =
             p.kind === "actual"
-              ? `${p.year}년 실적 ${fmt(p.value)} ${CHUNGNAM_UNIT}`
+              ? `${p.year}년 실적 ${fmt(p.value)} ${unit}`
               : p.kind === "target"
-                ? `${p.year}년 목표 ${fmt(p.value)} ${CHUNGNAM_UNIT} (${CHUNGNAM_BASE_YEAR}년 대비 ${ratePct}% 감축)`
+                ? `${p.year}년 목표 ${fmt(p.value)} ${unit} (${CHUNGNAM_BASE_YEAR}년 대비 ${ratePct}% 감축)`
                 : `${p.year}년 목표 순배출량 0 (탄소중립)`;
           return (
             <li
@@ -222,7 +237,7 @@ function PathwayCard({
         2030년 값은 {CHUNGNAM_BASE_YEAR}년 총배출량에 {ratePct}% 감축을 적용해 계산한 값입니다.
         2045년은 순배출량(배출량 − 흡수·제거량) 0을 뜻합니다.
         <br />
-        자료: {CHUNGNAM_TOTAL_SOURCE} · {CHUNGNAM_PLAN_SOURCE}
+        자료: {source} · {CHUNGNAM_PLAN_SOURCE}
       </p>
     </figure>
   );
@@ -232,10 +247,14 @@ function SectorCard({
   year,
   sectors,
   localShare,
+  unit,
+  source,
 }: {
   year: string;
   sectors: ReturnType<typeof chungnamSectorShares>["sectors"];
   localShare: number;
+  unit: string;
+  source: string;
 }) {
   return (
     <figure className="flex flex-col rounded-2xl border border-border bg-card p-5 sm:p-6 lg:col-span-2">
@@ -261,7 +280,7 @@ function SectorCard({
               <span className="tabular-nums">
                 <span className="font-bold">{fmt(s.share)}%</span>
                 <span className="ml-1.5 text-xs text-muted-foreground">
-                  {fmt(s.value)} {CHUNGNAM_UNIT}
+                  {fmt(s.value)} {unit}
                 </span>
               </span>
             </div>
@@ -286,7 +305,7 @@ function SectorCard({
         등 <strong>지자체 관리권한 부문</strong>이 총배출량의{" "}
         <strong className="text-primary">{fmt(localShare)}%</strong>를 차지합니다.
       </p>
-      <p className="mt-auto pt-4 text-xs text-muted-foreground">자료: {CHUNGNAM_TOTAL_SOURCE}</p>
+      <p className="mt-auto pt-4 text-xs text-muted-foreground">자료: {source}</p>
     </figure>
   );
 }

@@ -6,18 +6,24 @@ import { redirect } from "next/navigation";
 import { recordAudit } from "@/lib/audit/record";
 import { requireAdmin } from "@/lib/auth/guard";
 import { cacheTags } from "@/lib/cache/tags";
-import { chartPlacementOf, unplacedChartSlug } from "@/lib/config/charts";
+import {
+  chartPlacementOf,
+  systemChartOf,
+  unplacedChartSlug,
+  type SystemChart,
+} from "@/lib/config/charts";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 import { formDataToObject, validationError } from "@/lib/validation/common";
 import {
   chartSchema,
+  systemChartSchema,
   heroSlideSchema,
   committeeMemberSchema,
   orgMemberSchema,
   relatedSiteSchema,
   statSchema,
 } from "@/lib/validation/settings.schema";
-import type { ActionState } from "@/types";
+import type { ActionState, ChartDataset } from "@/types";
 
 /** 관리자 관리 콘텐츠: 조직도 · 도표 · 숫자로 보는 센터 · 메인 비주얼 · 관련 사이트 */
 
@@ -100,10 +106,15 @@ export async function saveChartAction(
 ): Promise<ActionState> {
   await requireAdmin();
   const raw = formDataToObject(formData);
+  const id = idOf(raw);
+  if (id) {
+    const existing = await settingsRepository.findChart(id);
+    const system = existing ? systemChartOf(existing.slug) : null;
+    if (existing && system) return saveSystemChart(existing, system, raw);
+  }
   const parsed = chartSchema.safeParse(raw);
   if (!parsed.success) return validationError(parsed.error, raw);
 
-  const id = idOf(raw);
   const { placement, ...data } = parsed.data;
   const current = id ? await settingsRepository.findChart(id) : null;
   if (id && !current) return { ok: false, message: "도표를 찾을 수 없습니다.", values: raw };
@@ -137,10 +148,49 @@ export async function saveChartAction(
   redirect("/admin/charts");
 }
 
+/** 홈페이지에 고정된 도표·자료 저장 — 내부 키·공개 여부는 그대로, 계열 고정 자료는 계열을 바꿀 수 없다 */
+async function saveSystemChart(
+  current: ChartDataset,
+  system: SystemChart,
+  raw: Record<string, string>,
+): Promise<ActionState> {
+  const parsed = systemChartSchema.safeParse(raw);
+  if (!parsed.success) return validationError(parsed.error, raw);
+  const data = parsed.data;
+  if (system.fixedSeries) {
+    const same =
+      data.series.length === system.fixedSeries.length &&
+      data.series.every((name, i) => name === system.fixedSeries![i]);
+    if (!same) {
+      return {
+        ok: false,
+        message: `이 자료의 계열(${system.fixedSeries.join(", ")})은 바꿀 수 없습니다.`,
+        values: raw,
+      };
+    }
+  }
+  await settingsRepository.saveChart(current.id, {
+    ...data,
+    chartType: system.fixedSeries ? current.chartType : data.chartType,
+    slug: current.slug,
+    isPublished: true,
+    showOnHome: false,
+    sortOrder: current.sortOrder,
+  });
+  await recordAudit({
+    action: "chart.update",
+    target: `chart_datasets:${current.id}`,
+    summary: `도표 수정: ${data.title} (${data.rows.length}행, 홈페이지 고정 자료 '${system.label}')`,
+  });
+  updateTag(cacheTags.charts);
+  redirect("/admin/charts");
+}
+
 export async function deleteChartAction(id: number): Promise<void> {
   await requireAdmin();
   const chart = await settingsRepository.findChart(id);
-  if (chart) {
+  // 홈페이지에 고정된 도표·자료는 페이지 코드가 쓰므로 지우지 않는다
+  if (chart && !systemChartOf(chart.slug)) {
     await settingsRepository.deleteChart(id);
     await recordAudit({
       action: "chart.delete",

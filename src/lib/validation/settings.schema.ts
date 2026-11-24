@@ -62,49 +62,76 @@ const jsonField = <T extends z.ZodType>(schema: T, message: string) =>
     return z.NEVER;
   });
 
+const chartRows = z
+  .array(
+    z.object({
+      label: z.string().trim().min(1).max(30),
+      values: z.array(z.number().nullable()),
+    }),
+  )
+  .max(100);
+
+/** 도표 공통 항목 (직접 만든 도표·홈페이지에 고정된 도표 모두) */
+const chartFields = {
+  title: z.string().trim().min(1, "제목을 입력하세요.").max(100),
+  description: text(300),
+  notes: text(1000),
+  unit: text(30),
+  chartType: z.enum(["bar", "line", "stacked"]),
+  categoryLabel: z.string().trim().min(1).max(20).default("연도"),
+  source: text(200),
+  sourceUrl: optionalLink,
+};
+
+const rowsMatchSeries = (v: { series: string[]; rows: { values: unknown[] }[] }) =>
+  v.rows.every((r) => r.values.length === v.series.length);
+const rowsMatchSeriesError = {
+  message: "각 행의 값 개수가 계열 수와 같아야 합니다.",
+  path: ["rows"],
+};
+
 /** 관리자 입력 도표 */
 export const chartSchema = z
   .object({
-    title: z.string().trim().min(1, "제목을 입력하세요.").max(100),
+    ...chartFields,
     /** 표시할 페이지(메뉴) — 빈 값이면 어느 페이지에도 넣지 않음 (내부 키는 서버에서 정함) */
     placement: z
       .string()
       .trim()
       .default("")
       .refine((v) => v === "" || chartPlacementOf(v) !== null, "표시 위치를 다시 선택하세요."),
-    description: text(300),
-    unit: text(30),
-    chartType: z.enum(["bar", "line", "stacked"]),
-    categoryLabel: z.string().trim().min(1).max(20).default("연도"),
     series: jsonField(
       z.array(z.string().trim().min(1).max(30)).min(1).max(MAX_SERIES),
       `계열 이름을 1~${MAX_SERIES}개 입력하세요.`,
     ),
-    rows: jsonField(
-      z
-        .array(
-          z.object({
-            label: z.string().trim().min(1).max(30),
-            values: z.array(z.number().nullable()),
-          }),
-        )
-        .max(100),
-      "표 데이터 형식이 올바르지 않습니다.",
-    ),
-    source: text(200),
-    sourceUrl: optionalLink,
+    rows: jsonField(chartRows, "표 데이터 형식이 올바르지 않습니다."),
     isPublished: checkbox,
     showOnHome: checkbox,
     sortOrder: order,
   })
-  .refine((v) => v.rows.every((r) => r.values.length === v.series.length), {
-    message: "각 행의 값 개수가 계열 수와 같아야 합니다.",
-    path: ["rows"],
-  })
+  .refine(rowsMatchSeries, rowsMatchSeriesError)
   .refine((v) => !v.isPublished || v.source.length > 0, {
     message: "공개하려면 출처를 입력하세요. (공식 자료만 게시)",
     path: ["source"],
   });
+
+/**
+ * 홈페이지에 고정된 도표·자료 (페이지 코드가 직접 사용).
+ * 표시 위치·공개 여부는 바꿀 수 없고, 계열 고정 자료는 서버에서 계열을 다시 확인한다.
+ */
+export const systemChartSchema = z
+  .object({
+    ...chartFields,
+    series: jsonField(
+      z.array(z.string().trim().min(1).max(30)).min(1).max(12),
+      "계열 이름을 1~12개 입력하세요.",
+    ),
+    rows: jsonField(
+      chartRows.min(1, "1행 이상 입력하세요."),
+      "표 데이터 형식이 올바르지 않습니다.",
+    ),
+  })
+  .refine(rowsMatchSeries, rowsMatchSeriesError);
 
 /** 숫자로 보는 센터 */
 export const statSchema = z.object({

@@ -1,9 +1,11 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { cacheTags } from "@/lib/cache/tags";
+import type { SystemChartSlug } from "@/lib/config/charts";
 import { applyMenuVisibility } from "@/lib/config/menu-visibility";
 import { mainNavigation } from "@/lib/config/navigation";
 import { siteConfig } from "@/lib/config/site";
+import { systemChartDefault } from "@/lib/content/system-charts";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 import type { ContactSettings } from "@/types";
 
@@ -49,6 +51,17 @@ export async function getPublishedChart(slug: string) {
   cacheTag(cacheTags.charts);
   const chart = await settingsRepository.findChartBySlug(slug);
   return chart?.isPublished ? chart : null;
+}
+
+/**
+ * 페이지 코드가 직접 쓰는 도표·자료 (관리자 > 도표 관리 '홈페이지에 고정된 도표·자료').
+ * 아직 DB 에 없으면 처음 값(기존 화면과 같은 값)을 쓴다.
+ */
+export async function getSystemChart(slug: SystemChartSlug) {
+  "use cache";
+  cacheLife("days");
+  cacheTag(cacheTags.charts);
+  return (await settingsRepository.findChartBySlug(slug)) ?? systemChartDefault(slug);
 }
 
 export async function getHomeCharts() {

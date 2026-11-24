@@ -41,6 +41,9 @@ export interface StaticChart {
   series: string[];
   rows: { label: string; values: (number | null)[] }[];
   source?: string;
+  sourceUrl?: string | null;
+  /** 도표·표 아래 주석 (줄마다 한 문단) */
+  notes?: string;
 }
 
 const NATIONAL_COMMITTEE = "2050 탄소중립위원회(현 국가기후위기대응위원회)";
@@ -560,105 +563,46 @@ export const CHUNGNAM_TOTAL_FOOTNOTES = [
   "** 비산업부문 배출량(지자체 관리권한 인벤토리): 지자체 관리 권한에 중점을 두고 비산업부문(가정, 상업·공공, 도로수송, 농축산, 폐기물 등)으로 재구성한 배출량",
 ] as const;
 
-const r = (t: string): InfoCell => ({ text: t, align: "right" });
-
-export const CHUNGNAM_TOTAL_TABLE: InfoTableData = {
-  caption: "충청남도 온실가스 총배출량 현황 (2016~2020)",
-  unit: "백만 tCO₂eq",
-  head: [[{ text: "구분", colSpan: 2 }, "2016년", "2017년", "2018년", "2019년", "2020년"]],
-  rows: [
-    [
-      { text: "산업부문\n(지자체 관리권한 외)", th: true },
-      { text: "산업", th: true },
-      r("62.6"),
-      r("63.3"),
-      r("65.0"),
-      r("65.6"),
-      r("62.1"),
-    ],
-    [
-      { text: "비산업부문\n(지자체 관리권한)", rowSpan: 5, th: true },
-      { text: "건물", th: true },
-      r("7.5"),
-      r("7.7"),
-      r("8.0"),
-      r("7.5"),
-      r("7.0"),
-    ],
-    [{ text: "수송", th: true }, r("4.6"), r("4.7"), r("4.7"), r("4.9"), r("4.7")],
-    [{ text: "농축산", th: true }, r("3.8"), r("3.8"), r("3.9"), r("3.8"), r("3.8")],
-    [{ text: "폐기물", th: true }, r("1.3"), r("1.4"), r("1.3"), r("1.3"), r("1.1")],
-    [{ text: "흡수원", th: true }, r("-2.4"), r("-1.8"), r("-1.4"), r("-1.2"), r("-1.1")],
-    [
-      { text: "총계(흡수원 제외)", colSpan: 2, th: true, emphasis: true },
-      { text: "79.8", align: "right", emphasis: true },
-      { text: "80.9", align: "right", emphasis: true },
-      { text: "82.9", align: "right", emphasis: true },
-      { text: "83.0", align: "right", emphasis: true },
-      { text: "78.7", align: "right", emphasis: true },
-    ],
-  ],
-  source: GIR_SOURCE,
-  minWidth: "min-w-[600px]",
-};
-
-export const CHUNGNAM_TOTAL_CHART: StaticChart = {
-  title: "부문별 총배출량 (흡수원 제외)",
+/**
+ * 충청남도 부문별 총배출량 — 관리자 > 도표 관리 '충청남도 부문별 총배출량'의 처음 값.
+ * 배출현황 총배출량 표·부문별 도표·지자체 관리권한 도표와 메인 수치를 이 자료에서 만든다
+ * (emission-views.ts). 계열 순서는 SYSTEM_CHARTS 의 fixedSeries 와 같아야 한다.
+ */
+export const CHUNGNAM_TOTAL_DATA: StaticChart = {
+  title: "충청남도 온실가스 총배출량 현황",
   unit: "백만 tCO₂eq",
   chartType: "stacked",
   categoryLabel: "연도",
-  series: ["산업", "건물", "수송", "농축산", "폐기물"],
+  series: ["산업", "건물", "수송", "농축산", "폐기물", "흡수원", "총계(흡수원 제외)"],
   rows: [
-    { label: "2016", values: [62.6, 7.5, 4.6, 3.8, 1.3] },
-    { label: "2017", values: [63.3, 7.7, 4.7, 3.8, 1.4] },
-    { label: "2018", values: [65.0, 8.0, 4.7, 3.9, 1.3] },
-    { label: "2019", values: [65.6, 7.5, 4.9, 3.8, 1.3] },
-    { label: "2020", values: [62.1, 7.0, 4.7, 3.8, 1.1] },
+    { label: "2016", values: [62.6, 7.5, 4.6, 3.8, 1.3, -2.4, 79.8] },
+    { label: "2017", values: [63.3, 7.7, 4.7, 3.8, 1.4, -1.8, 80.9] },
+    { label: "2018", values: [65.0, 8.0, 4.7, 3.9, 1.3, -1.4, 82.9] },
+    { label: "2019", values: [65.6, 7.5, 4.9, 3.8, 1.3, -1.2, 83.0] },
+    { label: "2020", values: [62.1, 7.0, 4.7, 3.8, 1.1, -1.1, 78.7] },
   ],
   source: GIR_SOURCE,
 };
 
-export const CHUNGNAM_LOCAL_CHART: StaticChart = {
-  title: "지자체 관리권한 부문별 배출량",
-  description: "합계: 2016년 17.2 · 2017년 17.6 · 2018년 17.9 · 2019년 17.5 · 2020년 16.6",
-  unit: "백만 tCO₂eq",
-  chartType: "stacked",
+/** 지자체 관리권한 배출량 전망(선 그래프 이미지) — 그래프에 표기된 수치만 옮김. 화면에는 표로 나온다 */
+export const CHUNGNAM_LOCAL_OUTLOOK_DATA: StaticChart = {
+  title: "지자체 관리권한 부문 배출량 실적과 전망",
+  description: "2018년 대비 2030년 총배출량은 약 5.0% 감소할 것으로 전망됩니다.",
+  notes:
+    "2016~2020년은 실적, 2034년은 전망값(총배출량)입니다. 그 사이 연도별 전망값은 원자료 그래프에 수치가 표기되지 않아 싣지 않았습니다.",
+  unit: "천 tCO₂eq",
+  chartType: "line",
   categoryLabel: "연도",
-  series: ["건물", "수송", "농축산", "폐기물"],
+  series: ["배출량"],
   rows: [
-    { label: "2016", values: [7.5, 4.6, 3.8, 1.3] },
-    { label: "2017", values: [7.7, 4.7, 3.8, 1.4] },
-    { label: "2018", values: [8.0, 4.7, 3.9, 1.3] },
-    { label: "2019", values: [7.5, 4.9, 3.8, 1.3] },
-    { label: "2020", values: [7.0, 4.7, 3.8, 1.1] },
+    { label: "2016", values: [17122.2] },
+    { label: "2017", values: [17475.4] },
+    { label: "2018", values: [17841.6] },
+    { label: "2019", values: [17356.0] },
+    { label: "2020", values: [16559.7] },
+    { label: "2034(전망)", values: [16853.4] },
   ],
-  source: GIR_SOURCE,
-};
-
-/** 지자체 관리권한 배출량 전망(선 그래프 이미지) — 그래프에 표기된 수치만 옮김 */
-export const CHUNGNAM_LOCAL_OUTLOOK = {
-  summary: "2018년 대비 2030년 총배출량은 약 5.0% 감소할 것으로 전망됩니다.",
-  table: {
-    caption: "지자체 관리권한 부문 배출량 실적과 전망",
-    unit: "천 tCO₂eq",
-    head: [["구분", "2016년", "2017년", "2018년", "2019년", "2020년", "2034년(전망)"]],
-    rows: [
-      [
-        "배출량",
-        r("17,122.2"),
-        r("17,475.4"),
-        r("17,841.6"),
-        r("17,356.0"),
-        r("16,559.7"),
-        { text: "16,853.4", align: "right", emphasis: true },
-      ],
-    ],
-    notes: [
-      "2016~2020년은 실적, 2034년은 전망값(총배출량)입니다. 그 사이 연도별 전망값은 원자료 그래프에 수치가 표기되지 않아 싣지 않았습니다.",
-    ],
-    source: "충청남도 2045 탄소중립 녹색성장 기본계획, 충청남도",
-    minWidth: "min-w-[600px]",
-  } satisfies InfoTableData,
+  source: "충청남도 2045 탄소중립 녹색성장 기본계획, 충청남도",
 };
 
 /* ───────────────────────── 4. 부문별 감축목표 ───────────────────────── */

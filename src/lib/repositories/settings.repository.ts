@@ -152,6 +152,17 @@ export async function saveChart(
   });
 }
 
+/** 홈페이지에 고정된 도표·자료 중 DB 에 없는 것을 처음 값으로 넣는다 (이미 있으면 그대로) */
+export async function ensureSystemCharts(defaults: Omit<ChartDataset, "id">[]): Promise<number> {
+  if (defaults.length === 0) return 0;
+  const inserted = await db
+    .insert(chartDatasets)
+    .values(defaults)
+    .onConflictDoNothing({ target: chartDatasets.slug })
+    .returning({ id: chartDatasets.id });
+  return inserted.length;
+}
+
 export async function deleteChart(id: number): Promise<void> {
   await db.delete(chartDatasets).where(eq(chartDatasets.id, id));
 }

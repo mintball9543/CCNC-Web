@@ -5,7 +5,7 @@ import { ChartEditor, type ChartPlacementHolders } from "@/components/admin/char
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { deleteChartAction } from "@/lib/actions/content.actions";
 import { requireAdmin } from "@/lib/auth/guard";
-import { chartPlacementOf } from "@/lib/config/charts";
+import { chartPlacementOf, systemChartOf } from "@/lib/config/charts";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 
 export const metadata = { title: "도표 수정" };
@@ -22,17 +22,21 @@ async function Content({ params }: PageProps<"/admin/charts/[id]">) {
   await requireAdmin();
   const chart = await settingsRepository.findChart(Number((await params).id));
   if (!chart) notFound();
+  const system = systemChartOf(chart.slug) ?? undefined;
   return (
     <>
       <AdminPageHeader
-        title="도표 수정"
+        title={system ? `도표 수정 — ${system.label}` : "도표 수정"}
         actions={
-          <form action={deleteChartAction.bind(null, chart.id)}>
-            <ConfirmSubmitButton message="이 도표를 삭제하시겠습니까?">삭제</ConfirmSubmitButton>
-          </form>
+          // 홈페이지에 고정된 도표·자료는 페이지가 쓰므로 삭제할 수 없다
+          !system && (
+            <form action={deleteChartAction.bind(null, chart.id)}>
+              <ConfirmSubmitButton message="이 도표를 삭제하시겠습니까?">삭제</ConfirmSubmitButton>
+            </form>
+          )
         }
       />
-      <ChartEditor chart={chart} holders={await placementHolders()} />
+      <ChartEditor chart={chart} holders={await placementHolders()} system={system} />
     </>
   );
 }
