@@ -63,7 +63,6 @@ export const mainNavigation: NavSection[] = [
     title: "알림마당",
     description: "센터의 새로운 소식과 자료를 전해드립니다.",
     href: "/news/notice",
-    locked: true,
     items: [
       { title: "공지사항", href: "/news/notice" },
       { title: "센터소식", href: "/news/center-news" },

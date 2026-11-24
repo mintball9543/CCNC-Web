@@ -46,13 +46,28 @@ export async function saveMenuSettings(entries: Record<string, boolean>): Promis
 // ── 연락처 (site_settings: contact) ─────────────────────
 export async function findContactSettings(): Promise<Partial<ContactSettings> | null> {
   const row = await db.query.siteSettings.findFirst({ where: eq(siteSettings.key, "contact") });
-  return row?.value ?? null;
+  return (row?.value as Partial<ContactSettings> | undefined) ?? null;
 }
 
 export async function saveContactSettings(value: ContactSettings): Promise<void> {
   await db
     .insert(siteSettings)
     .values({ key: "contact", value })
+    .onConflictDoUpdate({ target: siteSettings.key, set: { value, updatedAt: new Date() } });
+}
+
+// ── 메인 화면 영역 순서 (site_settings: homeSections) ──
+export async function findHomeSectionOrder(): Promise<unknown> {
+  const row = await db.query.siteSettings.findFirst({
+    where: eq(siteSettings.key, "homeSections"),
+  });
+  return row?.value ?? null;
+}
+
+export async function saveHomeSectionOrder(value: string[]): Promise<void> {
+  await db
+    .insert(siteSettings)
+    .values({ key: "homeSections", value })
     .onConflictDoUpdate({ target: siteSettings.key, set: { value, updatedAt: new Date() } });
 }
 
