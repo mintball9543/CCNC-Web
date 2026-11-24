@@ -72,12 +72,14 @@ npm run dev                   # http://localhost:3000
    │  │  ├─ participation/     # 참여·실천: 생활실천단·탄소업슈·탄소발자국 계산기·교육 강사단
    │  │  ├─ carbon-neutral/    # 충남 탄소중립: 탄소중립 이해·2045 비전·배출현황·부문별 감축목표
    │  │  ├─ news/              # 알림마당: [board] 게시판(공지·소식·보도·자료실) + inquiry 문의
+   │  │  ├─ search/            # 통합 검색 (메뉴 이름 + 알림마당 게시글)
    │  │  ├─ privacy/ sitemap/
    │  │  └─ page.tsx           # 메인 (모달 팝업 포함)
    │  ├─ admin/                # 관리자 — login + (dashboard)/ 팝업·게시판·문의 관리
    │  ├─ layout.tsx            # 루트: 폰트·테마·메타데이터
    │  └─ robots.ts / sitemap.ts / icon.png
    │  ├─ api/admin/uploads/    # 관리자 파일 업로드 API
+   │  ├─ api/visit/ api/posts/[id]/view/  # 방문 집계 · 게시글 조회수
    │  └─ files/[id]/           # 업로드 파일 제공(route.ts) + 미리보기 페이지(view/)
    ├─ components/              # UI 컴포넌트 (도메인별 폴더)
    │  ├─ ui/                   # 버튼·폼·탭·페이지네이션 등 범용 프리미티브
@@ -99,6 +101,7 @@ npm run dev                   # http://localhost:3000
    │  ├─ charts/               # 도표 축 계산·엑셀 붙여넣기 파싱
    │  ├─ uploads/              # 업로드 허용 정책(확장자+시그니처)·저장소·URL
    │  ├─ mail/                 # 메일 발송·템플릿
+   │  ├─ search/               # 검색어 정리·요약문·검색 범위 (순수 함수, 테스트 포함)
    │  ├─ proxy/                # proxy 전용 로직 (숨긴 메뉴 차단)
    │  ├─ cache/ utils/ seo.ts
    ├─ types/                   # 도메인 타입

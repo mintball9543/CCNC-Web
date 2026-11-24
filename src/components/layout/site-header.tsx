@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { Suspense } from "react";
 import { BrandLockup } from "@/components/brand/brand-lockup";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -22,6 +22,14 @@ export function SiteHeader({ navigation }: { navigation: NavSection[] }) {
         </Suspense>
 
         <div className="flex items-center gap-1">
+          <Link
+            href="/search"
+            className="inline-flex size-10 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            aria-label="통합 검색"
+            title="통합 검색"
+          >
+            <Search className="size-5" aria-hidden />
+          </Link>
           <ThemeToggle />
           <Suspense
             fallback={
