@@ -1,7 +1,6 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { Suspense } from "react";
 import { ChartCard } from "@/components/charts/chart-card";
+import { CarbonDataSection } from "@/components/home/carbon-data-section";
 import { ActivityGallery } from "@/components/home/activity-gallery";
 import { HeroSection } from "@/components/home/hero-section";
 import { LatestPosts } from "@/components/home/latest-posts";
@@ -23,6 +22,13 @@ import type { BoardKey, NavSection } from "@/types";
 const isVisible = (navigation: NavSection[], href: string) =>
   navigation.some((s) => s.items.some((i) => i.href === href));
 
+/** '데이터로 보는 충남 탄소중립' 아래 바로가기 (메뉴가 숨겨지면 빠진다) */
+const CARBON_LINKS = [
+  { href: "/carbon-neutral/emissions", label: "배출현황 자세히 보기" },
+  { href: "/carbon-neutral/vision-2045", label: "2045 비전·목표" },
+  { href: "/carbon-neutral/sector-targets", label: "부문별 감축목표" },
+];
+
 /** 메인 — 모든 영역은 관리자 설정(메뉴 노출·사진·실적·도표)에 따라 구성된다 */
 export default async function HomePage() {
   const [navigation, stats, charts, relatedSites] = await Promise.all([
@@ -42,6 +48,7 @@ export default async function HomePage() {
       <HeroSection />
       <QuickLinks navigation={navigation} />
       <StatHighlights stats={stats} />
+      <CarbonDataSection links={CARBON_LINKS.filter((link) => isVisible(navigation, link.href))} />
       <ActivityGallery posts={photos} />
 
       {latestBoards.length > 0 && (
@@ -62,21 +69,6 @@ export default async function HomePage() {
               <ChartCard key={chart.id} dataset={chart} />
             ))}
           </div>
-        </Container>
-      )}
-
-      {isVisible(navigation, "/carbon-neutral/emissions") && (
-        <Container className="pb-16">
-          <Link
-            href="/carbon-neutral/emissions"
-            className="group flex flex-col justify-between gap-4 rounded-2xl bg-ci-navy p-8 text-white sm:flex-row sm:items-center dark:bg-card dark:ring-1 dark:ring-border"
-          >
-            <div>
-              <p className="text-sm text-white/70 dark:text-muted-foreground">충남 탄소중립</p>
-              <p className="mt-1 text-xl font-bold">충청남도 온실가스 배출현황 보기</p>
-            </div>
-            <ArrowRight className="size-6 transition group-hover:translate-x-1" aria-hidden />
-          </Link>
         </Container>
       )}
 
