@@ -9,7 +9,6 @@ import "../env/load-cli";
 import { eq } from "drizzle-orm";
 import { hashPassword, verifyPassword } from "../auth/password";
 import { createDatabase } from "./factory";
-import { CHART_SLUGS } from "../config/charts";
 import { allSystemChartDefaults } from "../content/system-charts";
 import { adminUsers, chartDatasets, popups } from "./schema";
 
@@ -55,26 +54,6 @@ async function main() {
       isActive: false,
     });
     console.log("✔ 샘플 팝업 1건 생성 (비활성 상태)");
-  }
-
-  // 배출현황 도표 자리 — 수치는 공식 통계로 관리자가 입력 (임의 수치 생성 금지)
-  const emissions = await db.query.chartDatasets.findFirst({
-    where: eq(chartDatasets.slug, CHART_SLUGS.emissions),
-  });
-  if (!emissions) {
-    await db.insert(chartDatasets).values({
-      slug: CHART_SLUGS.emissions,
-      title: "충청남도 연도별 온실가스 배출량",
-      description: "지역별 온실가스 인벤토리 기준 총배출량",
-      unit: "천 tCO₂eq",
-      chartType: "bar",
-      categoryLabel: "연도",
-      series: ["총배출량"],
-      rows: [],
-      source: "",
-      isPublished: false,
-    });
-    console.log("✔ 배출현황 도표 자리 생성 (비공개, 데이터 없음 — 관리자 > 도표 관리에서 입력)");
   }
 
   // 홈페이지에 고정된 도표·자료 — 기존 화면 값(carbon-info.ts)으로 넣고, 이미 있으면 그대로 둔다

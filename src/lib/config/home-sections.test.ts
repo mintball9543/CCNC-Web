@@ -20,7 +20,6 @@ describe("normalizeHomeSectionOrder", () => {
       "latestPosts",
       "relatedSites",
       "carbonData",
-      "charts",
       "quickLinks",
     ]);
     expect(result).toEqual([
@@ -29,7 +28,6 @@ describe("normalizeHomeSectionOrder", () => {
       "activityGallery",
       "relatedSites",
       "carbonData",
-      "charts",
       "quickLinks",
     ]);
     expect(new Set(result).size).toBe(DEFAULT_HOME_SECTION_ORDER.length);

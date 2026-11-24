@@ -2,37 +2,34 @@ import Link from "next/link";
 import { ArrowRight, Leaf } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import type { StaticChart } from "@/lib/content/carbon-info";
-import {
-  CHUNGNAM_2030_REDUCTION_RATE,
-  CHUNGNAM_BASE_YEAR,
-  CHUNGNAM_PLAN_SOURCE,
-  chungnamPathway,
-  chungnamSectorShares,
-} from "@/lib/content/home-carbon";
+import { type CarbonPlan, chungnamPathway, chungnamSectorShares } from "@/lib/content/home-carbon";
 import { cn } from "@/lib/utils/cn";
 
 const fmt = (v: number) =>
   v.toLocaleString("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 /**
- * 메인 '데이터로 보는 충남 탄소중립' — 배출 실적·2030 감축 목표·부문별 비중.
- * 수치는 배출현황 메뉴와 같은 자료(관리자 > 도표 관리 '충청남도 부문별 총배출량')에서 계산한다.
+ * 메인 '데이터로 보는 충남 탄소중립' — 배출 실적·감축 목표·부문별 비중.
+ * 수치는 관리자 > 도표 관리 '충청남도 부문별 총배출량'·'충청남도 탄소중립 목표'에서 계산한다.
  */
 export function CarbonDataSection({
   data,
+  plan,
   links,
 }: {
   /** 충청남도 부문별 총배출량 (연도별 행, 마지막 행이 최신) */
   data: StaticChart;
+  /** 기준연도·감축 목표·탄소중립 연도 */
+  plan: CarbonPlan;
   /** 관리자가 숨기지 않은 충남 탄소중립 메뉴 링크 */
   links: { href: string; label: string }[];
 }) {
   if (data.rows.length === 0) return null;
   const unit = data.unit;
   const source = data.source ?? "";
-  const pathway = chungnamPathway(data);
+  const pathway = chungnamPathway(data, plan);
+  const firstTarget = plan.targets[0];
   const { year, total, sectors } = chungnamSectorShares(data);
-  const ratePct = Math.round(CHUNGNAM_2030_REDUCTION_RATE * 100);
   const localShare =
     Math.round(sectors.filter((s) => s.local).reduce((a, s) => a + s.share, 0) * 10) / 10;
 
@@ -44,23 +41,29 @@ export function CarbonDataSection({
           데이터로 보는 충남 탄소중립
         </h2>
         <p className="mt-2 text-muted-foreground">
-          충청남도는 {CHUNGNAM_BASE_YEAR}년 대비 2030년까지 온실가스 {ratePct}% 감축, 2045년
-          탄소중립을 목표로 합니다.
+          충청남도는{" "}
+          {plan.targets.length > 0 &&
+            `${plan.baseYear}년 대비 ${plan.targets
+              .map((t) => `${t.year}년까지 온실가스 ${t.rate}% 감축`)
+              .join(", ")}, `}
+          {plan.netZeroYear}년 탄소중립을 목표로 합니다.
         </p>
 
         <dl className="mt-8 grid gap-4 sm:grid-cols-3">
           <KeyFigure label={`${year}년 총배출량`} value={fmt(total)} unit={unit} />
-          <KeyFigure
-            label={`2030년 감축 목표 (${CHUNGNAM_BASE_YEAR}년 대비)`}
-            value={`${ratePct}`}
-            unit="%"
-            accent
-          />
-          <KeyFigure label="탄소중립 실현 목표" value="2045" unit="년" />
+          {firstTarget && (
+            <KeyFigure
+              label={`${firstTarget.year}년 감축 목표 (${plan.baseYear}년 대비)`}
+              value={`${firstTarget.rate}`}
+              unit="%"
+              accent
+            />
+          )}
+          <KeyFigure label="탄소중립 실현 목표" value={plan.netZeroYear} unit="년" />
         </dl>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-5">
-          <PathwayCard pathway={pathway} ratePct={ratePct} unit={unit} source={source} />
+          <PathwayCard pathway={pathway} plan={plan} unit={unit} source={source} />
           <SectorCard
             year={year}
             sectors={sectors}
@@ -126,12 +129,12 @@ const BAR_AREA = "h-48 sm:h-56";
 
 function PathwayCard({
   pathway,
-  ratePct,
+  plan,
   unit,
   source,
 }: {
   pathway: ReturnType<typeof chungnamPathway>;
-  ratePct: number;
+  plan: CarbonPlan;
   unit: string;
   source: string;
 }) {
@@ -141,7 +144,7 @@ function PathwayCard({
   return (
     <figure className="rounded-2xl border border-border bg-card p-5 sm:p-6 lg:col-span-3">
       <figcaption>
-        <h3 className="text-lg font-bold">2045 탄소중립까지의 감축 경로</h3>
+        <h3 className="text-lg font-bold">{plan.netZeroYear} 탄소중립까지의 감축 경로</h3>
         <p className="mt-1 text-sm text-muted-foreground">
           총배출량 실적(흡수원 제외)과 기본계획 목표 · 단위: {unit}
         </p>
@@ -160,12 +163,12 @@ function PathwayCard({
 
       <ol className="mt-4 flex gap-1.5 sm:gap-3">
         {pathway.map((p, i) => {
-          const isBase = p.year === CHUNGNAM_BASE_YEAR;
+          const isBase = p.year === plan.baseYear;
           const label =
             p.kind === "actual"
               ? `${p.year}년 실적 ${fmt(p.value)} ${unit}`
               : p.kind === "target"
-                ? `${p.year}년 목표 ${fmt(p.value)} ${unit} (${CHUNGNAM_BASE_YEAR}년 대비 ${ratePct}% 감축)`
+                ? `${p.year}년 목표 ${fmt(p.value)} ${unit} (${plan.baseYear}년 대비 ${p.rate}% 감축)`
                 : `${p.year}년 목표 순배출량 0 (탄소중립)`;
           return (
             <li
@@ -182,7 +185,7 @@ function PathwayCard({
               >
                 {p.kind === "target" && (
                   <span className="mb-1 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold whitespace-nowrap text-primary-foreground sm:text-[11px]">
-                    −{ratePct}%
+                    −{p.rate}%
                   </span>
                 )}
                 {p.kind === "netZero" ? (
@@ -234,10 +237,13 @@ function PathwayCard({
       </ol>
 
       <p className="mt-4 text-xs text-muted-foreground">
-        2030년 값은 {CHUNGNAM_BASE_YEAR}년 총배출량에 {ratePct}% 감축을 적용해 계산한 값입니다.
-        2045년은 순배출량(배출량 − 흡수·제거량) 0을 뜻합니다.
+        {plan.targets.length > 0 &&
+          `${plan.targets.map((t) => `${t.year}년`).join("·")} 값은 ${plan.baseYear}년 총배출량에 ${plan.targets
+            .map((t) => `${t.rate}%`)
+            .join("·")} 감축을 적용해 계산한 값입니다. `}
+        {plan.netZeroYear}년은 순배출량(배출량 − 흡수·제거량) 0을 뜻합니다.
         <br />
-        자료: {source} · {CHUNGNAM_PLAN_SOURCE}
+        자료: {source} · {plan.source}
       </p>
     </figure>
   );

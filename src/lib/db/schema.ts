@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { index, integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import type { ChartRow, ContactSettings } from "@/types";
+import type { ChartRow, ContactSettings, ContentTable } from "@/types";
 
 /**
  * 데이터베이스 스키마 (SQLite / libSQL).
@@ -139,7 +139,9 @@ export const menuSettings = sqliteTable("menu_settings", {
 /** 사이트 설정 (key-value, JSON) — contact(주소·연락처), homeSections(메인 영역 순서) */
 export const siteSettings = sqliteTable("site_settings", {
   key: text("key").primaryKey(),
-  value: text("value", { mode: "json" }).$type<ContactSettings | string[]>().notNull(),
+  value: text("value", { mode: "json" })
+    .$type<ContactSettings | string[] | ContentTable>()
+    .notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`)

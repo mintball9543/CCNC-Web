@@ -1,6 +1,9 @@
 import { MenuLink } from "@/components/layout/menu-link";
 import { CHUNGNAM_2045 } from "@/lib/content/carbon-info";
 import { projectHref } from "@/lib/content/center-plan";
+import { carbonPlan, carbonPlanGoal, carbonPlanMilestones } from "@/lib/content/home-carbon";
+import { SYSTEM_CHART_SLUGS } from "@/lib/config/charts";
+import { getSystemChart } from "@/lib/queries/site";
 import { navMetadata } from "@/lib/seo";
 
 export const metadata = navMetadata("/carbon-neutral/vision-2045");
@@ -9,7 +12,10 @@ export const metadata = navMetadata("/carbon-neutral/vision-2045");
  * 비전·목표·전략은 기존 홈페이지 '충남 2045 비전 및 목표'(전략 이미지 → 텍스트)에서 옮김.
  * 기본계획 이행·재수립 일정은 센터 사업계획서·지정 신청 발표자료 기준.
  */
-export default function Page() {
+export default async function Page() {
+  // 목표 문구·이정표는 관리자 > 도표 관리 '충청남도 탄소중립 목표'에서 고친다
+  const plan = carbonPlan(await getSystemChart(SYSTEM_CHART_SLUGS.chungnamTargets));
+  const milestones = carbonPlanMilestones(plan);
   return (
     <div className="space-y-12">
       <section aria-labelledby="vision-heading">
@@ -26,13 +32,19 @@ export default function Page() {
         <h2 id="goal-heading" className="mb-5 text-xl font-bold">
           목표
         </h2>
-        <p className="text-lg leading-relaxed font-semibold">{CHUNGNAM_2045.goal}</p>
-        <ol className="mt-5 grid grid-cols-3 gap-2 sm:gap-4">
-          {CHUNGNAM_2045.milestones.map((m, i) => (
+        <p className="text-lg leading-relaxed font-semibold">{carbonPlanGoal(plan)}</p>
+        <ol
+          className={
+            milestones.length === 3
+              ? "mt-5 grid grid-cols-3 gap-2 sm:gap-4"
+              : "mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4"
+          }
+        >
+          {milestones.map((m, i) => (
             <li
               key={m.year}
               className={
-                i === CHUNGNAM_2045.milestones.length - 1
+                i === milestones.length - 1
                   ? "rounded-2xl bg-primary p-4 text-center text-primary-foreground sm:p-6"
                   : "rounded-2xl bg-primary-soft p-4 text-center sm:p-6"
               }

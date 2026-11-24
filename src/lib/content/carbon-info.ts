@@ -487,12 +487,7 @@ export const NATIONAL_SCENARIO_TABLE: InfoTableData = {
 
 export const CHUNGNAM_2045 = {
   vision: "대한민국 탄소중립사회를 선도하는, 힘쎈 충남",
-  goal: "2018년 온실가스 배출량 대비 2030년까지 43% 감축, 2045년 탄소중립 실현",
-  milestones: [
-    { year: "2018", label: "기준연도 배출량" },
-    { year: "2030", label: "43% 감축" },
-    { year: "2045", label: "탄소중립 실현" },
-  ],
+  // 목표 문구·이정표는 CHUNGNAM_TARGETS_DATA(관리자 '충청남도 탄소중립 목표')에서 만든다
   strategies: [
     {
       type: "강화 전략",
@@ -521,6 +516,24 @@ export const CHUNGNAM_2045 = {
   ],
   source: "충청남도 2045 탄소중립 녹색성장 기본계획",
 } as const;
+
+/**
+ * 충남 탄소중립 목표 — 관리자 > 도표 관리 '충청남도 탄소중립 목표'의 처음 값.
+ * 기준연도는 0, 탄소중립 연도는 100(%)이다. 목표 문구·이정표·메인 감축 경로를 여기서 만든다(home-carbon.ts).
+ */
+export const CHUNGNAM_TARGETS_DATA: StaticChart = {
+  title: "충청남도 탄소중립 목표",
+  unit: "%",
+  chartType: "bar",
+  categoryLabel: "연도",
+  series: ["기준연도 대비 감축률(%)"],
+  rows: [
+    { label: "2018", values: [0] },
+    { label: "2030", values: [43] },
+    { label: "2045", values: [100] },
+  ],
+  source: CHUNGNAM_2045.source,
+};
 
 /* ───────────────────────── 3. 배출현황 ───────────────────────── */
 

@@ -15,6 +15,7 @@ import type {
   ChartDataset,
   CommitteeMember,
   ContactSettings,
+  ContentTable,
   HeroSlide,
   OrgMember,
   RelatedSite,
@@ -68,6 +69,25 @@ export async function saveHomeSectionOrder(value: string[]): Promise<void> {
   await db
     .insert(siteSettings)
     .values({ key: "homeSections", value })
+    .onConflictDoUpdate({ target: siteSettings.key, set: { value, updatedAt: new Date() } });
+}
+
+// ── 홈페이지 글자 표 (site_settings: table:<slug>) ──────
+const tableKey = (slug: string) => `table:${slug}`;
+
+export async function findContentTable(
+  slug: string,
+): Promise<{ value: ContentTable; updatedAt: Date } | null> {
+  const row = await db.query.siteSettings.findFirst({
+    where: eq(siteSettings.key, tableKey(slug)),
+  });
+  return row ? { value: row.value as ContentTable, updatedAt: row.updatedAt } : null;
+}
+
+export async function saveContentTable(slug: string, value: ContentTable): Promise<void> {
+  await db
+    .insert(siteSettings)
+    .values({ key: tableKey(slug), value })
     .onConflictDoUpdate({ target: siteSettings.key, set: { value, updatedAt: new Date() } });
 }
 

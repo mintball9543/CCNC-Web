@@ -1,11 +1,9 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminSuspense } from "@/components/admin/admin-suspense";
-import { ChartEditor, type ChartPlacementHolders } from "@/components/admin/chart-editor";
-import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
-import { deleteChartAction } from "@/lib/actions/content.actions";
+import { ChartEditor } from "@/components/admin/chart-editor";
 import { requireAdmin } from "@/lib/auth/guard";
-import { chartPlacementOf, systemChartOf } from "@/lib/config/charts";
+import { systemChartOf } from "@/lib/config/charts";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 
 export const metadata = { title: "도표 수정" };
@@ -21,32 +19,13 @@ export default function EditChartPage(props: PageProps<"/admin/charts/[id]">) {
 async function Content({ params }: PageProps<"/admin/charts/[id]">) {
   await requireAdmin();
   const chart = await settingsRepository.findChart(Number((await params).id));
-  if (!chart) notFound();
-  const system = systemChartOf(chart.slug) ?? undefined;
+  // 홈페이지에 들어간 도표·자료만 수정한다 (예전에 직접 만든 도표는 더 이상 쓰지 않음)
+  const system = chart ? systemChartOf(chart.slug) : null;
+  if (!chart || !system) notFound();
   return (
     <>
-      <AdminPageHeader
-        title={system ? `도표 수정 — ${system.label}` : "도표 수정"}
-        actions={
-          // 홈페이지에 고정된 도표·자료는 페이지가 쓰므로 삭제할 수 없다
-          !system && (
-            <form action={deleteChartAction.bind(null, chart.id)}>
-              <ConfirmSubmitButton message="이 도표를 삭제하시겠습니까?">삭제</ConfirmSubmitButton>
-            </form>
-          )
-        }
-      />
-      <ChartEditor chart={chart} holders={await placementHolders()} system={system} />
+      <AdminPageHeader title={`도표 수정 — ${system.label}`} />
+      <ChartEditor chart={chart} system={system} />
     </>
-  );
-}
-
-/** 메뉴별로 현재 표시 중인 도표 — 도표 편집기의 '표시할 메뉴' 안내용 */
-async function placementHolders(): Promise<ChartPlacementHolders> {
-  const charts = await settingsRepository.listCharts();
-  return Object.fromEntries(
-    charts
-      .filter((c) => chartPlacementOf(c.slug))
-      .map((c) => [c.slug, { id: c.id, title: c.title }]),
   );
 }

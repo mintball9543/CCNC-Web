@@ -1,38 +1,3 @@
-/** 페이지에서 참조하는 도표 키 — 관리자 > 도표 관리의 '표시 위치'로 지정된다 */
-export const CHART_SLUGS = {
-  /** 충남 탄소중립 > 배출현황 */
-  emissions: "chungnam-emissions",
-} as const;
-
-export interface ChartPlacement {
-  /** 내부 키 (chart_datasets.slug) */
-  slug: string;
-  /** 관리자 화면에 보이는 메뉴 이름 */
-  label: string;
-  href: string;
-}
-
-/**
- * 도표를 넣을 수 있는 페이지(메뉴) 목록 — 관리자 '표시 위치' 드롭다운의 선택지.
- * 새 페이지에 도표를 넣으려면 여기에 추가하고 해당 페이지에서 getPublishedChart(slug) 를 호출한다.
- */
-export const CHART_PLACEMENTS: readonly ChartPlacement[] = [
-  {
-    slug: CHART_SLUGS.emissions,
-    label: "충남 탄소중립 > 배출현황",
-    href: "/carbon-neutral/emissions",
-  },
-];
-
-export function chartPlacementOf(slug: string): ChartPlacement | null {
-  return CHART_PLACEMENTS.find((p) => p.slug === slug) ?? null;
-}
-
-/** 페이지에 지정되지 않은 도표의 내부 키 */
-export function unplacedChartSlug(id: number | string): string {
-  return `chart-${id}`;
-}
-
 /* ───────────────────── 홈페이지에 고정된 도표·자료 ───────────────────── */
 
 /**
@@ -45,6 +10,7 @@ export const SYSTEM_CHART_SLUGS = {
   chungnamLocalOutlook: "system-chungnam-local-outlook",
   koreaSectorEmissions: "system-korea-sector-emissions",
   nationalTarget: "system-national-target",
+  chungnamTargets: "system-chungnam-targets",
 } as const;
 
 export type SystemChartSlug = (typeof SYSTEM_CHART_SLUGS)[keyof typeof SYSTEM_CHART_SLUGS];
@@ -67,6 +33,17 @@ export interface SystemChart {
 }
 
 export const SYSTEM_CHARTS: readonly SystemChart[] = [
+  {
+    slug: SYSTEM_CHART_SLUGS.chungnamTargets,
+    label: "충청남도 탄소중립 목표 (기준연도·감축률)",
+    usedIn: [
+      "메인 > 데이터로 보는 충남 탄소중립 (감축 목표·감축 경로)",
+      "충남 탄소중립 > 충남 2045 비전·목표 (목표 문구·이정표)",
+    ],
+    fixedSeries: ["기준연도 대비 감축률(%)"],
+    guide:
+      "기본계획이 바뀌면 고치세요. 기준연도는 0, 탄소중립 연도는 100으로 입력하고, 그 사이 목표 연도(예: 2030년 43)를 넣습니다. 메인 감축 경로의 목표값은 기준연도 총배출량에 감축률을 적용해 계산합니다.",
+  },
   {
     slug: SYSTEM_CHART_SLUGS.chungnamTotal,
     label: "충청남도 부문별 총배출량",
@@ -110,4 +87,40 @@ export const SYSTEM_CHARTS: readonly SystemChart[] = [
 
 export function systemChartOf(slug: string): SystemChart | null {
   return SYSTEM_CHARTS.find((c) => c.slug === slug) ?? null;
+}
+
+/* ───────────────────── 홈페이지에 들어간 표 (글자 표) ───────────────────── */
+
+export const CONTENT_TABLE_SLUGS = {
+  koreaSectorEmissions: "korea-sector-emissions",
+  worldRanking: "world-ranking",
+} as const;
+
+export type ContentTableSlug = (typeof CONTENT_TABLE_SLUGS)[keyof typeof CONTENT_TABLE_SLUGS];
+
+export interface ContentTableConfig {
+  slug: ContentTableSlug;
+  label: string;
+  usedIn: string;
+  guide: string;
+}
+
+export const CONTENT_TABLES: readonly ContentTableConfig[] = [
+  {
+    slug: CONTENT_TABLE_SLUGS.koreaSectorEmissions,
+    label: "국내 분야별 온실가스 배출량 표",
+    usedIn: "충남 탄소중립 > 탄소중립 이해 (온실가스 배출 현황)",
+    guide:
+      "값은 '240.4 (82.3)'처럼 배출량과 비중을 함께 적습니다. 새 연도는 '열 추가'로 넣으세요. 하위 분야는 앞에 전각 공백(　)을 넣으면 들여쓰기됩니다. 바로 아래 비교 도표는 '국내 분야별 온실가스 배출량 비교'에서 따로 고칩니다.",
+  },
+  {
+    slug: CONTENT_TABLE_SLUGS.worldRanking,
+    label: "국가별 온실가스 배출량 순위 표",
+    usedIn: "충남 탄소중립 > 탄소중립 이해 (온실가스 배출 현황)",
+    guide: "설명은 표 위 문장으로 나옵니다. 우리나라 행은 '행 전체 강조'로 표시합니다.",
+  },
+];
+
+export function contentTableOf(slug: string): ContentTableConfig | null {
+  return CONTENT_TABLES.find((t) => t.slug === slug) ?? null;
 }

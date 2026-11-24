@@ -6,7 +6,6 @@ export const HOME_SECTIONS = [
   { key: "quickLinks", label: "주요사업·참여 바로가기", hint: "주요사업·참여·실천 메뉴" },
   { key: "stats", label: "숫자로 보는 센터", hint: "수치 관리" },
   { key: "carbonData", label: "데이터로 보는 충남 탄소중립", hint: "충남 탄소중립 도표" },
-  { key: "charts", label: "우리가 이뤄낸 탄소중립의 기록", hint: "도표 관리 › 메인 화면에도 표시" },
   { key: "relatedSites", label: "관련 사이트", hint: "관련 기관 로고" },
 ] as const;
 

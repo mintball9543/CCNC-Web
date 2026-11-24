@@ -1,15 +1,31 @@
 import { describe, expect, it } from "vitest";
-import { CHUNGNAM_2045, CHUNGNAM_TOTAL_DATA as DATA } from "./carbon-info";
+import { CHUNGNAM_TARGETS_DATA, CHUNGNAM_TOTAL_DATA as DATA } from "./carbon-info";
 import {
-  CHUNGNAM_2030_REDUCTION_RATE,
+  carbonPlan,
+  carbonPlanGoal,
+  carbonPlanMilestones,
   chungnamPathway,
   chungnamSectorShares,
   chungnamTotals,
 } from "./home-carbon";
 
 describe("메인 충남 탄소중립 데이터", () => {
-  it("감축률이 2045 기본계획 목표 문구와 같다", () => {
-    expect(CHUNGNAM_2045.goal).toContain(`${Math.round(CHUNGNAM_2030_REDUCTION_RATE * 100)}%`);
+  const PLAN = carbonPlan(CHUNGNAM_TARGETS_DATA);
+
+  it("목표 자료에서 기본계획 목표 문구·이정표를 만든다 (기존 문구와 같음)", () => {
+    expect(PLAN).toMatchObject({
+      baseYear: "2018",
+      targets: [{ year: "2030", rate: 43 }],
+      netZeroYear: "2045",
+    });
+    expect(carbonPlanGoal(PLAN)).toBe(
+      "2018년 온실가스 배출량 대비 2030년까지 43% 감축, 2045년 탄소중립 실현",
+    );
+    expect(carbonPlanMilestones(PLAN)).toEqual([
+      { year: "2018", label: "기준연도 배출량" },
+      { year: "2030", label: "43% 감축" },
+      { year: "2045", label: "탄소중립 실현" },
+    ]);
   });
 
   it("연도별 총배출량은 총배출량 표의 총계이고, 부문별 합과 0.1 이내로 맞는다", () => {
@@ -29,7 +45,7 @@ describe("메인 충남 탄소중립 데이터", () => {
   });
 
   it("감축 경로: 실적 5년 → 2030 목표 47.3 → 2045 순배출 0", () => {
-    const path = chungnamPathway(DATA);
+    const path = chungnamPathway(DATA, PLAN);
     expect(path.filter((p) => p.kind === "actual").map((p) => p.year)).toEqual([
       "2016",
       "2017",
@@ -41,6 +57,7 @@ describe("메인 충남 탄소중립 데이터", () => {
       year: "2030",
       value: 47.3,
       kind: "target",
+      rate: 43,
     });
     expect(path[path.length - 1]).toEqual({ year: "2045", value: 0, kind: "netZero" });
   });
@@ -60,7 +77,7 @@ describe("메인 충남 탄소중립 데이터", () => {
       rows: [...DATA.rows, { label: "2021", values: [60, 7, 4.5, 3.7, 1.0, -1.0, 76.2] }],
     };
     expect(chungnamSectorShares(next)).toMatchObject({ year: "2021", total: 76.2 });
-    const path = chungnamPathway(next);
+    const path = chungnamPathway(next, PLAN);
     expect(path.filter((p) => p.kind === "actual").at(-1)).toEqual({
       year: "2021",
       value: 76.2,
