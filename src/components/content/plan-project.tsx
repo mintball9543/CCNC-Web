@@ -1,5 +1,5 @@
 import { Building2, CalendarRange, ChevronDown } from "lucide-react";
-import Link from "next/link";
+import { MenuLink } from "@/components/layout/menu-link";
 import type { ReactNode } from "react";
 import {
   COMMITTEE,
@@ -188,10 +188,10 @@ export function CenterWorkAreas({ committee }: { committee: CommitteeMember[] })
               <ul className="mt-2 space-y-1.5 text-sm">
                 {projectsForField(field.key).map((p) => (
                   <li key={p.code}>
-                    <Link href={projectHref(p)} className="flex gap-2 hover:text-primary">
+                    <MenuLink href={projectHref(p)} className="flex gap-2 hover:text-primary">
                       <span className="font-mono font-semibold text-primary">{p.code}</span>
                       <span>{p.title}</span>
-                    </Link>
+                    </MenuLink>
                   </li>
                 ))}
               </ul>

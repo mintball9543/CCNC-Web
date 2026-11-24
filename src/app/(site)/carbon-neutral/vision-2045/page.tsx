@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { MenuLink } from "@/components/layout/menu-link";
 import { CHUNGNAM_2045 } from "@/lib/content/carbon-info";
 import { projectHref } from "@/lib/content/center-plan";
 import { navMetadata } from "@/lib/seo";
@@ -68,12 +68,12 @@ export default function Page() {
         </ol>
         <p className="mt-4 text-sm text-muted-foreground">
           부문별 감축 목표와 세부사업은{" "}
-          <Link
+          <MenuLink
             href="/carbon-neutral/sector-targets"
             className="text-primary underline underline-offset-2"
           >
             부문별 감축목표
-          </Link>
+          </MenuLink>
           에서 볼 수 있습니다.
         </p>
         <p className="mt-2 text-xs text-muted-foreground">자료: {CHUNGNAM_2045.source}</p>
@@ -89,12 +89,12 @@ export default function Page() {
               「탄소중립기본법」 제13조에 따라 지자체는 기본계획 추진상황과 주요 성과를 매년
               정량·정성적으로 점검하고, 그 결과보고서를 지방위원회를 거쳐 기후에너지환경부에
               제출합니다. 센터는 2026년 부문별 감축사업의{" "}
-              <Link
+              <MenuLink
                 href={projectHref({ field: "policy", code: "1-1" })}
                 className="text-primary underline underline-offset-2"
               >
                 이행점검을 지원
-              </Link>
+              </MenuLink>
               합니다.
             </p>
           </li>

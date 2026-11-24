@@ -23,8 +23,8 @@ function MenuSettingsFormInner({
   const [visible, setVisible] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
     for (const s of navigation) {
-      init[sectionKey(s.key)] = settings[sectionKey(s.key)] !== false;
-      for (const i of s.items) init[i.href] = settings[i.href] !== false;
+      init[sectionKey(s.key)] = s.locked || settings[sectionKey(s.key)] !== false;
+      for (const i of s.items) init[i.href] = s.locked || settings[i.href] !== false;
     }
     return init;
   });
@@ -49,8 +49,10 @@ function MenuSettingsFormInner({
               <Toggle
                 name={sKey}
                 checked={sectionOn}
+                disabled={section.locked}
                 onChange={() => toggle(sKey)}
                 label={section.title}
+                hint={section.locked ? "항상 표시 (숨길 수 없는 메뉴)" : undefined}
                 strong
               />
               <ul className="mt-3 space-y-1 border-t border-border pt-3">
@@ -59,7 +61,7 @@ function MenuSettingsFormInner({
                     <Toggle
                       name={item.href}
                       checked={visible[item.href]}
-                      disabled={!sectionOn}
+                      disabled={section.locked || !sectionOn}
                       onChange={() => toggle(item.href)}
                       label={item.title}
                       hint={item.href}
@@ -74,7 +76,7 @@ function MenuSettingsFormInner({
       <p className="text-sm text-muted-foreground">
         숨긴 메뉴는 상단 메뉴·모바일 메뉴·좌측 메뉴·사이트맵·메인 화면 바로가기에서 사라지고, 주소로
         직접 접근하면 404 페이지가 표시됩니다. 게시판을 숨겨도 관리자 화면에서는 계속 관리할 수
-        있습니다.
+        있습니다. 센터소개와 알림마당은 항상 표시되는 메뉴라 숨길 수 없습니다.
       </p>
       <SubmitButton pendingText="저장 중…">저장</SubmitButton>
     </ActionForm>

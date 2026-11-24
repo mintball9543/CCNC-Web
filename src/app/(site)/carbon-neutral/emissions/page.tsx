@@ -1,6 +1,7 @@
 import { ChartCard } from "@/components/charts/chart-card";
 import { StaticChartCard } from "@/components/charts/static-chart-card";
 import { InfoTable } from "@/components/content/info-table";
+import { MenuLink } from "@/components/layout/menu-link";
 import {
   CHUNGNAM_DIRECT_INDIRECT_CHART,
   CHUNGNAM_EMISSION_DEFINITIONS,
@@ -39,12 +40,12 @@ export default async function Page() {
         </ul>
         <p className="mt-4 text-sm text-muted-foreground">
           센터는 이러한 지역 유형별 특성을 반영한{" "}
-          <a
+          <MenuLink
             href={projectHref({ field: "information", code: "2-2" })}
             className="text-primary underline underline-offset-2"
           >
             충남형 온실가스 인벤토리
-          </a>{" "}
+          </MenuLink>{" "}
           설계 방향을 검토하고 있습니다.
         </p>
       </section>

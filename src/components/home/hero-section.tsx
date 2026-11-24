@@ -2,13 +2,17 @@ import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { siteConfig } from "@/lib/config/site";
 import { getActiveHeroSlides } from "@/lib/queries/site";
+import type { NavSection } from "@/types";
 import { HeroCarousel } from "./hero-carousel";
 
 const TITLE = "도민과 함께 만드는 충남의 탄소중립";
 
 /** 메인 비주얼 — 관리자 > 메인 비주얼에 사진이 있으면 슬라이드, 없으면 CI 패턴 */
-export async function HeroSection() {
+export async function HeroSection({ navigation }: { navigation: NavSection[] }) {
   const slides = await getActiveHeroSlides();
+  // 기본 화면 버튼도 메뉴 표시 설정을 따른다 (숨긴 메뉴로 가는 버튼은 빼거나 보이는 첫 메뉴로)
+  const businessHref = navigation.find((s) => s.key === "business")?.href;
+  const showGallery = navigation.some((s) => s.items.some((i) => i.href === "/news/gallery"));
   if (slides.length > 0) {
     return (
       <HeroCarousel
@@ -35,12 +39,20 @@ export async function HeroSection() {
           {siteConfig.description}
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <ButtonLink href="/business/policy" size="lg">
-            주요사업 보기
-          </ButtonLink>
-          <ButtonLink href="/news/gallery" size="lg" variant="secondary">
-            센터 활동 보기
-          </ButtonLink>
+          {businessHref && (
+            <ButtonLink href={businessHref} size="lg">
+              주요사업 보기
+            </ButtonLink>
+          )}
+          {showGallery && (
+            <ButtonLink
+              href="/news/gallery"
+              size="lg"
+              variant={businessHref ? "secondary" : undefined}
+            >
+              센터 활동 보기
+            </ButtonLink>
+          )}
         </div>
       </Container>
     </section>

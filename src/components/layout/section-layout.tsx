@@ -43,7 +43,7 @@ export async function SectionLayout({
         </aside>
         <div className="min-w-0 flex-1">
           <Suspense fallback={<Skeleton className="mb-8 h-20" />}>
-            <PageHeading />
+            <PageHeading sectionHref={section.href} />
           </Suspense>
           {children}
         </div>

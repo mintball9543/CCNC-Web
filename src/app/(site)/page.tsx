@@ -45,7 +45,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroSection />
+      <HeroSection navigation={navigation} />
       <QuickLinks navigation={navigation} />
       <StatHighlights stats={stats} />
       <CarbonDataSection links={CARBON_LINKS.filter((link) => isVisible(navigation, link.href))} />
