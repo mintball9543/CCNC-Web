@@ -2,6 +2,7 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import type { ReactNode } from "react";
 import { StaticChartCard } from "@/components/charts/static-chart-card";
 import { InfoTable } from "@/components/content/info-table";
+import { PageToc } from "@/components/content/page-toc";
 import {
   CARBON_NEUTRAL_BACKGROUND,
   CARBON_NEUTRAL_DEFINITION,
@@ -107,21 +108,7 @@ function NetZeroDiagram() {
 export default function Page() {
   return (
     <div className="space-y-16">
-      <nav aria-label="이 페이지의 내용" className="rounded-2xl bg-muted/60 p-5">
-        <ol className="grid gap-2 sm:grid-cols-4">
-          {SECTIONS.map((s, i) => (
-            <li key={s.id}>
-              <a
-                href={`#${s.id}`}
-                className="flex items-center gap-2 rounded-lg px-2 py-1.5 font-medium hover:text-primary"
-              >
-                <span className="font-mono text-sm text-primary">0{i + 1}</span>
-                {s.title}
-              </a>
-            </li>
-          ))}
-        </ol>
-      </nav>
+      <PageToc items={SECTIONS} />
 
       {/* 01 탄소중립이란 */}
       <Section id={SECTIONS[0].id} title={SECTIONS[0].title}>
