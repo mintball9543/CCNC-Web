@@ -107,7 +107,7 @@ export function RelatedSitesSlider({ sites }: { sites: RelatedSite[] }) {
       </div>
       <ul
         ref={trackRef}
-        className="flex snap-x snap-mandatory [scrollbar-width:none] gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden"
+        className="relative flex snap-x snap-mandatory [scrollbar-width:none] gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden"
         onMouseEnter={() => setHolding(true)}
         onMouseLeave={() => setHolding(false)}
         onFocus={() => setHolding(true)}

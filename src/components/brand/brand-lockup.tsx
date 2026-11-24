@@ -15,7 +15,7 @@ export function BrandLockup({ className, compact }: { className?: string; compac
         width={992}
         height={992}
         priority
-        className={cn("shrink-0", compact ? "size-9" : "size-11 lg:size-12")}
+        className={cn("shrink-0", compact ? "size-9" : "size-9 min-[360px]:size-11 lg:size-12")}
       />
       <span className="flex flex-col leading-tight">
         <span
@@ -29,7 +29,7 @@ export function BrandLockup({ className, compact }: { className?: string; compac
         <span
           className={cn(
             "font-extrabold tracking-tight text-foreground",
-            compact ? "text-base" : "text-lg lg:text-xl",
+            compact ? "text-base" : "text-base min-[360px]:text-lg lg:text-xl",
           )}
         >
           탄소중립지원센터
