@@ -20,7 +20,10 @@ function RelatedSiteFormInner({ site }: { site?: RelatedSite }) {
   const err = (k: string) => state.fieldErrors?.[k];
 
   return (
-    <ActionForm action={action} className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,42rem)_minmax(0,1fr)]">
+    <ActionForm
+      action={action}
+      className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,42rem)_minmax(0,1fr)]"
+    >
       <div className="space-y-5">
         {site && <input type="hidden" name="id" value={site.id} />}
         {state.message && !state.ok && <Alert tone="danger">{state.message}</Alert>}

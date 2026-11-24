@@ -41,7 +41,10 @@ function PopupFormInner({ popup }: { popup?: Popup }) {
     setDraft((d) => ({ ...d, [key]: e.target.value }));
 
   return (
-    <ActionForm action={action} className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_520px]">
+    <ActionForm
+      action={action}
+      className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_520px]"
+    >
       <div className="space-y-6">
         {popup && <input type="hidden" name="id" value={popup.id} />}
         {state.message && !state.ok && <Alert tone="danger">{state.message}</Alert>}

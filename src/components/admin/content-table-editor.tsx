@@ -9,15 +9,11 @@ import { Alert } from "@/components/ui/feedback";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import { Fresh } from "@/components/ui/fresh";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { saveContentTableAction } from "@/lib/actions/content.actions";
 import { parseClipboardTable } from "@/lib/charts/scale";
 import type { ContentTableConfig } from "@/lib/config/charts";
 import { toInfoTable } from "@/lib/content/content-tables";
-import {
-  initialActionState,
-  type ActionState,
-  type ContentTable,
-  type ContentTableRow,
-} from "@/types";
+import { initialActionState, type ContentTable, type ContentTableRow } from "@/types";
 
 const STYLE_LABELS: Record<ContentTableRow["style"], string> = {
   "": "보통",
@@ -32,14 +28,12 @@ const STYLE_LABELS: Record<ContentTableRow["style"], string> = {
 function ContentTableEditorInner({
   table,
   config,
-  action: saveAction,
 }: {
   table: ContentTable;
   config: ContentTableConfig;
-  action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
   updatedAt?: number;
 }) {
-  const [state, action] = useActionState(saveAction, initialActionState);
+  const [state, action] = useActionState(saveContentTableAction, initialActionState);
   const v = state.values;
   const err = (k: string) => state.fieldErrors?.[k];
   const [caption, setCaption] = useState(v?.caption ?? table.caption);
@@ -85,6 +79,7 @@ function ContentTableEditorInner({
 
   return (
     <ActionForm action={action} className="space-y-6">
+      <input type="hidden" name="slug" value={config.slug} />
       <input type="hidden" name="head" value={JSON.stringify(head)} />
       <input type="hidden" name="rows" value={JSON.stringify(cleanRows)} />
       {state.message && !state.ok && <Alert tone="danger">{state.message}</Alert>}

@@ -148,13 +148,13 @@ async function saveSystemChart(
 
 /** 홈페이지 글자 표 저장 — 저장하면 해당 페이지에 바로 반영 */
 export async function saveContentTableAction(
-  slug: string,
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   await requireAdmin();
-  const config = contentTableOf(slug);
   const raw = formDataToObject(formData);
+  // 어떤 표인지는 폼의 hidden slug 로 받고, 정해진 표 목록에 있는지 서버에서 다시 확인한다
+  const config = contentTableOf(raw.slug ?? "");
   if (!config) return { ok: false, message: "표를 찾을 수 없습니다.", values: raw };
   const parsed = contentTableSchema.safeParse(raw);
   if (!parsed.success) return validationError(parsed.error, raw);
