@@ -41,7 +41,6 @@ export function PageToc({ items }: { items: readonly TocItem[] }) {
   // 떠 있는 목차가 사라지면 펼친 목록도 닫힌 것으로 본다
   const listOpen = open && inlineHidden;
 
-
   useEffect(() => {
     let frame = 0;
     const update = () => {
@@ -190,7 +189,11 @@ export function PageToc({ items }: { items: readonly TocItem[] }) {
           aria-controls="floating-toc"
           className="flex h-11 items-center gap-1.5 rounded-full border border-border bg-card px-4 text-sm font-semibold shadow-lg"
         >
-          {listOpen ? <X className="size-4" aria-hidden /> : <List className="size-4" aria-hidden />}
+          {listOpen ? (
+            <X className="size-4" aria-hidden />
+          ) : (
+            <List className="size-4" aria-hidden />
+          )}
           목차
           {!listOpen && active && (
             <span className="font-mono text-xs text-primary">
