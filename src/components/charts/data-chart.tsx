@@ -324,7 +324,7 @@ export function DataChart({ data, className }: { data: ChartData; className?: st
 
       <details className="rounded-lg border border-border text-sm">
         <summary className="cursor-pointer px-3 py-2 font-medium">표로 보기</summary>
-        <div className="overflow-x-auto px-3 pb-3">
+        <div className="relative overflow-x-auto px-3 pb-3">
           <table id={tableId} className="w-full text-center">
             <caption className="sr-only">
               {data.title} {data.unit && `(단위: ${data.unit})`}

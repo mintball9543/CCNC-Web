@@ -12,7 +12,7 @@ import { MobileNav } from "./mobile-nav";
 export function SiteHeader({ navigation }: { navigation: NavSection[] }) {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-header backdrop-blur">
-      <Container className="flex h-18 items-center justify-between gap-6 lg:h-22">
+      <Container className="flex h-18 items-center justify-between gap-2 sm:gap-6 lg:h-22">
         <Link href="/" className="shrink-0" aria-label="충청남도 탄소중립지원센터 홈">
           <BrandLockup />
         </Link>
@@ -21,7 +21,7 @@ export function SiteHeader({ navigation }: { navigation: NavSection[] }) {
           <DesktopNav sections={navigation} />
         </Suspense>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center sm:gap-1">
           <Link
             href="/search"
             className="inline-flex size-10 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"

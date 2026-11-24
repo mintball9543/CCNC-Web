@@ -214,7 +214,7 @@ export function CenterWorkAreas({ committee }: { committee: CommitteeMember[] })
           ))}
         </ol>
         {committee.length > 0 && (
-          <div className="mt-6 overflow-x-auto border-t-2 border-foreground">
+          <div className="relative mt-6 overflow-x-auto border-t-2 border-foreground">
             <table className="w-full min-w-[640px] text-sm">
               <caption className="sr-only">운영위원 명단</caption>
               <thead className="border-b border-border bg-muted/60">

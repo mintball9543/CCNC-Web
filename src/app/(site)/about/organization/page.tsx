@@ -39,7 +39,7 @@ export default async function Page() {
           <h2 id="contact-heading" className="mb-4 text-xl font-bold">
             담당자 연락처
           </h2>
-          <div className="overflow-x-auto border-t-2 border-foreground">
+          <div className="relative overflow-x-auto border-t-2 border-foreground">
             <table className="w-full min-w-[480px] text-sm">
               <caption className="sr-only">담당자 연락처</caption>
               <thead className="border-b border-border bg-muted/60">
