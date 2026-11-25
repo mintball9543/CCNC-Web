@@ -13,6 +13,7 @@ import {
   GHG_SOURCES_TABLE,
   GHG_TERMS,
   HUMAN_CAUSES,
+  NATIONAL_GHG_TARGETS,
   NATIONAL_SCENARIO_TABLE,
   NATIONAL_STRATEGY,
   NATURAL_CAUSES,
@@ -214,11 +215,25 @@ export default async function Page() {
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                   {t.description}
                 </p>
-                <p className="mt-auto pt-3 text-xs text-muted-foreground">자료: {t.source}</p>
+                <p className="mt-auto pt-3 text-xs text-muted-foreground">
+                  자료:{" "}
+                  <a
+                    href={t.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2 hover:text-primary"
+                  >
+                    {t.source}
+                    <span className="sr-only"> (새 창)</span>
+                  </a>
+                </p>
               </li>
             ))}
           </ul>
-          <p className="text-xs text-muted-foreground">※ 수치는 그래프에서 읽은 대략값입니다.</p>
+          <p className="text-xs text-muted-foreground">
+            ※ 산업화 이전 CO₂ 농도는 WMO 가 발표한 비율(2025년 농도 = 산업화 이전의 153%)로 계산한
+            대략값입니다.
+          </p>
         </div>
       </Section>
 
@@ -357,8 +372,52 @@ export default async function Page() {
           </div>
           <p className="text-xs text-muted-foreground">자료: {NATIONAL_STRATEGY.source}</p>
         </div>
+        <div className="space-y-5">
+          <SubHeading>국가 온실가스 감축목표</SubHeading>
+          <p className="leading-relaxed">{NATIONAL_GHG_TARGETS.summary}</p>
+          <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {NATIONAL_GHG_TARGETS.targets.map((t) => (
+              <li key={t.year} className="flex flex-col rounded-2xl border border-border p-5">
+                <p className="text-sm font-semibold text-muted-foreground">{t.year}년</p>
+                <p className="mt-1 text-2xl font-bold text-primary tabular-nums">{t.rate}</p>
+                <p className="mt-1 text-xs text-muted-foreground">2018년 대비 감축</p>
+                <p className="mt-3 text-sm leading-relaxed">{t.basis}</p>
+              </li>
+            ))}
+          </ol>
+          <div className="rounded-2xl bg-muted/60 p-5">
+            <p className="font-semibold">{NATIONAL_GHG_TARGETS.sectors.title}</p>
+            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+              {NATIONAL_GHG_TARGETS.sectors.items.map((sec) => (
+                <li key={sec.label} className="flex items-baseline justify-between gap-4">
+                  <span>{sec.label}</span>
+                  <strong className="text-primary tabular-nums">{sec.value}</strong>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-sm text-muted-foreground">
+              {NATIONAL_GHG_TARGETS.sectors.note}
+            </p>
+          </div>
+          <ul className="space-y-1 text-xs text-muted-foreground">
+            {NATIONAL_GHG_TARGETS.sources.map((src) => (
+              <li key={src.url}>
+                자료:{" "}
+                <a
+                  href={src.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2 hover:text-primary"
+                >
+                  {src.label}
+                  <span className="sr-only"> (새 창)</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
         <div>
-          <SubHeading>정부 탄소중립 목표</SubHeading>
+          <SubHeading>정부 탄소중립 목표 (제1차 국가 기본계획)</SubHeading>
           <StaticChartCard chart={nationalTarget} headingLevel={4} />
         </div>
         <div>

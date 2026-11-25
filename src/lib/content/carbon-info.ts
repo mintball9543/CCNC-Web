@@ -141,23 +141,29 @@ export const HUMAN_CAUSES = {
     "IPCC(기후변화에 관한 정부 간 협의체) 제5차 평가보고서에 따르면 인간은 기후 시스템에 명백한 영향을 미치고 있으며, 최근 배출된 온실가스의 양은 관측 이래 최고 수준입니다. 18세기 산업혁명 이후 인류는 막대한 양의 온실가스와 에어로졸 등을 배출했고, 경작을 위해 산림을 훼손하는 등 토지이용에도 많은 변화가 있었습니다.",
     "대기 중 이산화탄소 농도가 높아질수록 전 지구 평균기온이 높아집니다. 이산화탄소·메탄·아산화질소의 인위적 배출이 온난화의 주원인일 가능성이 높으며, 특히 이산화탄소가 전체 온실가스 배출량의 많은 부분을 차지합니다. 이산화탄소 배출 증가는 전 세계 경제 성장과 인구 증가에 따른 것이나, 최근에는 대부분 경제 성장에 의한 것으로 보입니다.",
   ],
-  /** Our World in Data 그래프 2장(이미지)을 요약 수치로 옮긴 것 — 그래프에서 읽은 대략값 */
+  /**
+   * 대기 중 CO₂ 농도·지구 평균기온 — 세계기상기구(WMO) 최신 발표값 (ISSUES.md CONTENT-008).
+   * 산업화 이전 CO₂ 농도는 WMO 가 밝힌 '2025년 농도는 1750년의 153%'에서 계산한 대략값.
+   */
   trends: [
     {
-      title: "대기 중 CO₂ 농도 (1864~2022)",
-      from: { label: "1864년", value: "약 285ppm" },
-      to: { label: "2022년", value: "약 417ppm" },
+      title: "대기 중 CO₂ 농도 (산업화 이전~2025)",
+      from: { label: "산업화 이전(1750년)", value: "약 278ppm" },
+      to: { label: "2025년 전 지구 평균", value: "426.8ppm" },
       description:
-        "1950년대까지 300ppm 안팎에서 완만하게 오르다가, 1960년 이후 가파르게 증가했습니다.",
-      source: "Our World in Data (미국 해양대기청 NOAA 자료)",
+        "산업화 이전의 153% 수준으로 관측 이래 가장 높습니다. 메탄·아산화질소 농도도 함께 최고치를 기록했습니다.",
+      source: "세계기상기구(WMO) 온실가스 연보 제22호 (2026. 10.)",
+      sourceUrl: "https://wmo.int/media/news/greenhouse-gas-levels-once-again-reach-record-high",
     },
     {
-      title: "지구 평균기온 변화 (1864~2019)",
-      from: { label: "1900년 전후", value: "약 -0.3~-0.4℃" },
-      to: { label: "2010년대 후반", value: "약 +0.6~+0.8℃" },
+      title: "지구 평균기온 변화 (1850~2025)",
+      from: { label: "1850~1900년 평균", value: "기준(0℃)" },
+      to: { label: "2025년", value: "+1.44℃" },
       description:
-        "1961~1990년 평균기온과의 차이입니다. 1980년대 이후 상승 폭이 커져 최근 가장 높은 수준을 보이고 있습니다.",
-      source: "Our World in Data (영국 해들리센터 HadCRUT4 자료)",
+        "산업화 이전(1850~1900년 평균)과의 차이입니다. 2025년은 관측 이래 두 번째 또는 세 번째로 더운 해였고, 2023~2025년 3년 평균은 +1.48℃로 가장 더운 3년이었습니다.",
+      source: "세계기상기구(WMO) 2025년 전 지구 기온 발표 (8개 자료 종합)",
+      sourceUrl:
+        "https://wmo.int/news/media-centre/wmo-confirms-2025-was-one-of-warmest-years-record",
     },
   ],
 } as const;
@@ -223,76 +229,75 @@ export const GHG_SHARE_FACTS = [
     ],
   },
   {
-    scope: "우리나라 (2018년)",
+    // 2026년 국가 온실가스 인벤토리(1990~2024, 2006 IPCC 지침) — 총배출량 691.6백만 톤 대비
+    scope: "우리나라 (2024년)",
     items: [
-      { label: "이산화탄소(CO₂)", value: "90%" },
-      { label: "메탄(CH₄)", value: "4%" },
-      { label: "F-gas(불소계 온실가스)", value: "5% 내외" },
+      { label: "이산화탄소(CO₂)", value: "87.7%" },
+      {
+        label: "F-gas(불소계 온실가스)",
+        value: "5.9%",
+        note: "수소불화탄소·과불화탄소·육불화황·삼불화질소",
+      },
+      { label: "메탄(CH₄)", value: "4.9%" },
+      { label: "아산화질소(N₂O)", value: "1.4%" },
     ],
   },
 ] as const;
 
+/** 국가 온실가스 인벤토리 — 출처·안내 (ISSUES.md CONTENT-008) */
+export const NATIONAL_INVENTORY_SOURCE =
+  "2026년 국가 온실가스 인벤토리(1990~2024, 2006 IPCC 지침), 온실가스종합정보센터";
+export const NATIONAL_INVENTORY_URL =
+  "https://www.gir.go.kr/home/board/read.do?menuId=36&boardId=91&boardMasterId=2";
+
+const num = (text: string): InfoCell => ({ text, align: "right" });
+
 export const KOREA_SECTOR_EMISSIONS_TABLE: InfoTableData = {
-  caption: "국내 분야별 온실가스 배출량 (IPCC 기준)",
+  caption: "국내 분야별 온실가스 배출량 (2006 IPCC 지침 기준)",
   unit: "백만 tCO₂eq, (비중 %)",
-  head: [["분야", "1990년", "2018년"]],
+  head: [["분야", "1990년", "2018년", "2024년"]],
   rows: [
-    [
-      { text: "총배출량", emphasis: true, th: true },
-      { text: "292.2", align: "right" },
-      { text: "727.6", align: "right" },
-    ],
-    [
-      { text: "순배출량", emphasis: true, th: true },
-      { text: "254.4", align: "right" },
-      { text: "686.3", align: "right" },
-    ],
-    ["에너지", { text: "240.4 (82.3)", align: "right" }, { text: "632.4 (86.9)", align: "right" }],
-    [
-      "　전기·열·석유정제",
-      { text: "48.4 (16.6)", align: "right" },
-      { text: "287.6 (39.5)", align: "right" },
-    ],
-    [
-      "　제조업·건설업",
-      { text: "76.6 (26.2)", align: "right" },
-      { text: "186.6 (25.6)", align: "right" },
-    ],
-    ["　수송", { text: "35.5 (12.2)", align: "right" }, { text: "98.1 (13.5)", align: "right" }],
-    [
-      "　가정·상업 등",
-      { text: "74.8 (25.6)", align: "right" },
-      { text: "55.6 (7.6)", align: "right" },
-    ],
-    ["　탈루", { text: "5.1 (1.7)", align: "right" }, { text: "4.5 (0.6)", align: "right" }],
-    ["산업공정", { text: "20.4 (7.0)", align: "right" }, { text: "57.0 (7.8)", align: "right" }],
-    ["농업", { text: "21.0 (7.2)", align: "right" }, { text: "21.2 (2.9)", align: "right" }],
-    ["폐기물", { text: "10.4 (3.6)", align: "right" }, { text: "17.1 (2.3)", align: "right" }],
-    ["LULUCF", { text: "-37.8", align: "right" }, { text: "-41.3", align: "right" }],
+    [{ text: "총배출량", emphasis: true, th: true }, num("309.6"), num("778.9"), num("691.6")],
+    [{ text: "순배출량", emphasis: true, th: true }, num("270.5"), num("737.3"), num("646.8")],
+    ["에너지", num("233.9 (75.5)"), num("612.3 (78.6)"), num("527.9 (76.3)")],
+    ["　전기·열·석유정제", num("42.0 (13.6)"), num("297.7 (38.2)"), num("237.3 (34.3)")],
+    ["　제조업·건설업", num("71.6 (23.1)"), num("155.8 (20.0)"), num("142.8 (20.6)")],
+    ["　수송", num("36.5 (11.8)"), num("98.9 (12.7)"), num("97.4 (14.1)")],
+    ["　가정·상업 등", num("72.6 (23.4)"), num("53.0 (6.8)"), num("44.3 (6.4)")],
+    ["　미분류", num("0.2 (0.1)"), num("3.1 (0.4)"), num("2.9 (0.4)")],
+    ["　탈루", num("11.0 (3.6)"), num("3.7 (0.5)"), num("3.2 (0.5)")],
+    ["산업공정 및 제품 사용", num("37.5 (12.1)"), num("124.5 (16.0)"), num("123.3 (17.8)")],
+    ["농업", num("24.7 (8.0)"), num("22.4 (2.9)"), num("22.0 (3.2)")],
+    ["폐기물", num("13.5 (4.4)"), num("19.7 (2.5)"), num("18.4 (2.7)")],
+    ["LULUCF", num("-39.1"), num("-41.6"), num("-44.8")],
   ],
   notes: [
     "※ 총배출량: LULUCF(Land Use, Land-Use Change and Forestry: 토지이용, 토지이용 변화 및 임업) 분야를 제외한 배출량",
     "※ 순배출량: LULUCF 분야의 배출원 및 흡수원을 포함한 배출량",
+    "※ 2025년 공표부터 산정 기준이 1996 IPCC 지침에서 2006 IPCC 지침으로 바뀌어 과거 연도 값도 다시 산정되었습니다(예: 2018년 총배출량 727.6 → 778.9백만 tCO₂eq). 소수점 반올림으로 합계가 맞지 않을 수 있습니다.",
   ],
-  minWidth: "min-w-[420px]",
+  source: NATIONAL_INVENTORY_SOURCE,
+  minWidth: "min-w-[520px]",
 };
 
-/** 분야별 배출량(2018) 도표 — 위 표의 에너지 세부·산업공정·농업·폐기물 */
+/** 분야별 배출량 비교 도표 — 위 표의 에너지 세부·산업공정·농업·폐기물 */
 export const KOREA_SECTOR_EMISSIONS_CHART: StaticChart = {
-  title: "국내 분야별 온실가스 배출량 비교 (1990년·2018년)",
+  title: "국내 분야별 온실가스 배출량 비교 (1990년·2018년·2024년)",
   unit: "백만 tCO₂eq",
   chartType: "bar",
   categoryLabel: "분야",
-  series: ["1990년", "2018년"],
+  series: ["1990년", "2018년", "2024년"],
   rows: [
-    { label: "전기·열", values: [48.4, 287.6] },
-    { label: "제조·건설", values: [76.6, 186.6] },
-    { label: "수송", values: [35.5, 98.1] },
-    { label: "가정·상업", values: [74.8, 55.6] },
-    { label: "산업공정", values: [20.4, 57.0] },
-    { label: "농업", values: [21.0, 21.2] },
-    { label: "폐기물", values: [10.4, 17.1] },
+    { label: "전기·열·정제", values: [42.0, 297.7, 237.3] },
+    { label: "제조·건설", values: [71.6, 155.8, 142.8] },
+    { label: "수송", values: [36.5, 98.9, 97.4] },
+    { label: "가정·상업", values: [72.6, 53.0, 44.3] },
+    { label: "산업공정", values: [37.5, 124.5, 123.3] },
+    { label: "농업", values: [24.7, 22.4, 22.0] },
+    { label: "폐기물", values: [13.5, 19.7, 18.4] },
   ],
+  source: NATIONAL_INVENTORY_SOURCE,
+  sourceUrl: NATIONAL_INVENTORY_URL,
 };
 
 export const WORLD_RANKING = {
@@ -386,11 +391,67 @@ export const NATIONAL_STRATEGY = {
   source: "국가 탄소중립·녹색성장 기본계획(안)",
 } as const;
 
-/** 정부 탄소중립 목표(막대 그래프 이미지)를 도표 데이터로 */
+/**
+ * 국가 온실가스 감축목표 — 2030 NDC 이후 확정·법제화된 목표 (ISSUES.md CONTENT-008).
+ * 2035 NDC 는 2025.11.11 국무회의 확정, 2040·2045 범위는 2026.8.26 탄소중립기본법 개정.
+ */
+export const NATIONAL_GHG_TARGETS = {
+  summary:
+    "정부는 2030년 40% 감축 목표에 이어 2035년 국가 온실가스 감축목표(NDC)를 2018년 대비 53~61%로 확정해 유엔에 제출했습니다. 2026년 8월에는 「탄소중립기본법」을 개정해 2035년 목표를 법에 담고, 2040년·2045년 목표를 정할 범위도 정했습니다.",
+  targets: [
+    {
+      year: "2030",
+      rate: "40%",
+      basis: "2030 NDC (2021년 상향), 제1차 국가 탄소중립·녹색성장 기본계획",
+    },
+    {
+      year: "2035",
+      rate: "53~61%",
+      basis: "2035 NDC (2025년 11월 확정, 유엔 제출), 탄소중립기본법 명시",
+    },
+    {
+      year: "2040",
+      rate: "69~80%",
+      basis: "범위 안에서 2031년 6월까지 대통령령으로 확정 (탄소중립기본법 개정)",
+    },
+    {
+      year: "2045",
+      rate: "84~90%",
+      basis: "범위 안에서 2036년 6월까지 대통령령으로 확정 (탄소중립기본법 개정)",
+    },
+  ],
+  sectors: {
+    title: "2035 NDC 부문별 감축률 (2018년 대비)",
+    items: [
+      { label: "전력", value: "68.8~75.3%" },
+      { label: "수송", value: "60.2~62.8%" },
+      { label: "건물", value: "53.6~56.2%" },
+      { label: "산업", value: "24.3~31%" },
+    ],
+    note: "2018년 순배출량 7억 4,230만 톤 기준입니다. 냉매(수소불화탄소)는 2035 NDC 부터 별도 부문으로 관리합니다.",
+  },
+  sources: [
+    {
+      label:
+        "대한민국 정책브리핑, 탄소중립위 2035년까지 '온실가스 53~61% 감축안' 의결 (2025. 11. 10.)",
+      url: "https://www.korea.kr/news/policyNewsView.do?newsId=148954505",
+    },
+    {
+      label: "뉴시스, 2035년 온실가스 감축 목표 '53~61%' 확정 — 부문별 감축률 (2025. 11. 10.)",
+      url: "https://www.newsis.com/view/NISX20251110_0003397350",
+    },
+    {
+      label: "아주경제, '2035년 NDC 53~61%' 탄소중립기본법 개정안 국회 통과 (2026. 8. 26.)",
+      url: "https://www.ajunews.com/view/20260826160058862",
+    },
+  ],
+} as const;
+
+/** 정부 탄소중립 목표(막대 그래프 이미지)를 도표 데이터로 — 제1차 국가 기본계획(2023) 기준 */
 export const NATIONAL_TARGET_CHART: StaticChart = {
   title: "정부 탄소중립 목표",
   description:
-    "2030년 순배출량 436.6백만 톤(2018년 대비 40% 감축), 2050년 순배출량 0(100% 감축)을 목표로 합니다.",
+    "2030년 순배출량 436.6백만 톤(2018년 대비 40% 감축), 2050년 순배출량 0(100% 감축)을 목표로 합니다. 제1차 국가 탄소중립·녹색성장 기본계획(2023년) 기준이며, 2018년 배출량은 당시 공표값(1996 IPCC 지침)입니다.",
   unit: "백만 톤",
   chartType: "bar",
   categoryLabel: "연도",
@@ -401,6 +462,7 @@ export const NATIONAL_TARGET_CHART: StaticChart = {
     { label: "2050(A안)", values: [80.4, -80.4, 0] },
     { label: "2050(B안)", values: [117.3, -117.3, 0] },
   ],
+  source: "제1차 국가 탄소중립·녹색성장 기본계획 (2023. 4.)",
 };
 
 export const NATIONAL_SCENARIO_TABLE: InfoTableData = {
@@ -535,6 +597,77 @@ export const CHUNGNAM_TARGETS_DATA: StaticChart = {
   source: CHUNGNAM_2045.source,
 };
 
+/**
+ * 기본계획 이행점검 실적 — 공개된 자료만 싣는다 (ISSUES.md CONTENT-008).
+ * 2025년 부문별 값은 기후에너지환경부 「제2차 시·도 탄소중립 녹색성장 기본계획
+ * 2025년도 추진상황 점검 결과 종합보고서」 61쪽(충청남도), 연도별 합계는 충청남도 발표.
+ * 도 내부 회의자료(2026년 중간점검 결과(안))의 수치는 공개 전이라 싣지 않는다.
+ */
+export const CHUNGNAM_PLAN_PROGRESS = {
+  yearly: [
+    {
+      year: "2024",
+      value: "136만 9,900톤",
+      rate: "105.8%",
+      detail: "목표 129만 4,800톤 대비",
+    },
+    {
+      year: "2025",
+      value: "133만 9,100톤",
+      rate: "101%",
+      detail: "목표 132만 6,300톤 대비",
+    },
+  ],
+  yearlyNote:
+    "충청남도 발표 기준으로, 건물·수송·농축수산·폐기물·흡수원 부문 감축량과 기존 흡수원(산림 등) 흡수량을 합친 값입니다. 2018년 이후 누적 감축량은 2024년까지 214만 500톤(누적 목표 대비 103.6%)입니다.",
+  yearlySources: [
+    {
+      label: "충청남도 보도자료, 온실가스 137만톤 감축…목표 105.8% 달성 (2025. 4. 18.)",
+      url: "https://www.chungnam.go.kr/cnportal/cnapcPressList/cnapcPress/view.do?nttId=2156035&menuNo=500498&pageIndex=1",
+    },
+    {
+      label:
+        "매일일보, 충남도 '2026년 탄소중립·녹색성장 기본계획 추진상황 보고회' 개최 (2026. 4. 20.)",
+      url: "https://www.m-i.kr/news/articleView.html?idxno=1365868",
+    },
+  ],
+  table: {
+    caption: "2025년 부문별 온실가스 감축 실적 (정부 점검 결과)",
+    unit: "천 tCO₂eq",
+    head: [["부문", "2025년 목표", "2025년 실적", "달성률", "2030년 누적 목표 대비"]],
+    rows: [
+      [
+        { text: "합계", emphasis: true, th: true },
+        { text: "395.1", align: "right", emphasis: true },
+        { text: "399.4", align: "right", emphasis: true },
+        { text: "101.1%", align: "right", emphasis: true },
+        { text: "23.2%", align: "right", emphasis: true },
+      ],
+      ...(
+        [
+          ["건물", "185.8", "192.3", "103.5%", "18.2%"],
+          ["수송", "29.8", "26.9", "90.2%", "58.2%"],
+          ["농축수산", "0.6", "1.7", "282.5%", "82.9%"],
+          ["폐기물", "123.7", "131.2", "106.1%", "59.4%"],
+          ["흡수원", "55.2", "47.3", "85.7%", "21.1%"],
+        ] as const
+      ).map(([name, ...vals]): InfoCell[] => [
+        name,
+        ...vals.map((v): InfoCell => ({ text: v, align: "right" })),
+      ]),
+    ],
+    notes: [
+      "※ 기존 흡수원(산림 등) 흡수량을 뺀 값입니다. 정부 점검 결과의 '예상감축량'을 실적으로 표기했습니다.",
+      "※ 2030년 누적 목표 대비: 기본계획(2024년 수립)의 2030년까지 누적 목표감축량 대비 2025년까지 누적 감축량 비율",
+      "※ 2025년 감축사업 집행예산은 1조 72억 원(국비 4,431억 원, 도비 2,561억 원, 시·군비 2,560억 원, 민간 등 520억 원), 과제 이행률은 83.3%입니다.",
+    ],
+    minWidth: "min-w-[560px]",
+  } satisfies InfoTableData,
+  tableSource:
+    "기후에너지환경부, 제2차 시·도 탄소중립 녹색성장 기본계획 2025년도 추진상황 점검 결과 종합보고서",
+  tableUrl: "https://www.mcee.go.kr/home/web/policy_data/read.do?menuId=10259&seq=8690",
+};
+
 /* ───────────────────────── 3. 배출현황 ───────────────────────── */
 
 const GIR_SOURCE = "2022 지역별 온실가스 인벤토리, 온실가스종합정보센터";
@@ -550,20 +683,38 @@ export const CHUNGNAM_EMISSION_DEFINITIONS = [
   },
 ] as const;
 
+/** 충남 지역 인벤토리 — 출처 (ISSUES.md CONTENT-008) */
+export const REGIONAL_INVENTORY_SOURCE =
+  "2025년 지역 온실가스 인벤토리(2010~2023), 온실가스종합정보센터";
+export const REGIONAL_INVENTORY_URL =
+  "https://www.gir.go.kr/home/board/read.do?menuId=36&boardId=89&boardMasterId=2";
+
+/**
+ * 충남 직접·간접 배출량 — 지역 인벤토리 '충남_광역(vkt)' 시트의 총배출량(직접)과
+ * 간접(전력·열) 합계를 백만 톤으로 옮긴 값 (2006 IPCC 지침, 2025.12 공표).
+ */
 export const CHUNGNAM_DIRECT_INDIRECT_CHART: StaticChart = {
-  title: "충청남도 직접·간접 배출량 (2016~2020)",
+  title: "충청남도 직접·간접 배출량 (2016~2023)",
+  description:
+    "2023년 직접배출량은 137.91백만 tCO₂eq로 2018년(164.67)보다 16.3% 줄었습니다. 충남 직접배출량은 같은 해 국가 총배출량의 약 20%입니다.",
   unit: "백만 tCO₂eq",
   chartType: "bar",
   categoryLabel: "연도",
   series: ["직접배출량", "간접배출량"],
   rows: [
-    { label: "2016", values: [149.72, 28.69] },
-    { label: "2017", values: [161.11, 31.17] },
-    { label: "2018", values: [159.26, 31.76] },
-    { label: "2019", values: [154.45, 29.6] },
-    { label: "2020", values: [144.41, 25.62] },
+    { label: "2016", values: [154.51, 26.68] },
+    { label: "2017", values: [167.15, 30.45] },
+    { label: "2018", values: [164.67, 31.69] },
+    { label: "2019", values: [157.78, 30.44] },
+    { label: "2020", values: [146.02, 26.37] },
+    { label: "2021", values: [146.19, 25.46] },
+    { label: "2022", values: [141.92, 25.11] },
+    { label: "2023", values: [137.91, 23.9] },
   ],
-  source: GIR_SOURCE,
+  notes:
+    "간접배출량은 외부에서 공급받은 전력·열 사용에 따른 배출량이며, 도로수송은 주행거리(VKT) 기준입니다.\n2025년 공표부터 2006 IPCC 지침으로 산정 기준이 바뀌어 2016~2020년 값도 이전 공표값과 다릅니다.",
+  source: REGIONAL_INVENTORY_SOURCE,
+  sourceUrl: REGIONAL_INVENTORY_URL,
 };
 
 export const CHUNGNAM_TOTAL_NOTES = [
