@@ -1,5 +1,6 @@
 import { StaticChartCard } from "@/components/charts/static-chart-card";
 import { InfoTable } from "@/components/content/info-table";
+import { PageToc } from "@/components/content/page-toc";
 import { MenuLink } from "@/components/layout/menu-link";
 import {
   CHUNGNAM_EMISSION_DEFINITIONS,
@@ -19,6 +20,15 @@ import { navMetadata } from "@/lib/seo";
 
 export const metadata = navMetadata("/carbon-neutral/emissions");
 
+/** 목차 항목 — id 는 각 구역(section)의 id 와 같다 */
+const SECTIONS = [
+  { id: "profile", title: "충남의 배출 특성" },
+  { id: "status", title: "온실가스 배출 현황" },
+  { id: "total", title: "총배출량 현황" },
+  { id: "local", title: "지자체 관리권한 부문별 배출량" },
+  { id: "outlook", title: "부문별 배출량 전망" },
+] as const;
+
 export default async function Page() {
   // 표·도표 수치는 관리자 > 도표 관리 '홈페이지에 고정된 도표·자료'에서 수정한다
   const [total, directIndirect, outlook] = await Promise.all([
@@ -28,7 +38,9 @@ export default async function Page() {
   ]);
   return (
     <div className="space-y-10">
-      <section aria-labelledby="profile-heading">
+      <PageToc items={SECTIONS} inlineGridClassName="sm:grid-cols-2 lg:grid-cols-3" />
+
+      <section id="profile" aria-labelledby="profile-heading" className="scroll-mt-28">
         <h2 id="profile-heading" className="mb-3 text-xl font-bold">
           충남의 배출 특성
         </h2>
@@ -54,7 +66,7 @@ export default async function Page() {
           설계 방향을 검토하고 있습니다.
         </p>
       </section>
-      <section aria-labelledby="status-heading" className="space-y-5">
+      <section id="status" aria-labelledby="status-heading" className="scroll-mt-28 space-y-5">
         <h2 id="status-heading" className="text-xl font-bold">
           충청남도 온실가스 배출 현황
         </h2>
@@ -69,7 +81,7 @@ export default async function Page() {
         <StaticChartCard chart={directIndirect} />
       </section>
 
-      <section aria-labelledby="total-heading" className="space-y-5">
+      <section id="total" aria-labelledby="total-heading" className="scroll-mt-28 space-y-5">
         <h2 id="total-heading" className="text-xl font-bold">
           충청남도 온실가스 총배출량 현황
         </h2>
@@ -93,14 +105,14 @@ export default async function Page() {
         <StaticChartCard chart={chungnamTotalChart(total)} />
       </section>
 
-      <section aria-labelledby="local-heading" className="space-y-5">
+      <section id="local" aria-labelledby="local-heading" className="scroll-mt-28 space-y-5">
         <h2 id="local-heading" className="text-xl font-bold">
           지자체 관리권한 부문별 배출량
         </h2>
         <StaticChartCard chart={chungnamLocalChart(total)} />
       </section>
 
-      <section aria-labelledby="outlook-heading" className="space-y-5">
+      <section id="outlook" aria-labelledby="outlook-heading" className="scroll-mt-28 space-y-5">
         <h2 id="outlook-heading" className="text-xl font-bold">
           지자체 관리권한 부문별 배출량 전망
         </h2>
