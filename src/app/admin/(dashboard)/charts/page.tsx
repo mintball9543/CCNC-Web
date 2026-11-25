@@ -3,7 +3,8 @@ import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminSuspense } from "@/components/admin/admin-suspense";
 import { requireAdmin } from "@/lib/auth/guard";
 import { CONTENT_TABLES, SYSTEM_CHARTS } from "@/lib/config/charts";
-import { allSystemChartDefaults } from "@/lib/content/system-charts";
+import { differsFromTableDefault } from "@/lib/content/content-tables";
+import { allSystemChartDefaults, differsFromSystemDefault } from "@/lib/content/system-charts";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 import { formatDate } from "@/lib/utils/format";
 
@@ -24,6 +25,15 @@ export default function ChartsAdminPage() {
 }
 
 const TH = "px-4 py-3";
+
+/** 저장된 값이 코드에 넣어 둔 최신 공식 자료와 다를 때 */
+function NewOfficialBadge() {
+  return (
+    <span className="mt-1 block w-fit rounded-md bg-primary-soft px-2 py-0.5 text-xs font-semibold text-primary">
+      최신 공식 자료와 다름 — 열어서 확인
+    </span>
+  );
+}
 
 async function Content() {
   await requireAdmin();
@@ -80,6 +90,7 @@ async function Content() {
                       >
                         {system.label}
                       </Link>
+                      {differsFromSystemDefault(system.slug, c) && <NewOfficialBadge />}
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <ul>
@@ -142,6 +153,9 @@ async function Content() {
                     >
                       {config.label}
                     </Link>
+                    {saved && differsFromTableDefault(config.slug, saved.value) && (
+                      <NewOfficialBadge />
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm">{config.usedIn}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">

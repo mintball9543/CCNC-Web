@@ -6,6 +6,8 @@ import { recordAudit } from "@/lib/audit/record";
 import { requireAdmin } from "@/lib/auth/guard";
 import { cacheTags } from "@/lib/cache/tags";
 import { contentTableOf, systemChartOf, type SystemChart } from "@/lib/config/charts";
+import { contentTableDefault } from "@/lib/content/content-tables";
+import { systemChartDefault } from "@/lib/content/system-charts";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 import { formDataToObject, validationError } from "@/lib/validation/common";
 import {
@@ -141,6 +143,43 @@ async function saveSystemChart(
     action: "chart.update",
     target: `chart_datasets:${current.id}`,
     summary: `도표 수정: ${data.title} (${data.rows.length}행, 홈페이지 고정 자료 '${system.label}')`,
+  });
+  updateTag(cacheTags.charts);
+  redirect("/admin/charts");
+}
+
+/**
+ * 홈페이지에 고정된 도표·자료를 코드에 넣어 둔 최신 공식 값으로 바꾼다.
+ * 새 공식 통계로 처음 값(carbon-info.ts)을 고친 뒤, 이미 DB 에 저장된 자료를 갱신할 때 쓴다.
+ */
+export async function resetSystemChartAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const id = Number(formData.get("id"));
+  const existing = Number.isInteger(id) && id > 0 ? await settingsRepository.findChart(id) : null;
+  const system = existing ? systemChartOf(existing.slug) : null;
+  if (!existing || !system) redirect("/admin/charts");
+  const values = systemChartDefault(system.slug);
+  await settingsRepository.saveChart(existing.id, { ...values, sortOrder: existing.sortOrder });
+  await recordAudit({
+    action: "chart.reset",
+    target: `chart_datasets:${existing.id}`,
+    summary: `도표 최신 공식 값으로 변경: ${system.label} (${values.rows.length}행)`,
+  });
+  updateTag(cacheTags.charts);
+  redirect("/admin/charts");
+}
+
+/** 홈페이지 글자 표를 코드에 넣어 둔 최신 공식 표로 바꾼다 */
+export async function resetContentTableAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const config = contentTableOf(String(formData.get("slug") ?? ""));
+  if (!config) redirect("/admin/charts");
+  const table = contentTableDefault(config.slug);
+  await settingsRepository.saveContentTable(config.slug, table);
+  await recordAudit({
+    action: "table.reset",
+    target: `site_settings:table:${config.slug}`,
+    summary: `표 최신 공식 값으로 변경: ${config.label} (${table.rows.length}행 × ${table.head.length}열)`,
   });
   updateTag(cacheTags.charts);
   redirect("/admin/charts");

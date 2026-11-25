@@ -89,3 +89,8 @@ export function contentTableDefault(slug: ContentTableSlug): ContentTable {
 export function contentTableMinWidth(slug: ContentTableSlug): string {
   return DEFAULTS[slug].minWidth;
 }
+
+/** 저장된 표가 코드에 넣어 둔 최신 공식 표(처음 값)와 다른지 */
+export function differsFromTableDefault(slug: ContentTableSlug, saved: ContentTable): boolean {
+  return JSON.stringify(saved) !== JSON.stringify(contentTableDefault(slug));
+}

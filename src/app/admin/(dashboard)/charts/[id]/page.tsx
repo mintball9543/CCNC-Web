@@ -2,8 +2,11 @@ import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminSuspense } from "@/components/admin/admin-suspense";
 import { ChartEditor } from "@/components/admin/chart-editor";
+import { OfficialDefaultNotice } from "@/components/admin/official-default-notice";
+import { resetSystemChartAction } from "@/lib/actions/content.actions";
 import { requireAdmin } from "@/lib/auth/guard";
 import { systemChartOf } from "@/lib/config/charts";
+import { differsFromSystemDefault, systemChartDefault } from "@/lib/content/system-charts";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 
 export const metadata = { title: "도표 수정" };
@@ -25,6 +28,12 @@ async function Content({ params }: PageProps<"/admin/charts/[id]">) {
   return (
     <>
       <AdminPageHeader title={`도표 수정 — ${system.label}`} />
+      <OfficialDefaultNotice
+        differs={differsFromSystemDefault(system.slug, chart)}
+        action={resetSystemChartAction}
+        hidden={{ name: "id", value: String(chart.id) }}
+        source={systemChartDefault(system.slug).source || undefined}
+      />
       <ChartEditor chart={chart} system={system} />
     </>
   );

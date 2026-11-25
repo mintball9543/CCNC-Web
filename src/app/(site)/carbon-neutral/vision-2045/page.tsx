@@ -1,5 +1,6 @@
+import { InfoTable } from "@/components/content/info-table";
 import { MenuLink } from "@/components/layout/menu-link";
-import { CHUNGNAM_2045 } from "@/lib/content/carbon-info";
+import { CHUNGNAM_2045, CHUNGNAM_PLAN_PROGRESS } from "@/lib/content/carbon-info";
 import { projectHref } from "@/lib/content/center-plan";
 import { carbonPlan, carbonPlanGoal, carbonPlanMilestones } from "@/lib/content/home-carbon";
 import { SYSTEM_CHART_SLUGS } from "@/lib/config/charts";
@@ -90,6 +91,50 @@ export default async function Page() {
         </p>
         <p className="mt-2 text-xs text-muted-foreground">자료: {CHUNGNAM_2045.source}</p>
       </section>
+      <section aria-labelledby="progress-heading" className="space-y-5">
+        <h2 id="progress-heading" className="text-xl font-bold">
+          기본계획 이행 실적
+        </h2>
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {CHUNGNAM_PLAN_PROGRESS.yearly.map((y) => (
+            <li key={y.year} className="rounded-2xl border border-border p-5">
+              <p className="text-sm font-semibold text-muted-foreground">
+                {y.year}년 온실가스 감축량
+              </p>
+              <p className="mt-1 text-2xl font-bold tabular-nums">{y.value}</p>
+              <p className="mt-1 text-sm">
+                {y.detail} <strong className="text-primary tabular-nums">{y.rate}</strong> 달성
+              </p>
+            </li>
+          ))}
+        </ul>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {CHUNGNAM_PLAN_PROGRESS.yearlyNote}
+        </p>
+        <InfoTable table={CHUNGNAM_PLAN_PROGRESS.table} />
+        <ul className="space-y-1 text-xs text-muted-foreground">
+          {[
+            {
+              label: `${CHUNGNAM_PLAN_PROGRESS.tableSource} (원문)`,
+              url: CHUNGNAM_PLAN_PROGRESS.tableUrl,
+            },
+            ...CHUNGNAM_PLAN_PROGRESS.yearlySources,
+          ].map((src) => (
+            <li key={src.url}>
+              자료:{" "}
+              <a
+                href={src.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-primary"
+              >
+                {src.label}
+                <span className="sr-only"> (새 창)</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
       <section aria-labelledby="plan-implementation-heading">
         <h2 id="plan-implementation-heading" className="mb-4 text-xl font-bold">
           기본계획의 이행과 재수립
@@ -118,7 +163,7 @@ export default async function Page() {
             </p>
           </li>
         </ul>
-      </section>{" "}
+      </section>
     </div>
   );
 }
