@@ -30,7 +30,14 @@ function currentSection(items: readonly TocItem[]) {
  *   - 데스크톱(lg 이상): 왼쪽 메뉴 자리에 세로형 목차 (현재 구역 강조)
  *   - 모바일·태블릿: 본문을 가리지 않도록 왼쪽 아래 '목차' 버튼 → 눌렀을 때만 목록 표시
  */
-export function PageToc({ items }: { items: readonly TocItem[] }) {
+export function PageToc({
+  items,
+  inlineGridClassName = "sm:grid-cols-4",
+}: {
+  items: readonly TocItem[];
+  /** 본문 위 가로형 목차의 열 구성 (항목 수에 맞춰 조정) */
+  inlineGridClassName?: string;
+}) {
   const inlineRef = useRef<HTMLElement>(null);
   const [inlineHidden, setInlineHidden] = useState(false);
   const [active, setActive] = useState<string | null>(null);
@@ -89,7 +96,7 @@ export function PageToc({ items }: { items: readonly TocItem[] }) {
     <>
       {/* 본문 위 가로형 목차 */}
       <nav ref={inlineRef} aria-label="이 페이지의 내용" className="rounded-2xl bg-muted/60 p-5">
-        <ol className="grid gap-2 sm:grid-cols-4">
+        <ol className={cn("grid gap-2", inlineGridClassName)}>
           {items.map((s, i) => (
             <li key={s.id}>
               <a
