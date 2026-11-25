@@ -3,6 +3,7 @@ import { MAX_SERIES } from "@/lib/charts/limits";
 import { SYSTEM_CHARTS, SYSTEM_CHART_SLUGS, systemChartOf } from "@/lib/config/charts";
 import { chungnamLocalChart, chungnamTotalChart } from "./emission-views";
 import {
+  CHUNGNAM_2045,
   CHUNGNAM_DIRECT_INDIRECT_CHART,
   CHUNGNAM_LOCAL_OUTLOOK_DATA,
   CHUNGNAM_TOTAL_DATA,
@@ -11,6 +12,13 @@ import {
   SECTOR_TARGETS,
   sectorTaskSummary,
 } from "./carbon-info";
+
+describe("2045 비전", () => {
+  it("현 도정 슬로건을 쓰고 이전 슬로건 '힘쎈'은 쓰지 않는다", () => {
+    expect(CHUNGNAM_2045.vision).toContain("통(通)하는 충남");
+    expect(CHUNGNAM_2045.vision).not.toContain("힘쎈");
+  });
+});
 
 describe("부문별 감축목표", () => {
   it("과제·세부사업 수가 기존 홈페이지 표기와 같다", () => {
