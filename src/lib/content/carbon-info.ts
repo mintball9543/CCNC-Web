@@ -786,7 +786,8 @@ export interface SectorTarget {
   tasks: SectorTask[];
 }
 
-const IND_HEAD: InfoCell[][] = [["지표(안)", "단위", "현재", "2033년", "2045년", "비고"]];
+// 기본계획 원문 표의 '현재' 열은 계획 수립 당시 값이다 (홈페이지에서 최신 값으로 오해하지 않도록 이름을 바꿈)
+const IND_HEAD: InfoCell[][] = [["지표(안)", "단위", "수립 당시", "2033년", "2045년", "비고"]];
 
 export const SECTOR_INDICATOR_HEAD = IND_HEAD;
 
@@ -1434,6 +1435,75 @@ export const SECTOR_TARGETS: SectorTarget[] = [
 ];
 
 export const SECTOR_SOURCE = "충청남도 2045 탄소중립 녹색성장 기본계획";
+
+export const SECTOR_INTRO_NOTE =
+  "아래 부문별 목표와 과제는 2024년에 수립한 「충청남도 2045 탄소중립 녹색성장 기본계획」(2024~2033) 내용입니다. 기본계획은 아직 개정되지 않아 2033년·2045년 목표는 그대로 유효합니다. 주요지표의 '수립 당시' 값은 계획을 세울 때의 값이며, 공개된 최근 추진 현황은 각 부문의 '최근 추진 현황'에 따로 적었습니다.";
+
+export type SectorRecentStatus = {
+  title: string;
+  items: { label: string; value: string; detail?: string }[];
+  note?: string;
+  sources: { label: string; url: string }[];
+};
+
+const PROGRESS_SOURCE = {
+  label: CHUNGNAM_PLAN_PROGRESS.tableSource,
+  url: CHUNGNAM_PLAN_PROGRESS.tableUrl,
+};
+
+/** 정부 점검 결과의 2025년 부문 감축 실적 (CHUNGNAM_PLAN_PROGRESS.table 과 같은 값) */
+function sectorProgress2025(sectorName: string): SectorRecentStatus {
+  const row = CHUNGNAM_PLAN_PROGRESS.table.rows.find((r) => r[0] === sectorName);
+  if (!row) throw new Error(`2025년 실적에 ${sectorName} 부문이 없습니다`);
+  const [target, actual, rate, cumulative] = row
+    .slice(1)
+    .map((c) => (typeof c === "string" ? c : c.text));
+  return {
+    title: "2025년 감축 실적 (정부 점검 결과)",
+    items: [
+      { label: "2025년 감축량", value: `${actual}천 tCO₂eq`, detail: `목표 ${target}천 tCO₂eq` },
+      { label: "달성률", value: rate },
+      { label: "2030년 누적 목표 대비", value: cumulative, detail: "2025년까지 누적" },
+    ],
+    note:
+      sectorName === "흡수원"
+        ? "기존 흡수원(산림 등) 흡수량을 뺀 신규 사업 감축량입니다."
+        : "도 관리 부문 감축사업의 예상감축량 기준입니다.",
+    sources: [PROGRESS_SOURCE],
+  };
+}
+
+/** 부문별 최근 추진 현황 — 공개 자료로 확인되는 부문만 (회의 자료(안) 수치는 넣지 않음) */
+export const SECTOR_RECENT_STATUS: Partial<Record<SectorTarget["key"], SectorRecentStatus>> = {
+  transition: {
+    title: "석탄화력발전 전환 현황",
+    items: [
+      {
+        label: "폐지된 도내 석탄화력",
+        value: "3기",
+        detail: "보령 1·2호기(2020년 말), 태안 1호기(2025. 12. 31.)",
+      },
+      { label: "남은 도내 석탄화력", value: "28기", detail: "전국 60기 중 가장 많음" },
+      { label: "2038년까지 폐지 예정", value: "21기", detail: "정부 계획 (전국 36기 중)" },
+    ],
+    note: "「석탄화력발전소 노동자 및 폐지지역 지원 특별법」이 2026년 8월 20일 국회 본회의를 통과했습니다. 노동자 고용안정·전직 지원, 발전소 기반시설 재활용 특례, 정의로운 전환 특구 우선 지정, 기후대응기금 등 5개 정부 재원 활용을 담고 있으며, 시행되면 기후에너지환경부 장관이 5년마다 기본계획을, 시·도지사가 매년 시행계획을 세웁니다.",
+    sources: [
+      {
+        label: "충청남도 보도자료, 불꺼진 태안1호…'특별법 통과' 화력 집중 (2025. 12. 31.)",
+        url: "https://www.chungnam.go.kr/cnportal/cnapcPressList/cnapcPress/view.do?nttId=2169740&menuNo=500498",
+      },
+      {
+        label: "충청남도 보도자료, 충남 숙원 '석탄화력특별법' 국회 본회의 통과 (2026. 8. 20.)",
+        url: "https://www.chungnam.go.kr/cnportal/cnapcPressList/cnapcPress/view.do?nttId=2182011&menuNo=500498",
+      },
+    ],
+  },
+  building: sectorProgress2025("건물"),
+  transport: sectorProgress2025("수송"),
+  agriculture: sectorProgress2025("농축수산"),
+  waste: sectorProgress2025("폐기물"),
+  sink: sectorProgress2025("흡수원"),
+};
 
 /** 'N개 과제 M개 세부사업' 문구 */
 export function sectorTaskSummary(sector: Pick<SectorTarget, "tasks">) {

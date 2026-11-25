@@ -9,6 +9,8 @@ import {
   CHUNGNAM_TOTAL_DATA,
   KOREA_SECTOR_EMISSIONS_CHART,
   NATIONAL_TARGET_CHART,
+  CHUNGNAM_PLAN_PROGRESS,
+  SECTOR_RECENT_STATUS,
   SECTOR_TARGETS,
   sectorTaskSummary,
 } from "./carbon-info";
@@ -32,6 +34,15 @@ describe("부문별 감축목표", () => {
       흡수원: "3개 과제 10개 세부사업",
       이행기반: "3개 과제 17개 세부사업",
     });
+  });
+
+  it("최근 추진 현황은 실제 부문에만 붙고, 2025년 실적은 정부 점검 표와 같다", () => {
+    const keys = new Set(SECTOR_TARGETS.map((s) => s.key));
+    for (const k of Object.keys(SECTOR_RECENT_STATUS)) expect(keys).toContain(k);
+    const waste = CHUNGNAM_PLAN_PROGRESS.table.rows.find((r) => r[0] === "폐기물")!;
+    expect(SECTOR_RECENT_STATUS.waste?.items[0].value).toBe(
+      `${(waste[2] as { text: string }).text}천 tCO₂eq`,
+    );
   });
 
   it("주요지표 행은 머리글(6열)과 열 수가 맞는다 (rowSpan 으로 이어지는 행 제외)", () => {
