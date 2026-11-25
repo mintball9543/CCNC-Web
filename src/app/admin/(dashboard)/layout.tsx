@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ExternalLink, LogOut } from "lucide-react";
 import { Suspense } from "react";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { AdminSidebarShell } from "@/components/admin/admin-sidebar-shell";
 import { BrandLockup } from "@/components/brand/brand-lockup";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Skeleton } from "@/components/ui/feedback";
@@ -15,19 +16,18 @@ import { requireAdmin } from "@/lib/auth/guard";
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
-      <aside className="border-b border-border bg-card lg:w-60 lg:shrink-0 lg:border-r lg:border-b-0">
-        <div className="flex items-center justify-between p-4 lg:block lg:p-5">
+      <AdminSidebarShell
+        brand={
           <Link href="/admin" className="block">
             <BrandLockup compact />
             <span className="sr-only">관리자 홈</span>
           </Link>
-        </div>
-        <div className="overflow-x-auto px-3 pb-4 lg:px-3">
-          <Suspense>
-            <AdminSidebar />
-          </Suspense>
-        </div>
-      </aside>
+        }
+      >
+        <Suspense>
+          <AdminSidebar />
+        </Suspense>
+      </AdminSidebarShell>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 items-center justify-end gap-2 border-b border-border bg-card px-4">
           <Link
