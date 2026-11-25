@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/auth/guard";
 import { cacheTags } from "@/lib/cache/tags";
 import { contentTableOf, systemChartOf, type SystemChart } from "@/lib/config/charts";
 import { contentTableDefault } from "@/lib/content/content-tables";
+import { systemDefaultFingerprint, tableDefaultFingerprint } from "@/lib/content/official-updates";
 import { systemChartDefault } from "@/lib/content/system-charts";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 import { formDataToObject, validationError } from "@/lib/validation/common";
@@ -139,6 +140,12 @@ async function saveSystemChart(
     showOnHome: false,
     sortOrder: current.sortOrder,
   });
+  // 저장할 때 보고 있던 공식 자료는 확인한 것으로 남긴다 (그 뒤 공식 자료가 바뀔 때만 알림)
+  await settingsRepository.saveOfficialAck(
+    "chart",
+    system.slug,
+    systemDefaultFingerprint(system.slug),
+  );
   await recordAudit({
     action: "chart.update",
     target: `chart_datasets:${current.id}`,
@@ -160,6 +167,11 @@ export async function resetSystemChartAction(formData: FormData): Promise<void> 
   if (!existing || !system) redirect("/admin/charts");
   const values = systemChartDefault(system.slug);
   await settingsRepository.saveChart(existing.id, { ...values, sortOrder: existing.sortOrder });
+  await settingsRepository.saveOfficialAck(
+    "chart",
+    system.slug,
+    systemDefaultFingerprint(system.slug),
+  );
   await recordAudit({
     action: "chart.reset",
     target: `chart_datasets:${existing.id}`,
@@ -176,12 +188,54 @@ export async function resetContentTableAction(formData: FormData): Promise<void>
   if (!config) redirect("/admin/charts");
   const table = contentTableDefault(config.slug);
   await settingsRepository.saveContentTable(config.slug, table);
+  await settingsRepository.saveOfficialAck(
+    "table",
+    config.slug,
+    tableDefaultFingerprint(config.slug),
+  );
   await recordAudit({
     action: "table.reset",
     target: `site_settings:table:${config.slug}`,
     summary: `표 최신 공식 값으로 변경: ${config.label} (${table.rows.length}행 × ${table.head.length}열)`,
   });
   updateTag(cacheTags.charts);
+  redirect("/admin/charts");
+}
+
+/** '새 공식 자료 있음' 알림 끄기 — 지금 값을 그대로 두고, 지금의 공식 자료를 확인한 것으로 남긴다 */
+export async function dismissOfficialUpdateAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const kind = formData.get("kind");
+  const slug = String(formData.get("slug") ?? "");
+  if (kind === "chart") {
+    const system = systemChartOf(slug);
+    if (system) {
+      await settingsRepository.saveOfficialAck(
+        "chart",
+        system.slug,
+        systemDefaultFingerprint(system.slug),
+      );
+      await recordAudit({
+        action: "chart.official_dismiss",
+        target: `chart_datasets:${system.slug}`,
+        summary: `새 공식 자료 알림 끔 (지금 값 유지): ${system.label}`,
+      });
+    }
+  } else if (kind === "table") {
+    const config = contentTableOf(slug);
+    if (config) {
+      await settingsRepository.saveOfficialAck(
+        "table",
+        config.slug,
+        tableDefaultFingerprint(config.slug),
+      );
+      await recordAudit({
+        action: "table.official_dismiss",
+        target: `site_settings:table:${config.slug}`,
+        summary: `새 공식 자료 알림 끔 (지금 값 유지): ${config.label}`,
+      });
+    }
+  }
   redirect("/admin/charts");
 }
 
@@ -198,6 +252,11 @@ export async function saveContentTableAction(
   const parsed = contentTableSchema.safeParse(raw);
   if (!parsed.success) return validationError(parsed.error, raw);
   await settingsRepository.saveContentTable(config.slug, parsed.data);
+  await settingsRepository.saveOfficialAck(
+    "table",
+    config.slug,
+    tableDefaultFingerprint(config.slug),
+  );
   await recordAudit({
     action: "table.update",
     target: `site_settings:table:${config.slug}`,

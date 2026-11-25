@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { asc, desc, eq, inArray, like } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   chartDatasets,
@@ -88,6 +88,38 @@ export async function saveContentTable(slug: string, value: ContentTable): Promi
   await db
     .insert(siteSettings)
     .values({ key: tableKey(slug), value })
+    .onConflictDoUpdate({ target: siteSettings.key, set: { value, updatedAt: new Date() } });
+}
+
+// ── 새 공식 자료 확인 기록 ('새 공식 자료 있음' 알림용) ─────
+export type OfficialKind = "chart" | "table";
+const ackKey = (kind: OfficialKind, slug: string) => `official-ack:${kind}:${slug}`;
+
+/** 관리자가 마지막으로 확인(저장·되돌리기·알림 끄기)한 공식 자료 지문 */
+export async function listOfficialAcks(): Promise<Map<string, string>> {
+  const rows = await db.select().from(siteSettings).where(like(siteSettings.key, "official-ack:%"));
+  return new Map(rows.map((r) => [r.key, Array.isArray(r.value) ? String(r.value[0] ?? "") : ""]));
+}
+
+export async function findOfficialAck(kind: OfficialKind, slug: string): Promise<string | null> {
+  const row = await db.query.siteSettings.findFirst({
+    where: eq(siteSettings.key, ackKey(kind, slug)),
+  });
+  return row && Array.isArray(row.value) ? String(row.value[0] ?? "") || null : null;
+}
+
+export const officialAckOf = (acks: Map<string, string>, kind: OfficialKind, slug: string) =>
+  acks.get(ackKey(kind, slug)) || null;
+
+export async function saveOfficialAck(
+  kind: OfficialKind,
+  slug: string,
+  fingerprint: string,
+): Promise<void> {
+  const value = [fingerprint];
+  await db
+    .insert(siteSettings)
+    .values({ key: ackKey(kind, slug), value })
     .onConflictDoUpdate({ target: siteSettings.key, set: { value, updatedAt: new Date() } });
 }
 
