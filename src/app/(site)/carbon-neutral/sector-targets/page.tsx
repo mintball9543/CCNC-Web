@@ -2,9 +2,12 @@ import { InfoTable } from "@/components/content/info-table";
 import { Tabs } from "@/components/ui/tabs";
 import {
   SECTOR_INDICATOR_HEAD,
+  SECTOR_INTRO_NOTE,
+  SECTOR_RECENT_STATUS,
   SECTOR_SOURCE,
   SECTOR_TARGETS,
   sectorTaskSummary,
+  type SectorRecentStatus,
   type SectorTarget,
 } from "@/lib/content/carbon-info";
 import { navMetadata } from "@/lib/seo";
@@ -30,13 +33,52 @@ function DirectionList({ title, items }: { title: string; items: string[] }) {
   );
 }
 
+function RecentStatus({ id, status }: { id: string; status: SectorRecentStatus }) {
+  return (
+    <section aria-labelledby={id}>
+      <h3 id={id} className="mb-3 text-lg font-bold">
+        최근 추진 현황{" "}
+        <span className="ml-1 text-base font-medium text-muted-foreground">{status.title}</span>
+      </h3>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {status.items.map((item) => (
+          <div key={item.label} className="rounded-2xl border border-border p-5">
+            <p className="text-sm text-muted-foreground">{item.label}</p>
+            <p className="mt-1 text-2xl font-bold text-primary">{item.value}</p>
+            {item.detail && <p className="mt-1 text-sm text-muted-foreground">{item.detail}</p>}
+          </div>
+        ))}
+      </div>
+      {status.note && <p className="mt-3 text-sm leading-relaxed">{status.note}</p>}
+      <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+        {status.sources.map((src) => (
+          <li key={src.url}>
+            자료:{" "}
+            <a
+              href={src.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-primary"
+            >
+              {src.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function SectorPanel({ sector }: { sector: SectorTarget }) {
+  const recent = SECTOR_RECENT_STATUS[sector.key];
   return (
     <div className="space-y-10">
       <div className="rounded-2xl bg-ci-navy px-6 py-7 text-white">
         <p className="text-sm opacity-80">{sector.label} 부문</p>
         <p className="mt-1 text-xl font-bold sm:text-2xl">{sector.slogan}</p>
       </div>
+
+      {recent && <RecentStatus id={`${sector.key}-recent`} status={recent} />}
 
       <section aria-labelledby={`${sector.key}-direction`}>
         <h3 id={`${sector.key}-direction`} className="mb-3 text-lg font-bold">
@@ -99,13 +141,16 @@ function SectorPanel({ sector }: { sector: SectorTarget }) {
 /** 부문별 감축목표 — 기존 8개 페이지를 한 페이지 탭으로 통합 */
 export default function Page() {
   return (
-    <Tabs
-      label="부문 선택"
-      tabs={SECTOR_TARGETS.map((sector) => ({
-        id: sector.key,
-        label: sector.label,
-        content: <SectorPanel sector={sector} />,
-      }))}
-    />
+    <div className="space-y-6">
+      <p className="rounded-2xl bg-muted px-5 py-4 text-sm leading-relaxed">{SECTOR_INTRO_NOTE}</p>
+      <Tabs
+        label="부문 선택"
+        tabs={SECTOR_TARGETS.map((sector) => ({
+          id: sector.key,
+          label: sector.label,
+          content: <SectorPanel sector={sector} />,
+        }))}
+      />
+    </div>
   );
 }
