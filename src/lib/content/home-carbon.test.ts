@@ -31,11 +31,14 @@ describe("메인 충남 탄소중립 데이터", () => {
   it("연도별 총배출량은 총배출량 표의 총계이고, 부문별 합과 0.1 이내로 맞는다", () => {
     const totals = chungnamTotals(DATA);
     expect(totals).toEqual([
-      { year: "2016", total: 79.8 },
-      { year: "2017", total: 80.9 },
-      { year: "2018", total: 82.9 },
-      { year: "2019", total: 83.0 },
-      { year: "2020", total: 78.7 },
+      { year: "2016", total: 75.8 },
+      { year: "2017", total: 80.7 },
+      { year: "2018", total: 82.7 },
+      { year: "2019", total: 81.5 },
+      { year: "2020", total: 75.6 },
+      { year: "2021", total: 75.5 },
+      { year: "2022", total: 74.7 },
+      { year: "2023", total: 72.7 },
     ]);
     DATA.rows.forEach((row, i) => {
       expect(row.label).toBe(totals[i].year);
@@ -44,7 +47,7 @@ describe("메인 충남 탄소중립 데이터", () => {
     });
   });
 
-  it("감축 경로: 실적 5년 → 2030 목표 47.3 → 2045 순배출 0", () => {
+  it("감축 경로: 실적 8년 → 2030 목표 47.1 → 2045 순배출 0", () => {
     const path = chungnamPathway(DATA, PLAN);
     expect(path.filter((p) => p.kind === "actual").map((p) => p.year)).toEqual([
       "2016",
@@ -52,10 +55,13 @@ describe("메인 충남 탄소중립 데이터", () => {
       "2018",
       "2019",
       "2020",
+      "2021",
+      "2022",
+      "2023",
     ]);
     expect(path.find((p) => p.kind === "target")).toEqual({
       year: "2030",
-      value: 47.3,
+      value: 47.1,
       kind: "target",
       rate: 43,
     });
@@ -64,9 +70,9 @@ describe("메인 충남 탄소중립 데이터", () => {
 
   it("부문별 비중은 최신 연도 기준이고 합이 100% 이다", () => {
     const { year, total, sectors } = chungnamSectorShares(DATA);
-    expect(year).toBe("2020");
-    expect(total).toBe(78.7);
-    expect(sectors[0]).toMatchObject({ sector: "산업", share: 78.9, local: false });
+    expect(year).toBe("2023");
+    expect(total).toBe(72.7);
+    expect(sectors[0]).toMatchObject({ sector: "산업", share: 75.7, local: false });
     const sum = sectors.reduce((s, x) => s + x.share, 0);
     expect(Math.abs(sum - 100)).toBeLessThan(0.2);
   });
@@ -74,15 +80,15 @@ describe("메인 충남 탄소중립 데이터", () => {
   it("관리자가 새 연도를 추가하면 최신 연도·경로가 따라 바뀐다", () => {
     const next = {
       ...DATA,
-      rows: [...DATA.rows, { label: "2021", values: [60, 7, 4.5, 3.7, 1.0, -1.0, 76.2] }],
+      rows: [...DATA.rows, { label: "2024", values: [53, 8, 4.7, 3.6, 0.9, -2.0, 70.2] }],
     };
-    expect(chungnamSectorShares(next)).toMatchObject({ year: "2021", total: 76.2 });
+    expect(chungnamSectorShares(next)).toMatchObject({ year: "2024", total: 70.2 });
     const path = chungnamPathway(next, PLAN);
     expect(path.filter((p) => p.kind === "actual").at(-1)).toEqual({
-      year: "2021",
-      value: 76.2,
+      year: "2024",
+      value: 70.2,
       kind: "actual",
     });
-    expect(path.find((p) => p.kind === "target")?.value).toBe(47.3);
+    expect(path.find((p) => p.kind === "target")?.value).toBe(47.1);
   });
 });

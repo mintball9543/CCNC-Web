@@ -75,8 +75,8 @@ describe("도표 데이터", () => {
     for (const row of chart.rows) expect(row.values).toHaveLength(chart.series.length);
   });
 
-  it("충남 부문별 합계가 원자료 총계와 같다 (반올림 오차 0.1 이내)", () => {
-    const expected = [79.8, 80.9, 82.9, 83.0, 78.7];
+  it("충남 부문별 합계가 산정 총계와 같다 (반올림 오차 0.1 이내)", () => {
+    const expected = [75.8, 80.7, 82.7, 81.5, 75.6, 75.5, 74.7, 72.7];
     CHUNGNAM_TOTAL_DATA.rows.forEach((r, i) => {
       expect(r.values[6]).toBe(expected[i]);
       const sum = r.values.slice(0, 5).reduce<number>((a, v) => a + (v ?? 0), 0);
