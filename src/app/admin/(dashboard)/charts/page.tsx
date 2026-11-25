@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminSuspense } from "@/components/admin/admin-suspense";
+import { OfficialSourceAlert } from "@/components/admin/official-source-alert";
 import { requireAdmin } from "@/lib/auth/guard";
 import { CONTENT_TABLES, SYSTEM_CHARTS } from "@/lib/config/charts";
-import { differsFromTableDefault } from "@/lib/content/content-tables";
-import { allSystemChartDefaults, differsFromSystemDefault } from "@/lib/content/system-charts";
+import { hasNewOfficialChart, hasNewOfficialTable } from "@/lib/content/official-updates";
+import { allSystemChartDefaults } from "@/lib/content/system-charts";
 import * as settingsRepository from "@/lib/repositories/settings.repository";
 import { formatDate } from "@/lib/utils/format";
 
@@ -26,11 +27,11 @@ export default function ChartsAdminPage() {
 
 const TH = "px-4 py-3";
 
-/** 저장된 값이 코드에 넣어 둔 최신 공식 자료와 다를 때 */
+/** 마지막으로 확인한 뒤 코드에 새 공식 자료가 들어왔을 때 */
 function NewOfficialBadge() {
   return (
     <span className="mt-1 block w-fit rounded-md bg-primary-soft px-2 py-0.5 text-xs font-semibold text-primary">
-      최신 공식 자료와 다름 — 열어서 확인
+      새 공식 자료 있음 — 열어서 비교
     </span>
   );
 }
@@ -40,6 +41,7 @@ async function Content() {
   // DB 에 없는 도표·자료는 기존 화면 값으로 넣어 둔다 (이미 있으면 그대로)
   await settingsRepository.ensureSystemCharts(allSystemChartDefaults());
   const charts = await settingsRepository.listCharts();
+  const acks = await settingsRepository.listOfficialAcks();
   const bySlug = new Map(charts.map((c) => [c.slug, c]));
   const tables = await Promise.all(
     CONTENT_TABLES.map(async (t) => ({
@@ -50,6 +52,7 @@ async function Content() {
 
   return (
     <div className="space-y-10">
+      <OfficialSourceAlert />
       <section aria-labelledby="charts-heading" className="space-y-3">
         <div>
           <h2 id="charts-heading" className="text-lg font-bold">
@@ -90,7 +93,11 @@ async function Content() {
                       >
                         {system.label}
                       </Link>
-                      {differsFromSystemDefault(system.slug, c) && <NewOfficialBadge />}
+                      {hasNewOfficialChart(
+                        system.slug,
+                        c,
+                        settingsRepository.officialAckOf(acks, "chart", system.slug),
+                      ) && <NewOfficialBadge />}
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <ul>
@@ -153,9 +160,12 @@ async function Content() {
                     >
                       {config.label}
                     </Link>
-                    {saved && differsFromTableDefault(config.slug, saved.value) && (
-                      <NewOfficialBadge />
-                    )}
+                    {saved &&
+                      hasNewOfficialTable(
+                        config.slug,
+                        saved.value,
+                        settingsRepository.officialAckOf(acks, "table", config.slug),
+                      ) && <NewOfficialBadge />}
                   </td>
                   <td className="px-4 py-3 text-sm">{config.usedIn}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">

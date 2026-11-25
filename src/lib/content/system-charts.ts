@@ -49,7 +49,7 @@ export function allSystemChartDefaults(): Omit<ChartDataset, "id">[] {
 }
 
 /** 비교할 내용 — 화면에 보이는 값만 (키·공개 여부·순서·수정일 제외) */
-type ChartContent = Pick<
+export type ChartContent = Pick<
   ChartDataset,
   | "title"
   | "description"
@@ -63,7 +63,8 @@ type ChartContent = Pick<
   | "sourceUrl"
 >;
 
-const contentOf = (c: ChartContent) =>
+/** 비교용 내용 문자열 (내부 키·공개 여부·순서 제외) */
+export const systemChartContentKey = (c: ChartContent) =>
   JSON.stringify([
     c.title,
     c.description ?? "",
@@ -82,5 +83,5 @@ const contentOf = (c: ChartContent) =>
  * 새 공식 자료로 처음 값을 고친 뒤, 관리자에서 '최신 공식 값으로 바꾸기'를 안내할 때 쓴다.
  */
 export function differsFromSystemDefault(slug: SystemChartSlug, saved: ChartContent): boolean {
-  return contentOf(saved) !== contentOf(systemChartDefault(slug));
+  return systemChartContentKey(saved) !== systemChartContentKey(systemChartDefault(slug));
 }
