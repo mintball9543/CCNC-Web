@@ -548,7 +548,7 @@ export const NATIONAL_SCENARIO_TABLE: InfoTableData = {
 /* ───────────────────────── 2. 충남 2045 비전·목표 ───────────────────────── */
 
 export const CHUNGNAM_2045 = {
-  vision: "대한민국 탄소중립사회를 선도하는, 힘쎈 충남",
+  vision: "대한민국 탄소중립사회를 선도하는, 통(通)하는 충남",
   // 목표 문구·이정표는 CHUNGNAM_TARGETS_DATA(관리자 '충청남도 탄소중립 목표')에서 만든다
   strategies: [
     {
