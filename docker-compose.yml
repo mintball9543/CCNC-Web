@@ -1,0 +1,23 @@
+# 로컬 시험·운영용:  docker compose up -d --build
+# 설정은 .env 에서 읽는다. (cp .env.example .env 후 AUTH_SECRET·ADMIN_PASSWORD 등 수정)
+services:
+  web:
+    build:
+      context: .
+      args:
+        # 운영 주소가 정해지면 .env 의 NEXT_PUBLIC_SITE_URL 을 바꾸고 다시 빌드한다.
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    image: ccnc-web:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # 컨테이너 안의 저장 위치는 고정한다. (.env 의 값과 무관)
+      DATABASE_URL: file:/app/data/ccnc.db
+      UPLOAD_DIR: /app/data/uploads
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    volumes:
+      - ccnc-data:/app/data
+
+volumes:
+  ccnc-data:

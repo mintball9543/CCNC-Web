@@ -45,6 +45,25 @@ npm run dev                   # http://localhost:3000
 > **git pull 후에는 항상 `npm install`(새 패키지)과 `npm run db:migrate`(새 테이블)를 먼저 실행하세요.**
 > 패키지가 빠져 있으면 `npm run dev`/`build`가 시작 전에 어떤 패키지가 없는지 알려 줍니다.
 
+### Docker 로 실행
+
+Docker(Desktop)만 있으면 Node.js 설치 없이 운영과 같은 모드로 실행할 수 있습니다. 로컬 시험과 서버 배포에 같은 방법을 씁니다.
+
+```bash
+cp .env.example .env          # AUTH_SECRET(32자 이상)·ADMIN_PASSWORD 등 수정
+docker compose up -d --build  # http://localhost:3000
+docker compose logs -f web    # 실행 기록 보기
+docker compose down           # 중지 (데이터는 남음)
+```
+
+- 컨테이너가 시작될 때마다 DB 마이그레이션을 실행하고, **처음 한 번만** `.env` 의 관리자 계정으로 시드합니다.
+- DB(`ccnc.db`)와 업로드 파일은 `ccnc-data` 볼륨의 `/app/data` 에 저장되어 컨테이너를 다시 만들어도 유지됩니다. 컨테이너 안의 `DATABASE_URL`·`UPLOAD_DIR` 은 이 위치로 고정됩니다.
+- `NEXT_PUBLIC_SITE_URL` 은 빌드할 때 들어가므로, 바꾼 뒤에는 `docker compose up -d --build` 로 다시 빌드합니다.
+- 포트를 바꾸려면 `.env` 에 `WEB_PORT=8080` 처럼 지정합니다.
+- 운영 모드라 관리자 로그인 쿠키는 HTTPS 전용입니다. `http://localhost` 는 브라우저가 예외로 허용하지만, 서버에 올릴 때는 Nginx 등으로 HTTPS 를 붙여야 로그인됩니다.
+- 기존 DB 를 넣으려면: `docker compose cp ./data/ccnc.db web:/app/data/ccnc.db` 후 `docker compose restart web`
+- 백업: `docker compose exec web node -e "require('@libsql/client').createClient({url:'file:/app/data/ccnc.db'}).execute(\"VACUUM INTO '/app/data/backup.db'\")"` 후 `docker compose cp web:/app/data/backup.db ./` (같은 이름의 backup.db 가 있으면 실패하므로 먼저 지웁니다)
+
 ### 주요 스크립트
 
 | 명령 | 설명 |
