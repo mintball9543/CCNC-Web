@@ -17,6 +17,14 @@
 
 ## 변경 이력
 
+### 2026-11-27 — Docker 실행 환경 추가
+
+**추가**
+- `Dockerfile`·`docker-compose.yml`·`.dockerignore`·`docker/entrypoint.sh`: Node.js 22 + SQLite 단일 컨테이너로 운영 모드 실행 (TECH-002)
+  - 시작 시 마이그레이션, 최초 1회만 관리자 시드(`data/.seeded` 표식), DB·업로드는 `ccnc-data` 볼륨(`/app/data`)
+  - 빌드는 임시 DB(`/tmp/build.db`)로 마이그레이션해 이미지에 DB 를 넣지 않음. `NEXT_PUBLIC_SITE_URL` 은 빌드 인자
+- README 「Docker 로 실행」 안내
+
 ### 2026-11-25 — 관리자 사이드바와 본문 스크롤 분리
 
 **변경**
